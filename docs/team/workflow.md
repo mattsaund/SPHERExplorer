@@ -22,6 +22,12 @@
 - CI runs the text check, the API tests, and the web typecheck, tests, and build on every pull request.
 - Avoid editing the same file at the same time, especially shared config such as `package.json`. Announce changes to shared contracts first.
 
+## Sharing a live preview on the local network
+
+- On the machine that runs the API, start the web app with `npm run dev:lan`. It listens on every network interface, port 5173. The API stays private and is reached through that port.
+- Other computers open `http://<that machine's LAN address>:5173`. The host's firewall must allow port 5173.
+- To work on UI without setting up Python, point your own dev server at the shared one: `API_TARGET=http://<that machine's LAN address>:5173 npm run dev`.
+
 ## Parallel sessions on one machine
 
 - `claude -w <name>` starts a session in its own git worktree under `.claude/worktrees/` (gitignored). New worktrees start without installed dependencies.

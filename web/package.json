@@ -7,6 +7,7 @@
   "description": "SPHERExplorer web app. Written with Claude Code (Anthropic) assistance.",
   "scripts": {
     "dev": "vite",
+    "dev:lan": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

@@ -5,7 +5,7 @@ import { ApiError, getMeta, resolveName, searchFrames, streamCutouts, type WireF
 import { assignSeasons, parseCoordinates, positionAt, summarizeVisits } from "./astro";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
-import type { DisplaySettings, Filters, Frame, Hover, LoadState, Meta, Player, SequenceItem, SequenceMode, SpectrumSettings, Target, Visit } from "./types";
+import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -52,7 +52,13 @@ export interface AppState {
   /** What is under the pointer in the frame view. */
   hover: Hover | null;
   spectrum: SpectrumSettings;
+  map: MapState;
+  /** A request to move the map. The map acts when `token` changes. */
+  mapGoal: { ra: number; dec: number; fov: number | null; token: number };
 }
+
+/** The all-sky cube has no image in these two channels, which sit on the dichroic edge. */
+const BLANK_CHANNELS = [50, 51];
 
 const DEFAULT_FILTERS: Filters = { detectors: [true, true, true, true, true, true], wlMin: 0.7, wlMax: 5.1 };
 const DEFAULT_DISPLAY: DisplaySettings = {
@@ -89,6 +95,22 @@ export const useStore = create<AppState>(() => ({
   follow: true,
   hover: null,
   spectrum: { log: false, perVisit: true, showPoints: true, families: [], redshift: 0 },
+  map: {
+    ready: false,
+    failure: null,
+    projection: "AIT",
+    layer: "spherex",
+    channel: 20,
+    grid: false,
+    labels: true,
+    center: { ra: 266.4, dec: -29.0 },
+    fov: 200,
+    objects: [],
+    objectsState: "idle",
+    selected: null,
+    picked: null,
+  },
+  mapGoal: { ra: 266.4, dec: -29.0, fov: 200, token: 0 },
 }));
 
 const set = useStore.setState;
@@ -291,8 +313,10 @@ export const actions = {
     ensureMeta().catch(() => set({ error: "Can't reach the SPHERExplorer server. Check your connection and try again." }));
   },
 
-  /** Study a target: search for its images, then download them. */
+  /** Study a target: search for its images, then download them. The map moves there too. */
   goTo(target: Target): void {
+    // Keep a wide map view wide enough to show context, but come in close from an all-sky view.
+    actions.flyTo(target, Math.min(get().map.fov, 2));
     void load(target, get().fieldSize);
   },
 
@@ -433,6 +457,50 @@ export const actions = {
     const index = next.sequence.findIndex((item) => item.frameIds[0] === frameId);
     if (index < 0) return;
     set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false } });
+  },
+
+  /** Change map settings: projection, layer, channel, grid, or labels. */
+  setMap(change: Partial<Pick<MapState, "projection" | "layer" | "channel" | "grid" | "labels">>): void {
+    const before = get().map;
+    const map = { ...before, ...change };
+    map.channel = Math.min(101, Math.max(0, Math.round(map.channel)));
+    if (BLANK_CHANNELS.includes(map.channel)) map.channel = map.channel >= before.channel ? 52 : 49;
+    set({ map });
+  },
+
+  /** Move the map to a position. fov is the width of the view in degrees. */
+  flyTo(position: SkyPosition, fov?: number): void {
+    set({ mapGoal: { ra: position.ra, dec: position.dec, fov: fov ?? null, token: get().mapGoal.token + 1 } });
+  },
+
+  /** Choose a known object on the map, or pass null to clear the choice. */
+  selectObject(object: SkyObject | null): void {
+    set({ map: { ...get().map, selected: object, picked: null } });
+  },
+
+  /** Choose a spot of empty sky on the map, or pass null to clear it. */
+  pick(position: SkyPosition | null): void {
+    set({ map: { ...get().map, picked: position, selected: null } });
+  },
+
+  /** Study a known object in SPHEREx images, following its motion. */
+  studyObject(object: SkyObject): void {
+    actions.goTo({
+      name: object.name,
+      ra: object.ra,
+      dec: object.dec,
+      epoch: object.epoch,
+      pmRa: object.pmRa ?? undefined,
+      pmDec: object.pmDec ?? undefined,
+      parallax: object.parallax ?? undefined,
+      kind: object.kind ?? undefined,
+      source: "SIMBAD",
+    });
+  },
+
+  /** Used by the map to report its state. */
+  mapReport(change: Partial<MapState>): void {
+    set({ map: { ...get().map, ...change } });
   },
 
   /** Used by the frame view to publish what is under the pointer. */

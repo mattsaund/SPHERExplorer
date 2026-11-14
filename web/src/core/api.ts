@@ -1,6 +1,6 @@
 // Talks to the SPHERExplorer API: metadata, search, and the binary frame stream.
 // Written with Claude Code (Anthropic) assistance.
-import type { Meta, Photometry, Target } from "./types";
+import type { Meta, Photometry, SkyObject, Target } from "./types";
 
 /** Base path of the API. Same origin by default. Set VITE_API_BASE to point elsewhere. */
 const BASE: string = import.meta.env.VITE_API_BASE ?? "/api";
@@ -30,6 +30,12 @@ export function getMeta(signal?: AbortSignal): Promise<Meta> {
 /** Look up an object by name. Rejects with a plain-language ApiError when it is not found. */
 export function resolveName(name: string, signal?: AbortSignal): Promise<Target> {
   return getJson<Target>(`/resolve?name=${encodeURIComponent(name.trim())}`, signal);
+}
+
+/** Known objects within `radius` degrees of a position, best known first. */
+export async function getObjects(ra: number, dec: number, radius: number, limit: number, signal?: AbortSignal): Promise<SkyObject[]> {
+  const body = await getJson<{ objects: SkyObject[] }>(`/objects?ra=${ra.toFixed(5)}&dec=${dec.toFixed(5)}&radius=${radius.toFixed(4)}&limit=${limit}`, signal);
+  return body.objects;
 }
 
 /** The search result as the server sends it: one array per column, rows sorted by time. */

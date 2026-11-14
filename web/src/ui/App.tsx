@@ -6,6 +6,9 @@ import {
   COLOR_MAPS,
   FrameView,
   LINE_FAMILIES,
+  PROJECTIONS,
+  SKY_LAYERS,
+  SkyMap,
   SpectrumPlot,
   TEST_TARGETS,
   Timeline,
@@ -236,6 +239,72 @@ function Readout() {
   );
 }
 
+function MapPanel() {
+  const map = useStore((s) => s.map);
+  const meta = useStore((s) => s.meta);
+  const layer = SKY_LAYERS.find((entry) => entry.id === map.layer) ?? SKY_LAYERS[0];
+  const chosen = map.selected;
+  const picked = map.picked;
+
+  return (
+    <section className="panel" aria-label="Sky map">
+      <h2>Sky map</h2>
+      <p className="muted">Drag to move, scroll to zoom. Click a label to learn about an object, or click anywhere to study that spot.</p>
+      <div className="row wrap">
+        <label>
+          Show
+          <select value={map.layer} onChange={(e) => actions.setMap({ layer: e.target.value })}>
+            {SKY_LAYERS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
+          </select>
+        </label>
+        <label>
+          Map shape
+          <select value={map.projection} onChange={(e) => actions.setMap({ projection: e.target.value })}>
+            {PROJECTIONS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
+          </select>
+        </label>
+        <label className="check"><input type="checkbox" checked={map.labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Labels</label>
+        <label className="check"><input type="checkbox" checked={map.grid} onChange={(e) => actions.setMap({ grid: e.target.checked })} /> Grid</label>
+        <button onClick={() => actions.flyTo({ ra: 266.4, dec: -29 }, 200)}>Whole sky</button>
+      </div>
+      {layer.cube && (
+        <label>
+          Color: {meta ? `${meta.channels[map.channel].toFixed(2)} µm` : `channel ${map.channel + 1}`}
+          <input className="grow" type="range" min={0} max={101} value={map.channel} onChange={(e) => actions.setMap({ channel: Number(e.target.value) })} />
+        </label>
+      )}
+      <p className="muted">{layer.mission}. {layer.light}. {layer.about}</p>
+      <div className="map">
+        <SkyMap />
+        {map.failure && <p className="problem" role="alert">{map.failure}</p>}
+      </div>
+      {chosen && (
+        <div className="card">
+          <strong>{chosen.name}</strong>
+          <span>{chosen.kind ?? "Known object"}{chosen.spectralType ? `, type ${chosen.spectralType}` : ""}</span>
+          <span className="mono">{formatRa(chosen.ra)} {formatDec(chosen.dec)}</span>
+          {chosen.refs != null && <span className="muted">Mentioned in {chosen.refs.toLocaleString("en-US")} papers</span>}
+          <div className="row wrap">
+            <button className="primary" onClick={() => actions.studyObject(chosen)}>Study in SPHEREx</button>
+            <a href={chosen.url} target="_blank" rel="noreferrer">More information</a>
+            <button onClick={() => actions.selectObject(null)}>Close</button>
+          </div>
+        </div>
+      )}
+      {picked && (
+        <div className="card">
+          <strong>Selected spot</strong>
+          <span className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</span>
+          <div className="row wrap">
+            <button className="primary" onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
+            <button onClick={() => actions.pick(null)}>Close</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SpectrumPanel() {
   const settings = useStore((s) => s.spectrum);
   return (
@@ -289,6 +358,7 @@ export function App() {
         ))}
       </nav>
       <Status />
+      <MapPanel />
       <main>
         <section className="stage" aria-label="Image viewer">
           <div className="frame">{hasTarget && <FrameView />}</div>

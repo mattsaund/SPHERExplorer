@@ -7,13 +7,15 @@ Every external resource goes here with its license and required credit. Set "In 
 | Resource | Provider | Terms | Credit or DOI | In use |
 |---|---|---|---|---|
 | SPHEREx DR1 Spectral Images | NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA | Public, no restrictions | DOI 10.26131/IRSA678 | Yes |
-| SPHEREx DR1 Spectral All-Sky Cube | Same | Same | DOI 10.26131/IRSA679 | Not yet |
+| SPHEREx DR1 Spectral All-Sky Cube | Same | Same | DOI 10.26131/IRSA679 | Yes (map base layer) |
 | SPHEREx QR3 Spectral Images | Same | Same | DOI 10.26131/IRSA662 | Yes |
 | Gaia DR3 | ESA Gaia, DPAC (via MAST, ESA, or VizieR) | Gaia credit required | Gaia Collaboration 2016, 2023 | Not yet |
 | NEOSSat astronomy data | Canadian Space Agency (CSA), CADC | Open Government Licence - Canada | Credit line below | Not yet |
 | SIMBAD | CDS, Strasbourg (or CfA and IDIA mirrors) | Credit required | Wenger et al. 2000 | Yes (name lookup) |
 | VizieR | CDS, Strasbourg (or mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Not yet |
 | UltracoolSheet | Best et al. | CC-BY-4.0 | DOI 10.5281/zenodo.15802304 | Not yet |
+
+| Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck | Each survey team, HiPS built by CDS, ESA, and IPAC | Public | Layer credits in `web/src/core/skyLayers.ts`. List at https://irsa.ipac.caltech.edu/data/hips/list | Yes (map layers) |
 
 IRSA data use terms: https://irsa.ipac.caltech.edu/data_use_terms.html
 
@@ -75,7 +77,7 @@ Add the license and version when a library goes into the build.
 | Vitest 5 | MIT | | Yes (tests) |
 | matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/colormaps.ts`) |
 | astroquery | BSD-3-Clause | Ginsburg et al. 2019 | Not yet |
-| Aladin Lite v3 (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Keep the Aladin logo and link in the view | Not yet |
+| Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
 | satellite.js | MIT | | Not yet |
 | gifenc | MIT | | Not yet |

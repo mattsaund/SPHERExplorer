@@ -45,3 +45,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .panel p { margin: 0; }
 .plot { height: 300px; }
 .plot.short { height: 170px; }
+
+.map { height: 460px; position: relative; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; background: #000;
+  --map-label: #9be8ff; --map-marker: #ff6b6b; --map-field: #ffd24a; }
+.card { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--color-accent); border-radius: var(--radius); }
+a { color: var(--color-accent); }

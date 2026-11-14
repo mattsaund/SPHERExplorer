@@ -10,11 +10,13 @@ export type {
   FrameStatus,
   Hover,
   LoadState,
+  MapState,
   Meta,
   Photometry,
   Player,
   SequenceItem,
   SequenceMode,
+  SkyObject,
   SkyPosition,
   SpectrumSettings,
   Stretch,
@@ -34,3 +36,6 @@ export { SpectrumPlot } from "./SpectrumPlot";
 export { Timeline } from "./Timeline";
 export { LINE_FAMILIES } from "./lines";
 export { abMagnitude, binSpectrum, formatFlux, spectrumOf } from "./spectrum";
+export { SkyMap } from "./SkyMap";
+export { PROJECTIONS, SKY_LAYERS } from "./skyLayers";
+export type { ProjectionId, SkyLayer } from "./skyLayers";

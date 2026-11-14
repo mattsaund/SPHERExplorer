@@ -236,3 +236,56 @@ export interface SpectrumSettings {
   /** Redshift applied to the feature marks. 0 for nearby objects. */
   redshift: number;
 }
+
+/** A known object shown on the sky map. Positions are at `epoch`, carried there by proper motion. */
+export interface SkyObject extends SkyPosition {
+  /** Catalog identifier. */
+  id: string;
+  /** Name tidied for display. */
+  name: string;
+  epoch: number;
+  /** Object type in plain words. */
+  kind: string | null;
+  /** Catalog type code, for example "BD*". */
+  code: string | null;
+  pmRa: number | null;
+  pmDec: number | null;
+  parallax: number | null;
+  redshift: number | null;
+  spectralType: string | null;
+  /** How many published papers mention it. A rough measure of fame. */
+  refs: number | null;
+  /** Visible-light and 2.2 micron magnitudes, when known. */
+  vMag: number | null;
+  kMag: number | null;
+  /** Page with full details about the object. */
+  url: string;
+}
+
+/** State of the sky map. */
+export interface MapState {
+  /** True once the map engine has loaded. */
+  ready: boolean;
+  /** Why the map could not start, in plain words. */
+  failure: string | null;
+  /** Projection id from PROJECTIONS. */
+  projection: string;
+  /** Layer id from SKY_LAYERS. */
+  layer: string;
+  /** SPHEREx channel shown by the all-sky layer, 0 to 101. */
+  channel: number;
+  /** Coordinate grid on or off. */
+  grid: boolean;
+  /** Labels for known objects on or off. */
+  labels: boolean;
+  /** Where the map looks and how wide, in degrees. Follows the user's movements. */
+  center: SkyPosition;
+  fov: number;
+  /** Known objects in view, best known first. */
+  objects: SkyObject[];
+  objectsState: LoadState;
+  /** The object the user clicked, if any. */
+  selected: SkyObject | null;
+  /** A spot of empty sky the user clicked, if any. */
+  picked: SkyPosition | null;
+}

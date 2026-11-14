@@ -13,7 +13,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, config, cutout, exposures, instrument, net, resolve, sia
+from . import __version__, catalogs, config, cutout, exposures, instrument, net, resolve, sia
 
 
 @asynccontextmanager
@@ -93,6 +93,21 @@ async def resolve_name(name: str = Query(min_length=1, max_length=120)):
     if found is None:
         raise HTTPException(404, f'No object named "{name.strip()}" was found. Check the spelling, or enter coordinates.')
     return found
+
+
+@app.get("/api/objects")
+async def objects(
+    ra: float = Query(ge=0, lt=360),
+    dec: float = Query(ge=-90, le=90),
+    radius: float = Query(gt=0, le=180, description="Degrees. 90 or more means the whole sky"),
+    limit: int = Query(200, ge=1, le=1000),
+):
+    """Known objects near a position, best known first. From SIMBAD."""
+    try:
+        found = await catalogs.simbad_cone(ra, dec, radius, limit)
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
+    return {"source": "SIMBAD", "count": len(found), "objects": found}
 
 
 @app.get("/api/cutout")

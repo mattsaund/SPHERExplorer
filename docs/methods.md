@@ -47,6 +47,13 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 - Catalog positions from SIMBAD are at J2000. They are carried forward along the proper motion SIMBAD lists. The five NASA targets use vetted positions.
 - Solar system bodies: `solarsystem.py` takes the geocentric path from JPL Horizons and corrects each frame for where the spacecraft was, using the position in the image header. Checked against Horizons run with SPHEREx as the observer: 0.001 arcsec for comet 3I/ATLAS.
 
+### Is a moving dot already known?
+
+- A dot that shows in one image and not the next may be an asteroid. Clicking it and asking sends the spot and the time of that image to the SkyBoT service of IMCCE (Paris Observatory), which works out where every known solar system body was at that moment.
+- The answer lists what was within 2 arcminutes, nearest first, with its kind, magnitude, and motion. Any of them can then be followed through the SPHEREx images by name.
+- SkyBoT's positions are for the center of the Earth. SPHEREx is at most 7,000 km from it, which shifts a main-belt asteroid by a few arcseconds.
+- Checked on Vesta: asked at the position our own JPL Horizons path gives for one exposure, SkyBoT places Vesta 0.3 arcsec away.
+
 ## 6. Summing and subtracting
 
 - `stack.ts` puts frames on a north-up grid with half-size pixels and averages them, weighted by each frame's noise. Each frame's median background is removed first.

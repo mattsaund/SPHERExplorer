@@ -1,7 +1,7 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, getSuggestions, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
+import { ApiError, getKnown, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, getSuggestions, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { COLOR_PRESETS } from "./colorBands";
@@ -12,7 +12,7 @@ import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
 import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
 import { buildLink, embedSnippet, parseLink } from "./url";
-import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
+import type { DisplaySettings, Filters, Frame, Hover, KnownCheck, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -84,6 +84,8 @@ export interface AppState {
   finding: number | null;
   /** Rows for the search box dropdown, for the text last passed to actions.suggest. */
   suggestions: Suggestion[];
+  /** Whether a known solar system body was at the picked spot, from actions.identify. Null until asked. */
+  known: KnownCheck | null;
   /** Orbital elements and archive facts for the spacecraft view. Null until loaded. */
   spacecraft: SpacecraftInfo | null;
   /** Where the spacecraft is this second. Updated while the orbit view is on the page. */
@@ -162,6 +164,7 @@ export const useStore = create<AppState>(() => ({
   changes: null,
   finding: null,
   suggestions: [],
+  known: null,
   spacecraft: null,
   spacecraftNow: null,
   craftNow: {},
@@ -288,6 +291,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     motion: null,
     changes: null,
     finding: null,
+    known: null,
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -477,6 +481,10 @@ let suggestAbort: AbortController | null = null;
 const SUGGEST_PAUSE = 250;
 /** Suggestions from the server for texts already asked, so retyping costs nothing. */
 const suggestCache = new Map<string, Suggestion[]>();
+
+/** The pending lookup of known solar system bodies, and how far around a spot it looks, arcseconds. */
+let knownAbort: AbortController | null = null;
+const KNOWN_RADIUS = 120;
 
 /** True once the spacecraft facts have been asked for. */
 let spacecraftRequested = false;
@@ -812,7 +820,31 @@ export const actions = {
 
   /** Choose a spot of empty sky on the map, or pass null to clear it. */
   pick(position: SkyPosition | null): void {
-    set({ map: { ...get().map, picked: position, selected: null } });
+    knownAbort?.abort();
+    set({ map: { ...get().map, picked: position, selected: null }, known: null });
+  },
+
+  /**
+   * Ask whether a known asteroid, comet, or planet was at the picked spot when the image on
+   * screen was taken. The answer lands in state.known. It takes several seconds, because the
+   * service works out where every known body was at that moment.
+   */
+  async identify(): Promise<void> {
+    const state = get();
+    const position = state.map.picked;
+    const item = state.sequence[state.player.index];
+    if (!position || !item) return;
+    knownAbort?.abort();
+    knownAbort = new AbortController();
+    const check: KnownCheck = { position, mjd: item.mjd, summed: item.frameIds.length > 1, radius: KNOWN_RADIUS, status: "loading", bodies: [] };
+    set({ known: check });
+    try {
+      const bodies = await getKnown(position.ra, position.dec, item.mjd, KNOWN_RADIUS, knownAbort.signal);
+      if (get().known === check) set({ known: { ...check, status: "ready", bodies } });
+    } catch (error) {
+      if ((error as Error).name === "AbortError") return;
+      if (get().known === check) set({ known: { ...check, status: "failed", error: error instanceof ApiError ? error.message : "The lookup did not finish." } });
+    }
   },
 
   /** Study a known object in SPHEREx images, following its motion. */

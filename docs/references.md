@@ -101,7 +101,7 @@ Add the license and version when a library goes into the build.
 | IRSA TAP and cutout service | Public | IRSA acknowledgment | Not used. The API reads S3 directly |
 | Sesame name resolver (CDS), through the CfA and IDIA mirrors | Credit required | SIMBAD and VizieR acknowledgments | Yes (name lookup) |
 | MAST catalog API (Gaia DR3) | Public | MAST, STScI | Yes |
-| IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
+| IMCCE SkyBoT (Paris Observatory) | Public | Berthier et al. 2006, ASP Conf. Ser. 351, 367 | Yes (known asteroids and comets at a clicked spot) |
 | JPL Horizons and Small-Body Database APIs | Public | JPL Solar System Dynamics. Giorgini et al. 1996 | Yes (names and paths of planets, asteroids, and comets) |
 | CelesTrak orbital elements (NORAD 63182 SPHEREx, 39089 NEOSSat, 27783 GALEX, 13777 IRAS) | Public, rate limited | CelesTrak, T.S. Kelso | Yes (live telescope map, cached by the API for three hours) |
 | Mission facts for the telescope list (launch and retirement dates, sites) | Public | Each mission's own pages: NASA, ESA, CSA, IPAC (2MASS), SDSS, STScI (DSS) | Yes (Telescopes tab) |

@@ -12,6 +12,8 @@ export type {
   FrameStatus,
   GaiaSource,
   Hover,
+  KnownBody,
+  KnownCheck,
   LoadState,
   MapState,
   Meta,

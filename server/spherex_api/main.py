@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem, spacecraft, suggest
+from . import __version__, cache, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, skybot, solarsystem, spacecraft, suggest
 
 SWEEP_SECONDS = 600
 
@@ -151,6 +151,21 @@ async def moving(command: str = Query(min_length=3, max_length=60, description="
     except net.UpstreamError as error:
         raise HTTPException(502, str(error)) from error
     return await sia.search_moving(index, path)
+
+
+@app.get("/api/known")
+async def known_bodies(
+    ra: float = Query(ge=0, lt=360),
+    dec: float = Query(ge=-90, le=90),
+    mjd: float = Query(ge=40000, le=80000, description="The moment to ask about, Modified Julian Date (UTC)"),
+    radius: float = Query(120, gt=0, le=600, description="Arcseconds"),
+):
+    """Known asteroids, comets, and planets near a position at a moment. From IMCCE SkyBoT. Slow: about twenty seconds."""
+    try:
+        found = await skybot.known_at(ra, dec, mjd, radius)
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
+    return {"source": "IMCCE SkyBoT", "radius": radius, "count": len(found), "bodies": found}
 
 
 @app.get("/api/objects")

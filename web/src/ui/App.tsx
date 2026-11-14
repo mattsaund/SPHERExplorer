@@ -11,8 +11,10 @@ import {
   SKY_LAYERS,
   SkyMap,
   actions,
+  compass,
   distanceMethod,
   formatAu,
+  formatDate,
   formatDec,
   formatDistance,
   formatFlux,
@@ -30,6 +32,16 @@ import "./styles/app.css";
 type ViewId = "map" | "images" | "both";
 /** Narrower than this, the stage shows one view at a time. */
 const WIDE = 1100;
+
+/**
+ * The view after the player is used. Playing a film nobody can see would be confusing, so
+ * from the map alone the images come into view: beside the map on a wide screen, in its
+ * place on a narrow one.
+ */
+function withImages(now: ViewId): ViewId {
+  if (now !== "map" || useStore.getState().target === null) return now;
+  return window.innerWidth >= WIDE ? "both" : "images";
+}
 /** The drawers under the top bar. */
 type TopDrawer = "examples" | "settings";
 
@@ -154,12 +166,39 @@ function MapLabel() {
   );
 }
 
+/** The answer to "was a known solar system body here when this image was taken?", inside the selected-spot box. */
+function KnownAnswer() {
+  const known = useStore((s) => s.known);
+  if (!known) return null;
+  if (known.status === "loading") return <p className="muted" aria-live="polite">Asking where every known asteroid and comet was at that moment. This takes a few seconds.</p>;
+  if (known.status === "failed") return <p className="problem" role="alert">{known.error}</p>;
+  const reach = `${Math.round(known.radius / 60)} arcminutes`;
+  return (
+    <div className="known" aria-live="polite">
+      {known.bodies.length === 0 ? (
+        <p>No known asteroid, comet, or planet was within {reach} of this spot on {formatDate(known.mjd)}.</p>
+      ) : (
+        known.bodies.slice(0, 3).map((body) => (
+          <p key={body.name}>
+            <strong>{body.name}</strong>. {body.kind}, {body.separation < 10 ? body.separation.toFixed(1) : Math.round(body.separation)} arcsec from this spot
+            {body.magnitude != null && `, magnitude ${body.magnitude.toFixed(1)}`}. It was moving {body.rate.toFixed(0)} arcsec per hour to the {compass(body.angle)}.{" "}
+            <button onClick={() => void actions.search(body.query)}>Follow it</button>
+          </p>
+        ))
+      )}
+      {known.summed && <p className="muted">This image is a sum of many, so the moment is only its middle. Choose "Every image" to check one moment.</p>}
+      <p className="muted">From the SkyBoT service of IMCCE, Paris Observatory.</p>
+    </div>
+  );
+}
+
 /** Facts about an object clicked on the map or in a frame, or a spot of sky clicked in either. */
 function InfoBox({ view, openTool, showImages }: { view: ViewId; openTool: (id: string) => void; showImages: () => void }) {
   const chosen = useStore((s) => s.map.selected);
   const picked = useStore((s) => s.map.picked);
   const target = useStore((s) => s.target);
   const fieldSize = useStore((s) => s.fieldSize);
+  const known = useStore((s) => s.known);
   if (chosen) {
     return (
       <section className="box" aria-label={`About ${chosen.name}`}>
@@ -202,8 +241,12 @@ function InfoBox({ view, openTool, showImages }: { view: ViewId; openTool: (id: 
             <button className="primary" onClick={() => { actions.probe(picked); openTool("graphs"); }}>Spectrum here</button>
           )}
           <button className={canMeasure ? "" : "primary"} onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
+          <button onClick={() => void actions.identify()} disabled={known?.status === "loading"} title="Ask whether a known asteroid, comet, or planet was here when this image was taken">
+            Known asteroid or comet?
+          </button>
           <button onClick={() => actions.pick(null)}>Close</button>
         </div>
+        <KnownAnswer />
       </section>
     );
   }
@@ -313,7 +356,8 @@ function StatusBar({ view }: { view: ViewId }) {
   );
 }
 
-function PlayerBar() {
+/** onUse runs whenever the player is used, so the page can bring the images into view. */
+function PlayerBar({ onUse }: { onUse: () => void }) {
   const count = useStore((s) => s.sequence.length);
   const index = useStore((s) => s.player.index);
   const playing = useStore((s) => s.player.playing);
@@ -322,17 +366,17 @@ function PlayerBar() {
   return (
     <div className="controlbar" role="group" aria-label="Player">
       <div className="transport">
-        <button className="icon" onClick={() => actions.step(-1)} disabled={count < 2} aria-label="Previous image"><Arrow back /></button>
-        <button className="primary play" onClick={() => actions.togglePlay()} disabled={count < 2}>
+        <button className="icon" onClick={() => { actions.step(-1); onUse(); }} disabled={count < 2} aria-label="Previous image"><Arrow back /></button>
+        <button className="primary play" onClick={() => { actions.togglePlay(); onUse(); }} disabled={count < 2}>
           {playing ? "Pause" : "Play"}
         </button>
-        <button className="icon" onClick={() => actions.step(1)} disabled={count < 2} aria-label="Next image"><Arrow /></button>
+        <button className="icon" onClick={() => { actions.step(1); onUse(); }} disabled={count < 2} aria-label="Next image"><Arrow /></button>
         <input
           type="range"
           min={0}
           max={Math.max(0, count - 1)}
           value={Math.min(index, Math.max(0, count - 1))}
-          onChange={(event) => actions.seek(Number(event.target.value))}
+          onChange={(event) => { actions.seek(Number(event.target.value)); onUse(); }}
           aria-label="Position in the sequence"
           disabled={count < 2}
         />
@@ -344,7 +388,7 @@ function PlayerBar() {
       </label>
       <div className="segmented" role="radiogroup" aria-label="What to play">
         {MODES.map((option) => (
-          <button key={option.value} role="radio" aria-checked={mode === option.value} title={option.hint} onClick={() => actions.setMode(option.value)}>
+          <button key={option.value} role="radio" aria-checked={mode === option.value} title={option.hint} onClick={() => { actions.setMode(option.value); onUse(); }}>
             {option.label}
           </button>
         ))}
@@ -434,6 +478,7 @@ export function App() {
       else if (event.key === "ArrowLeft") actions.step(-1);
       else return;
       event.preventDefault();
+      setView(withImages);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -490,7 +535,7 @@ export function App() {
       </main>
 
       <StatusBar view={view} />
-      <PlayerBar />
+      <PlayerBar onUse={() => setView(withImages)} />
       <Dock
         tool={tool}
         open={dockOpen}

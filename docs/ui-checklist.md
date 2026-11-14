@@ -40,6 +40,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Solar system distances | See a body's distance from Earth and the Sun at each image | `earthDistance`, `sunDistance`, `formatAu` |
 | Object card | Open a labeled object's facts, study it, or open its details | `actions.selectObject`, `actions.studyObject` |
 | Picked spot | Take the spectrum of a clicked spot, or study it | `actions.probe`, `actions.pick` |
+| Known movers | Ask whether a known asteroid, comet, or planet was at a clicked spot when the image was taken, and follow it | `actions.identify`, `known` |
 
 ## Measuring
 

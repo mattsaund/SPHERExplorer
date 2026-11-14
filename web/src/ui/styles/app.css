@@ -159,6 +159,8 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 }
 .box h2 { font-size: 1.05rem; }
 .box.alert { border-color: var(--color-danger); }
+.known { display: flex; flex-direction: column; gap: var(--space-1); }
+.known button { min-height: 30px; padding: 0 var(--space-3); }
 .box.hint { border-left: 3px solid var(--color-accent); padding-left: var(--space-3); }
 
 .empty-stage {

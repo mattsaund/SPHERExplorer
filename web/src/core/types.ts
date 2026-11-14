@@ -466,6 +466,42 @@ export interface PartnerData {
 }
 
 /** Orbital elements of the spacecraft and facts about the public archive. */
+/** A known solar system body near a place in the sky at one moment. From IMCCE SkyBoT. */
+export interface KnownBody extends SkyPosition {
+  /** For example "(4) Vesta" or "C/2025 N1". */
+  name: string;
+  /** For example "Main-belt asteroid (inner)" or "Comet". */
+  kind: string;
+  /** How far it was from the place asked about, arcseconds. */
+  separation: number;
+  /** Visual magnitude, when known. */
+  magnitude: number | null;
+  /** Speed across the sky in arcseconds per hour, and direction in degrees from north through east. */
+  rate: number;
+  angle: number;
+  /** Distance from the Earth and from the Sun in au, when known. */
+  earthDistance: number | null;
+  sunDistance: number | null;
+  /** What to pass to actions.search to follow it through the SPHEREx images. */
+  query: string;
+}
+
+/** The answer to "was a known solar system body at this spot when the image was taken?" */
+export interface KnownCheck {
+  /** The spot and the moment asked about. */
+  position: SkyPosition;
+  mjd: number;
+  /** True when the image on screen was a sum of several, so the moment is only its middle. */
+  summed: boolean;
+  /** How far around the spot was searched, arcseconds. */
+  radius: number;
+  status: "loading" | "ready" | "failed";
+  /** The bodies found, nearest first. Empty when none is known there. */
+  bodies: KnownBody[];
+  /** Plain-language reason when the lookup failed. */
+  error?: string;
+}
+
 /**
  * A telescope whose data the tool shows, and where it is: circling the Earth now, at an
  * observatory on the ground, far from the Earth, or no longer in orbit.

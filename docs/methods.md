@@ -33,6 +33,14 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 
 - For extended things (galaxies, nebulae, comet comas) the browser can instead sum the light in a circle of chosen size and subtract the median of a ring around it (`aperture.ts`). Edge pixels count by the share inside the circle. This runs on the frames already loaded, so the spectrum of any clicked spot appears at once. A circle holding a saturated or flagged pixel is marked suspect.
 
+### Stars too bright for the detector
+
+- Barnard's Star, R Draconis, Mira, and other bright stars saturate. Their cores are empty or flagged, so the point fit and the circle both fail.
+- `measureRing` in `aperture.ts` measures a ring 19 arcsec wide around the star instead (its halo). The ring starts at the smallest radius, from 18 arcsec up, that can be measured in nearly every frame. Bad pixels are filled from good pixels at the same distance.
+- The halo rises and falls with the star, so brightness changes and spectral features carry over. The overall level is the halo's, and the halo's share of the light changes smoothly with wavelength, so the spectrum's slope is not the star's. The app says so, and hides the catalog brightness points in this mode.
+- It is a rough measure. Below about 2.4 microns, where a star's image is sharpest, single measurements scatter by tens of percent, so only wide bands are judged in a halo spectrum.
+- Checked on R Draconis: the monthly halo brightness traces its 245 day pulsation (section 9).
+
 ## 5. Following things that move
 
 - Stars: positions are carried to each exposure's date with proper motion and parallax (`astro.ts`, with parallax factors from the API). Barnard's Star moves 1.7 pixels across the public data.

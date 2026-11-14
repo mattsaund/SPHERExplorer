@@ -120,6 +120,8 @@
 .muted, small { color: var(--color-text-muted); }
 .notice { color: var(--color-text-muted); }
 .problem { color: var(--color-danger); margin: 0; }
+.hint { border-left: 3px solid var(--color-accent); padding-left: var(--space-2); }
+.hint button { min-height: 30px; padding: 0 var(--space-3); }
 .plot { min-height: 0; }
 a { color: var(--color-accent); }
 select { height: 34px; max-width: 100%; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0 var(--space-2); }

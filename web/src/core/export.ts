@@ -78,10 +78,12 @@ export async function exportAnimation(state: AppState, onProgress: (done: number
 export function spectrumCsv(state: AppState): string {
   const points = currentSpectrum(state);
   const target = state.target;
-  const { aperture, probe } = state.spectrum;
-  const how = aperture !== null || probe
-    ? `# Flux is the light inside a circle of radius ${aperture ?? DEFAULT_APERTURE} arcsec, minus the sky in a ring around it.`
-    : "# Flux is a PSF-fit point-source flux density from each SPHEREx Level 2 image.";
+  const { aperture, probe, halo } = state.spectrum;
+  const how = halo
+    ? "# Flux is the light in a ring around the source (its halo), not the source itself, because the source is too bright for the detector. The level is the halo's. The features are the star's."
+    : aperture !== null || probe
+      ? `# Flux is the light inside a circle of radius ${aperture ?? DEFAULT_APERTURE} arcsec, minus the sky in a ring around it.`
+      : "# Flux is a PSF-fit point-source flux density from each SPHEREx Level 2 image.";
   const lines = [
     `# SPHERExplorer spectrum of ${target?.name ?? "a sky position"}`,
     target?.moving

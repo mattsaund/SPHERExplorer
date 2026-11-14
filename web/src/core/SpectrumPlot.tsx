@@ -211,7 +211,8 @@ export function SpectrumPlot({ className }: { className?: string }) {
       }
 
       // The same target as 2MASS and WISE saw it: one square per band, with a bar for the band's width.
-      if (settings.showSurveys && !settings.probe) {
+      // Catalog brightness is the whole star. A halo is only part of it, so the two don't compare.
+      if (settings.showSurveys && !settings.probe && !settings.halo) {
         const points = surveyPoints(state.target, state.missions);
         ctx.font = `11px ${theme.font}`;
         ctx.textAlign = "center";

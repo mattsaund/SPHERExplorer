@@ -12,6 +12,7 @@ import {
   actions,
   compass,
   formatDate,
+  spectrumTrust,
   useStore,
 } from "../../core";
 import { ChangesPanel } from "../ChangesPanel";
@@ -32,6 +33,9 @@ const TABS: { id: TrayTab; label: string; hint: string; needsTarget: boolean }[]
 function SpectrumTab() {
   const settings = useStore((s) => s.spectrum);
   const count = useStore((s) => s.sequence.length);
+  // Most measurements untrusted means the source is too bright for the detector.
+  const tooBright = useStore((s) => s.framesState === "ready" && !s.spectrum.halo && !s.target?.moving && s.loaded > 20 && spectrumTrust(s) < 0.6);
+  const measure = settings.halo ? "halo" : settings.aperture === null ? "fit" : String(settings.aperture);
   return (
     <section className="tab split" aria-label="Spectrum">
       <div className="plot"><SpectrumPlot /></div>
@@ -39,6 +43,18 @@ function SpectrumTab() {
         <p className="muted">
           Brightness of the {settings.probe ? "selected spot" : "target"} at each wavelength. Dips and bumps reveal what it is made of. Click a point to see its image.
         </p>
+        {tooBright && (
+          <p className="hint">
+            This source is too bright for the detector in most images, so its spectrum has gaps.{" "}
+            <button onClick={() => actions.setSpectrum({ halo: true })}>Measure its halo instead</button>
+          </p>
+        )}
+        {settings.halo && (
+          <p className="hint">
+            Measuring the ring of light around the source. This is a rough measure, best for changes over time and for wide dips. Its overall level is only
+            the halo's, so it reads lower than the star's true brightness.
+          </p>
+        )}
         <div className="row wrap">
           <label className="check"><input type="checkbox" checked={settings.perVisit} onChange={(e) => actions.setSpectrum({ perVisit: e.target.checked })} /> Compare visits</label>
           <label className="check"><input type="checkbox" checked={settings.showPoints} onChange={(e) => actions.setSpectrum({ showPoints: e.target.checked })} /> Every measurement</label>
@@ -47,12 +63,16 @@ function SpectrumTab() {
         </div>
         <label>
           Measure
-          <select value={settings.aperture === null ? "fit" : String(settings.aperture)} onChange={(e) => actions.setSpectrum({ aperture: e.target.value === "fit" ? null : Number(e.target.value) })}>
+          <select
+            value={measure}
+            onChange={(e) => actions.setSpectrum(e.target.value === "halo" ? { halo: true } : { halo: false, aperture: e.target.value === "fit" ? null : Number(e.target.value) })}
+          >
             <option value="fit">A point (best for stars)</option>
             <option value="8">A small circle, 8″</option>
             <option value="12">A circle, 12″</option>
             <option value="20">A wide circle, 20″</option>
             <option value="40">A very wide circle, 40″</option>
+            <option value="halo">The halo, for a star too bright for the detector</option>
             {settings.aperture !== null && ![8, 12, 20, 40].includes(settings.aperture) && (
               <option value={String(settings.aperture)}>A circle, {settings.aperture.toFixed(0)}″</option>
             )}

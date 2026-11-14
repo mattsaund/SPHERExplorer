@@ -296,6 +296,12 @@ export interface SpectrumSettings {
    */
   aperture: number | null;
   /**
+   * Measure the ring of light around the source instead of the source itself. For a star too
+   * bright for the detector, whose core is lost but whose halo rises and falls with it.
+   * The spectrum keeps its features, but its overall level is the halo's, not the star's.
+   */
+  halo: boolean;
+  /**
    * A spot other than the target to take the spectrum of, as a sky offset [east, north] in
    * arcseconds from the field center. Null measures the target. A probe is always measured with a circle.
    */

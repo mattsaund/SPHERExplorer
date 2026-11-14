@@ -48,7 +48,7 @@ export { SpectrumPlot } from "./SpectrumPlot";
 export { Timeline } from "./Timeline";
 export { LINE_FAMILIES } from "./lines";
 export { DEFAULT_APERTURE, abMagnitude, binSpectrum, formatFlux, spectrumOf } from "./spectrum";
-export { currentSpectrum } from "./measure";
+export { currentSpectrum, spectrumTrust } from "./measure";
 export { SkyMap } from "./SkyMap";
 export { PROJECTIONS, SKY_LAYERS } from "./skyLayers";
 export type { ProjectionId, SkyLayer } from "./skyLayers";

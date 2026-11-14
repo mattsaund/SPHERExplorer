@@ -4,7 +4,7 @@
 // point-source fit done by the server would miss light.
 // Written with Claude Code (Anthropic) assistance.
 import { halfToFloat } from "./half";
-import type { FramePixels } from "./pixels";
+import { getPixels, type FramePixels } from "./pixels";
 import type { Frame } from "./types";
 
 /** One square arcsecond of sky at 1 MJy/sr, in microjansky. */
@@ -169,4 +169,36 @@ export function measureRing(frame: Frame, pixels: FramePixels, east: number, nor
   if (!count || good < minGood * count) return null;
   const scale = area * UJY_PER_MJYSR_ARCSEC2;
   return { flux: sum * scale, err: frame.rms * Math.sqrt(noise + (count * count) / sky.length) * scale, sky: level, good: true };
+}
+
+/**
+ * The halo of a too-bright star is measured in a ring this wide, arcseconds. The ring starts at
+ * the first of these radii that clears the star's bad core in nearly every image, so that
+ * every image is measured over the same part of the halo.
+ */
+export const HALO_WIDTH = 19;
+export const HALO_STARTS = [18, 24, 30, 36, 42, 48, 60, 72];
+const HALO_CLEAR = 0.9;
+
+/**
+ * Where the halo ring should start for a star at a sky offset from the field center: the
+ * smallest radius at which the ring can be measured in nearly every frame. When none reaches
+ * that, the radius that works in the most frames.
+ */
+export function chooseRing(frames: Frame[], east: number, north: number, badMask: number): number {
+  let best = HALO_STARTS[0];
+  let most = 0;
+  for (const start of HALO_STARTS) {
+    let clear = 0;
+    for (const frame of frames) {
+      const pixels = getPixels(frame.id);
+      if (pixels && measureRing(frame, pixels, east, north, start, start + HALO_WIDTH, badMask)) clear++;
+    }
+    if (clear > most) {
+      most = clear;
+      best = start;
+    }
+    if (clear >= HALO_CLEAR * frames.length) break;
+  }
+  return best;
 }

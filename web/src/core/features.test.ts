@@ -157,6 +157,18 @@ describe("findFeatures", () => {
     expect(report.findings.filter((f) => f.familyId === "co" && f.observed < 2.5)).toHaveLength(1);
   });
 
+  it("judges only wide bands in a rough spectrum", () => {
+    // A water ice band and a bright hydrogen line together.
+    const lit = spectrum((w) => star(w) * band(w, 3.05, 0.4, 0.4));
+    const at = lit.reduce((best, bin, i) => (Math.abs(bin.wavelength - 4.0523) < Math.abs(lit[best].wavelength - 4.0523) ? i : best), 0);
+    lit[at].flux *= 1.6;
+    const fine = findFeatures(lit).findings.map((f) => f.label);
+    expect(fine).toContain("Br α");
+    expect(fine).toContain("H₂O ice");
+    const rough = findFeatures(lit, 0, LINE_FAMILIES, false, true).findings.map((f) => f.label);
+    expect(rough).toEqual(["H₂O ice"]);
+  });
+
   it("says so when the spectrum is too thin to check", () => {
     const report = findFeatures(spectrum(star).slice(0, 8));
     expect(report.findings).toEqual([]);

@@ -199,8 +199,10 @@ function stepNear(bins: SpectrumBin[], wavelength: number): number {
  * one per channel. redshift stretches the rest wavelengths, for galaxies.
  * With paired = true a narrow line counts only where two or more images were averaged, since
  * one image alone can hold a stray bright pixel. Use it for the spectrum of a single visit.
+ * With coarse = true only bands at least two channels wide are judged. Use it for a rough
+ * spectrum, such as one measured from a star's halo.
  */
-export function findFeatures(bins: SpectrumBin[], redshift = 0, families: LineFamily[] = LINE_FAMILIES, paired = false): FeatureReport {
+export function findFeatures(bins: SpectrumBin[], redshift = 0, families: LineFamily[] = LINE_FAMILIES, paired = false, coarse = false): FeatureReport {
   const usable = bins.filter((bin) => Number.isFinite(bin.flux) && bin.err > 0).sort((a, b) => a.wavelength - b.wavelength);
   if (usable.length < MIN_CHANNELS) return { findings: [], checked: 0, note: "Too few wavelengths are measured here to look for features." };
   const stretch = 1 + redshift;
@@ -228,6 +230,7 @@ export function findFeatures(bins: SpectrumBin[], redshift = 0, families: LineFa
   const measure = (span: Span): Candidate | null => {
     const { observed, step, half } = span;
     if (!(step > 0)) return null;
+    if (coarse && (span.feature.width ?? 0) * stretch < 2 * step) return null;
     const guard = half + 0.5 * step;
     const reach = guard + Math.max(SIDE_STEPS * step, half);
     const inside = usable.filter((bin) => Math.abs(bin.wavelength - observed) <= half);
@@ -388,7 +391,7 @@ export function findFeatures(bins: SpectrumBin[], redshift = 0, families: LineFa
  * then names the visit it shows in most clearly.
  * visits maps a visit number to its name.
  */
-export function findFeaturesByVisit(all: SpectrumBin[], perVisit: SpectrumBin[], redshift: number, visits: Map<number, string>): FeatureReport {
+export function findFeaturesByVisit(all: SpectrumBin[], perVisit: SpectrumBin[], redshift: number, visits: Map<number, string>, coarse = false): FeatureReport {
   const seasons = [...new Set(perVisit.map((bin) => bin.season))]
     .map((season) => ({ season, bins: perVisit.filter((bin) => bin.season === season) }))
     .filter((entry) => entry.bins.length >= MIN_CHANNELS);
@@ -400,14 +403,14 @@ export function findFeaturesByVisit(all: SpectrumBin[], perVisit: SpectrumBin[],
     return ratios.length >= MIN_CHANNELS ? [middle(ratios)] : [];
   });
   const unsteady = levels.length > 1 && Math.max(...levels) >= UNSTEADY * Math.min(...levels);
-  if (!unsteady) return findFeatures(all, redshift);
+  if (!unsteady) return findFeatures(all, redshift, LINE_FAMILIES, false, coarse);
 
   const merged = new Map<string, FeatureFinding>();
   let checked = 0;
   for (const { season, bins } of seasons) {
     // A visit in which the source is barely detected has nothing to say.
     if (middle(bins.map((bin) => bin.flux / bin.err)) < VISIT_SNR) continue;
-    const report = findFeatures(bins, redshift, LINE_FAMILIES, true);
+    const report = findFeatures(bins, redshift, LINE_FAMILIES, true, coarse);
     checked = Math.max(checked, report.checked);
     for (const finding of report.findings) {
       const key = `${finding.familyId}:${finding.rest}:${finding.kind}`;
@@ -419,6 +422,7 @@ export function findFeaturesByVisit(all: SpectrumBin[], perVisit: SpectrumBin[],
 }
 
 let cache: { points: unknown; redshift: number; report: FeatureReport } | null = null;
+
 
 /** The features that stand out in the spectrum now on screen. Recomputed only when the spectrum or redshift changes. */
 export function spectrumFeatures(state: AppState): FeatureReport {
@@ -432,7 +436,8 @@ export function spectrumFeatures(state: AppState): FeatureReport {
     return report;
   }
   const names = new Map(state.visits.map((visit) => [visit.season, visit.label]));
-  const report = findFeaturesByVisit(binSpectrum(points, false), binSpectrum(points, true), redshift, names);
+  // A halo spectrum is rougher than a direct one, so only its wide bands are judged.
+  const report = findFeaturesByVisit(binSpectrum(points, false), binSpectrum(points, true), redshift, names, state.spectrum.halo);
   cache = { points, redshift, report };
   return report;
 }

@@ -1,7 +1,7 @@
 // Builds a spectrum from the per-frame brightness measurements. Every SPHEREx exposure sees
 // the target at a different wavelength, so the frames of one visit trace out a full spectrum.
 // Written with Claude Code (Anthropic) assistance.
-import { measureAperture } from "./aperture";
+import { HALO_WIDTH, measureAperture, measureRing } from "./aperture";
 import { getPixels } from "./pixels";
 import type { Frame } from "./types";
 
@@ -45,6 +45,8 @@ export interface MeasureOptions {
   probe: [number, number] | null;
   /** Sky offset of the target in a frame, for circles that follow the target. */
   trackOffset: (frame: Frame) => [number, number];
+  /** Inner radius in arcseconds of a ring to measure instead, for the halo of a too-bright star. */
+  ring?: number | null;
 }
 
 /** Circle radius used when a probe is set without a radius, in arcseconds. About one PSF across. */
@@ -53,7 +55,8 @@ export const DEFAULT_APERTURE = 12;
 /** Every measured frame as a spectrum point, sorted by wavelength. */
 export function spectrumOf(frames: Frame[], badMask: number, options?: MeasureOptions): SpectrumPoint[] {
   const points: SpectrumPoint[] = [];
-  const circle = options && (options.aperture !== null || options.probe !== null);
+  const ring = options?.ring ?? null;
+  const circle = options && (options.aperture !== null || options.probe !== null || ring !== null);
   for (const frame of frames) {
     if (frame.status !== "ready") continue;
     let flux: number;
@@ -63,7 +66,9 @@ export function spectrumOf(frames: Frame[], badMask: number, options?: MeasureOp
       const pixels = getPixels(frame.id);
       if (!pixels) continue;
       const [east, north] = options.probe ?? options.trackOffset(frame);
-      const measured = measureAperture(frame, pixels, east, north, options.aperture ?? DEFAULT_APERTURE, badMask);
+      const measured = ring !== null
+        ? measureRing(frame, pixels, east, north, ring, ring + HALO_WIDTH, badMask)
+        : measureAperture(frame, pixels, east, north, options.aperture ?? DEFAULT_APERTURE, badMask);
       if (!measured) continue;
       ({ flux, err, good } = measured);
     } else {

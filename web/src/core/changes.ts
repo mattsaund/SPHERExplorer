@@ -7,7 +7,7 @@
 // like wavelengths, because every SPHEREx exposure of a spot is at a different wavelength.
 // docs/methods.md describes the method and how it was checked.
 // Written with Claude Code (Anthropic) assistance.
-import { measureAperture, measureRing } from "./aperture";
+import { HALO_STARTS, HALO_WIDTH, chooseRing, measureAperture, measureRing } from "./aperture";
 import { mjdToYear, offsetToSky, positionAt, skyOffset } from "./astro";
 import { halfIsNaN } from "./half";
 import { fixedSum } from "./layers";
@@ -201,14 +201,6 @@ const HALO_POWER = 3;
 const SPOILED_SHARE = 0.25;
 /** Position floor for such a source, arcseconds. Its summed core is built from too few images. */
 const BRIGHT_FLOOR = 1.0;
-/**
- * The halo of a too-bright star is measured in a ring this wide, arcseconds. The ring starts at
- * the first of these radii that clears the star's bad core in nearly every image, so that
- * every image is measured over the same part of the halo.
- */
-const HALO_WIDTH = 19;
-const HALO_STARTS = [18, 24, 30, 36, 42, 48, 60, 72];
-const HALO_CLEAR = 0.9;
 /** Halo measurements are trusted to this fraction at best. */
 const HALO_SCATTER = 0.05;
 /** A detector's range needs this many shared channels to be compared on its own. */
@@ -810,23 +802,8 @@ export async function findChanges(state: AppState, onProgress: (fraction: number
   for (let k = 0; k < candidates.length; k++) {
     const c = candidates[k];
     // Where the halo ring starts for a too-bright star: just outside its bad core.
-    let ringStart = c.ringStart;
-    if (c.bright) {
-      let clearest = 0;
-      for (const start of HALO_STARTS) {
-        let clear = 0;
-        for (const frame of lightFrames) {
-          const pixels = getPixels(frame.id);
-          if (pixels && measureRing(frame, pixels, c.east, c.north, start, start + HALO_WIDTH, badMask)) clear++;
-        }
-        if (clear > clearest) {
-          clearest = clear;
-          ringStart = start;
-        }
-        if (clear >= HALO_CLEAR * lightFrames.length) break;
-      }
-      c.ringStart = ringStart;
-    }
+    if (c.bright) c.ringStart = chooseRing(lightFrames, c.east, c.north, badMask);
+    const ringStart = c.ringStart;
     const perVisit = new Map<number, Map<number, ChannelSum>>();
     lights.forEach((light, v) => {
       const channels = new Map<number, ChannelSum>();

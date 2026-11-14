@@ -49,6 +49,7 @@ The working example of every row is the UI under `web/src/ui/`. `docs/architectu
 | Spectrum | See brightness against wavelength, and jump to an image | `SpectrumPlot` |
 | Spectrum options | Compare visits, show every measurement, use a log scale, show 2MASS and WISE | `perVisit`, `showPoints`, `log`, `showSurveys` |
 | Measuring shape | Measure a point or a circle of chosen size | `aperture` |
+| Halo spectrum | Measure the halo of a star too bright for the detector, and be offered it when needed | `halo`, `spectrumTrust` |
 | Features | Mark hydrogen, water, and the other families, and slide the redshift | `LINE_FAMILIES`, `actions.toggleFamily`, `redshift` |
 | Feature finder | Read which known features stand out in the spectrum, and mark them on the plot | `spectrumFeatures`, `describeFeature`, `actions.markFound` |
 | Change finder | Search the whole field for anything that moved, brightened, or faded, with progress | `actions.findChanges`, `finding`, `changes` |

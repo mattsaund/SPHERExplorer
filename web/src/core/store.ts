@@ -153,7 +153,7 @@ export const useStore = create<AppState>(() => ({
   follow: true,
   subtract: "none",
   hover: null,
-  spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, aperture: null, probe: null, families: [], redshift: 0 },
+  spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, aperture: null, halo: false, probe: null, families: [], redshift: 0 },
   embed: openedEmbedded(),
   exporting: null,
   motion: null,
@@ -291,7 +291,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     error: null,
     notice: null,
     hover: null,
-    spectrum: { ...get().spectrum, probe: null },
+    spectrum: { ...get().spectrum, probe: null, halo: false },
     player: { ...get().player, index: 0, playing: false },
     view: { east: 0, north: 0, zoom: 1 },
   });

@@ -30,7 +30,7 @@ The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this
 | State | Zustand | Tiny. Components subscribe to slices, so sliders don't redraw the page. |
 | Frame rendering | WebGL2 on a canvas, written in `core` | Blink at 60 fps, stretch and color on the GPU. |
 | Sky map | Aladin Lite v3 (CDS), loaded from npm | HiPS, projections, catalogs. NASA lists it as a suggested tool. |
-| Hosting | Google Cloud (Austin's decision). Cloud Run for the API, static files on a CDN. | Scales to zero. Credit covers judging. |
+| Hosting | Google Cloud (Austin's decision). One Cloud Run container serves the API and the site. Live address and setup in `docs/deploy.md`. | Scales to zero. Credit covers judging. |
 
 Dependencies stay few. Every new one goes in `docs/references.md` in the same commit.
 

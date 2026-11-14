@@ -52,14 +52,40 @@ def detector_frame(cards: dict):
     return frame @ lift, scale
 
 
-def project(frames: np.ndarray, scale_inverse: np.ndarray, target: np.ndarray, crpix: float = 1020.5):
+SIP_ORDER = 3  # highest power kept from the SIP polynomials
+
+
+def sip_inverse(cards: dict) -> np.ndarray:
+    """The header's sky-to-detector SIP polynomials as an array [axis, p, q] of coefficients."""
+    out = np.zeros((2, SIP_ORDER + 1, SIP_ORDER + 1))
+    for axis, prefix in enumerate(("AP", "BP")):
+        for p in range(SIP_ORDER + 1):
+            for q in range(SIP_ORDER + 1 - p):
+                out[axis, p, q] = float(cards.get(f"{prefix}_{p}_{q}") or 0.0)
+    return out
+
+
+def project(frames: np.ndarray, scale_inverse: np.ndarray, target: np.ndarray, sip: np.ndarray | None = None, crpix: float = 1020.5):
     """Pixel position of a sky direction on detectors with the given frames.
 
-    frames has shape (n, 3, 3). Returns 0-based (x, y) and a mask of frames facing the target.
+    frames has shape (n, 3, 3). sip is the detector's inverse distortion from sip_inverse.
+    Returns 0-based (x, y) and a mask of frames facing the target.
     """
     local = np.einsum("nji,j->ni", frames, target)  # frame transpose times target
     facing = local[:, 2] > 0.2
     depth = np.where(facing, local[:, 2], 1.0)
     plane = local[:, :2] / depth[:, None]
     uv = plane @ scale_inverse.T
-    return uv[:, 0] + crpix - 1.0, uv[:, 1] + crpix - 1.0, facing
+    u, v = uv[:, 0], uv[:, 1]
+    if sip is not None:
+        # Lens distortion moves a source by up to 12 pixels in the detector corners.
+        du = np.zeros_like(u)
+        dv = np.zeros_like(v)
+        for p in range(SIP_ORDER + 1):
+            for q in range(SIP_ORDER + 1 - p):
+                if sip[0, p, q] or sip[1, p, q]:
+                    term = u**p * v**q
+                    du += sip[0, p, q] * term
+                    dv += sip[1, p, q] * term
+        u, v = u + du, v + dv
+    return u + crpix - 1.0, v + crpix - 1.0, facing

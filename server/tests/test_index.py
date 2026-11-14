@@ -7,7 +7,7 @@ import numpy as np
 
 from spherex_api import exposures, index_build
 from spherex_api.fitshdr import parse_header
-from spherex_api.pointing import detector_frame, polar, tangent_basis, unit_vector
+from spherex_api.pointing import detector_frame, polar, sip_inverse, tangent_basis, unit_vector
 from spherex_api.wcs import TanSip
 
 HEAD = (Path(__file__).parent / "data" / "d6_head.bin").read_bytes()
@@ -30,7 +30,8 @@ def one_exposure_index(tmp_path):
     path = tmp_path / "exposures.npz"
     np.savez_compressed(
         path, rows=rows, releases=np.array(["dr1"]), versions=np.array(["l2b-v27-2026-197"]),
-        weeks=np.array(["dr1/2025W19_1B"]), relative=np.array([np.eye(3)] * 6), scales=np.array([scale] * 6), built=np.array(0.0),
+        weeks=np.array(["dr1/2025W19_1B"]), relative=np.array([np.eye(3)] * 6), scales=np.array([scale] * 6),
+        sip=np.array([sip_inverse(cards)] * 6), built=np.array(0.0),
     )
     return exposures.ExposureIndex(path)
 
@@ -51,9 +52,8 @@ def test_find_predicts_the_pixel(tmp_path):
         ra, dec = (float(v) for v in wcs.pix2sky(x_true, y_true))
         rows, detectors, x, y = index.find(ra, dec)
         assert rows.tolist() == [0] and detectors.tolist() == [6]
-        # The index leaves out SIP distortion, which reaches about 7 pixels in the corners.
-        assert abs(x[0] - x_true) < 9 and abs(y[0] - y_true) < 9
-        assert max(abs(x[0] - x_true), abs(y[0] - y_true)) < exposures.EDGE_MARGIN
+        # With the distortion terms the prediction is good to a small fraction of a pixel.
+        assert abs(x[0] - x_true) < 0.2 and abs(y[0] - y_true) < 0.2
     assert index.key(0, 6) == "dr1/level2/2025W19_1B/l2b-v27-2026-197/6/level2_2025W19_1B_0116_1D6_spx_l2b-v27-2026-197.fits"
 
 

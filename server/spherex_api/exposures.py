@@ -18,8 +18,8 @@ from .pointing import project, unit_vector
 # Detector 1 sits at one end of the focal plane. Detector 3 is 7.7 degrees away,
 # so any exposure that can hold the target has its detector 1 center within this radius.
 REACH_DEG = 10.5
-# The predicted pixel can be off by a few pixels. Keep frames this close to an edge
-# and let the cutout step decide with the file's own header.
+# The predicted pixel is good to a pixel or two, more for the rare exposure with a poor
+# astrometric fit. Keep frames this close to an edge and let the cutout step decide.
 EDGE_MARGIN = 12.0
 
 
@@ -31,6 +31,7 @@ class ExposureIndex:
             self.versions = [str(v) for v in data["versions"]]
             self.relative = data["relative"].astype(float)
             self.scale_inverse = [np.linalg.inv(s) for s in data["scales"].astype(float)]
+            self.sip = data["sip"].astype(float) if "sip" in data.files else [None] * 6
             self.built = float(data["built"])
         self.frames = self.rows["frame"].astype(float)
         self.boresight = np.ascontiguousarray(self.frames[:, :, 2])
@@ -58,7 +59,7 @@ class ExposureIndex:
         picks = []
         for k in range(6):
             frames = self.frames[near] @ self.relative[k]
-            x, y, facing = project(frames, self.scale_inverse[k], target)
+            x, y, facing = project(frames, self.scale_inverse[k], target, self.sip[k])
             inside = (
                 facing
                 & (x > -EDGE_MARGIN) & (x < size - 1 + EDGE_MARGIN)

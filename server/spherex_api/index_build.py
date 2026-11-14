@@ -18,7 +18,7 @@ import numpy as np
 
 from . import config
 from .fitshdr import parse_header
-from .pointing import detector_frame
+from .pointing import detector_frame, sip_inverse
 
 FILE = re.compile(r"level2_(?P<obsid>[A-Za-z0-9_]+)D(?P<det>[1-6])_spx_(?P<ver>l2b-[A-Za-z0-9\-]+)\.fits$")
 HEAD_BYTES = 28800       # primary header plus the IMAGE header
@@ -97,7 +97,7 @@ def file_key(release: str, obsid: str, detector: int, version: str) -> str:
     return f"{release}/level2/{week}/{version}/{detector}/level2_{obsid}D{detector}_spx_{version}.fits"
 
 
-async def _read_heads(keys: list[str]) -> list:
+async def _read_heads(keys: list[str], with_sip: bool = False) -> list:
     """Fetch and parse the headers of many files over one small, persistent connection pool."""
     out: list = [None] * len(keys)
     todo = iter(range(len(keys)))
@@ -136,15 +136,16 @@ async def _read_heads(keys: list[str]) -> list:
                     frame,
                     scale,
                     1 if str(cards.get("SPS_FLAGS", "")).startswith("deep") else 0,
+                    sip_inverse(cards) if with_sip else None,
                 )
 
         await asyncio.gather(*(worker() for _ in range(CONNECTIONS)))
     return out
 
 
-def read_heads(keys: list[str]) -> list:
+def read_heads(keys: list[str], with_sip: bool = False) -> list:
     """Read headers for many keys, keeping the input order."""
-    return asyncio.run(_read_heads(keys)) if keys else []
+    return asyncio.run(_read_heads(keys, with_sip)) if keys else []
 
 
 def orthonormal(matrix: np.ndarray) -> np.ndarray:
@@ -156,13 +157,15 @@ def orthonormal(matrix: np.ndarray) -> np.ndarray:
 def calibrate(sample: list[tuple[str, str, dict]]):
     """Measure the fixed angles between detectors from exposures that have all six files.
 
-    Returns relative[k] with frame_k = frame_1 @ relative[k], and the scale matrix of each detector.
+    Returns relative[k] with frame_k = frame_1 @ relative[k], the scale matrix of each detector,
+    and each detector's inverse distortion polynomial.
     Medians are used because a few exposures have a poor astrometric solution on one detector.
     """
     keys = [file_key(release, obsid, det, dets[det]) for release, obsid, dets in sample for det in range(1, 7)]
-    heads = read_heads(keys)
+    heads = read_heads(keys, with_sip=True)
     each = []
     scale_samples = []
+    sip_samples = []
     for i in range(len(sample)):
         six = heads[i * 6:(i + 1) * 6]
         if any(h is None for h in six):
@@ -170,13 +173,16 @@ def calibrate(sample: list[tuple[str, str, dict]]):
         base = six[0][1]
         each.append([base.T @ six[k][1] for k in range(6)])
         scale_samples.append([six[k][2] for k in range(6)])
+        sip_samples.append([six[k][4] for k in range(6)])
     each = np.array(each)                      # (exposures, 6, 3, 3)
     relative = np.array([orthonormal(np.median(each[:, k], axis=0)) for k in range(6)])
     scales = np.median(np.array(scale_samples), axis=0)
+    # The distortion is a calibration product, the same in every file of a detector.
+    sip = np.median(np.array(sip_samples), axis=0)   # (6, 2, 4, 4)
     # Report how far single exposures stray from the median geometry, in arcseconds of rotation.
     stray = np.abs(each - relative).max(axis=(2, 3)) / (np.pi / 180 / 3600)
     print(f"  detector geometry from {len(each)} exposures. Typical deviation {np.median(stray):.0f} arcsec, largest {stray.max():.0f}", flush=True)
-    return relative, scales
+    return relative, scales, sip
 
 
 def release_rank(release: str) -> tuple[int, int]:
@@ -259,12 +265,22 @@ def build(fresh: bool = False) -> None:
     rows = rows[~drop]
     print(f"{len(todo)} new exposures, {int(drop.sum())} dropped", flush=True)
 
-    if old is not None:
-        relative, scales = old["relative"], old["scales"]
+    if old is not None and "sip" in old:
+        relative, scales, sip = old["relative"], old["scales"], old["sip"]
     else:
+        # Measure the detector geometry from exposures that have all six files.
         full = [item for item in todo if len(item[2]) == 6]
+        if not full:
+            full = [
+                (releases[row["release"]], row["obsid"].decode(), {det: versions[row["vdir"][det - 1]] for det in range(1, 7)})
+                for row in rows[:: max(1, len(rows) // (CALIBRATION_SAMPLE * 2))]
+                if not (row["vdir"] == MISSING).any()
+            ]
         step = max(1, len(full) // CALIBRATION_SAMPLE)
-        relative, scales = calibrate(full[::step][:CALIBRATION_SAMPLE])
+        measured = calibrate(full[::step][:CALIBRATION_SAMPLE])
+        # Rows already in the index were built with the old angles, so keep those angles.
+        relative, scales = (old["relative"], old["scales"]) if old is not None else measured[:2]
+        sip = measured[2]
 
     missed = 0
     for begin in range(0, max(len(todo), 1), BATCH):
@@ -298,14 +314,14 @@ def build(fresh: bool = False) -> None:
         rows = rows[np.argsort(rows["mjd"], kind="stable")]
         finished = begin + BATCH >= len(todo)
         # Weeks count as done only once every exposure in them was read.
-        save(rows, releases, versions, sorted(done_weeks | set(new_weeks)) if finished and not missed else sorted(done_weeks), relative, scales)
+        save(rows, releases, versions, sorted(done_weeks | set(new_weeks)) if finished and not missed else sorted(done_weeks), relative, scales, sip)
         print(f"saved {len(rows)} exposures ({min(begin + BATCH, len(todo))}/{len(todo)} read)", flush=True)
 
     size = INDEX_PATH.stat().st_size / 1e6
     print(f"Index has {len(rows)} exposures, {size:.1f} MB, updated in {time.time() - started:.0f} s. Missed headers: {missed}", flush=True)
 
 
-def save(rows, releases, versions, weeks, relative, scales) -> None:
+def save(rows, releases, versions, weeks, relative, scales, sip) -> None:
     """Write the index atomically."""
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     temp = INDEX_PATH.with_name("exposures.tmp.npz")
@@ -317,6 +333,7 @@ def save(rows, releases, versions, weeks, relative, scales) -> None:
         weeks=np.array(weeks),
         relative=relative,
         scales=scales,
+        sip=sip,
         built=np.array(time.time()),
     )
     temp.replace(INDEX_PATH)

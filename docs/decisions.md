@@ -5,6 +5,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
 | 2026-11-14 | A major optimization pass, to bring the cold start and the load time down | Matt | Measured before and after. See "Speed" in `docs/deploy.md` |
+| 2026-11-14 | The site goes live on Cloud Run in `us-east4`, paid by the Google Cloud Free Trial. The free domain is registered at Porkbun and will point at the site through Cloud Run domain mapping | Austin | Claude recommended domain mapping over Firebase Hosting (60 second request limit) and a load balancer (monthly fee). Details in `docs/deploy.md` |
 | 2026-11-14 | Add the planets and dwarf planets to the sky map, everything | Matt | From the concept ("fully map our solar system"). The Sun, the Moon, 7 planets, Pluto, 9 more dwarf planets and likely ones, 13 asteroids, 6 comets, and the 3 known interstellar visitors, where they are right now |
 | 2026-11-14 | Implement exports of the scans | Matt | From his own notes ("export scans"). FITS for the image on screen and for every loaded image, plus the brightness table and the change report |
 | 2026-11-14 | A Blink button in the image study, to compare with an older picture of the same sky | Matt | Claude listed it as an option after NASA named WiseView as a model. Matt chose it. Partners: WISE (2010), 2MASS (1997 to 2001), and the Digitized Sky Survey |

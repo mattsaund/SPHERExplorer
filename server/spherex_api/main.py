@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, skybot, solarsystem, spacecraft, suggest
+from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, instrument, missions, net, partners, resolve, sia, skybot, solarsystem, spacecraft, suggest
 
 SWEEP_SECONDS = 600
 
@@ -158,7 +158,7 @@ async def known_bodies(
     ra: float = Query(ge=0, lt=360),
     dec: float = Query(ge=-90, le=90),
     mjd: float = Query(ge=40000, le=80000, description="The moment to ask about, Modified Julian Date (UTC)"),
-    radius: float = Query(120, gt=0, le=600, description="Arcseconds"),
+    radius: float = Query(120, gt=0, le=2700, description="Arcseconds. Up to the corners of the largest field"),
 ):
     """Known asteroids, comets, and planets near a position at a moment. From IMCCE SkyBoT. Slow: about twenty seconds."""
     try:
@@ -216,6 +216,18 @@ async def neossat(
         return await partners.neossat(ra, dec)
     except net.UpstreamError as error:
         raise HTTPException(502, str(error)) from error
+
+
+@app.get("/api/coverage/{name}")
+async def coverage_map(name: str):
+    """A coverage map of the SPHEREx archive as a FITS MOC file: "spectral-images" or "deep-fields"."""
+    try:
+        data = await coverage.moc(name)
+    except KeyError as error:
+        raise HTTPException(404, "There is no coverage map by that name.") from error
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
+    return Response(data, media_type="application/fits", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.get("/api/hips/spherex-color/{recipe}/properties")

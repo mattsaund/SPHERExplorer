@@ -33,12 +33,14 @@ function niceLength(arcsec: number): number {
   return steps.reduce((best, step) => (Math.abs(step - arcsec) < Math.abs(best - arcsec) ? step : best));
 }
 
+/** A length on the sky in words for the scale bar: arcseconds, arcminutes, or degrees. */
 function lengthLabel(arcsec: number): string {
   if (arcsec >= 3600) return `${arcsec / 3600}°`;
   if (arcsec >= 60) return `${arcsec / 60}′`;
   return `${arcsec}″`;
 }
 
+/** The image viewer: draws the step on screen with its marks, and handles pan, zoom, and clicks. */
 export function FrameView({ className }: { className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const glRef = useRef<HTMLCanvasElement>(null);

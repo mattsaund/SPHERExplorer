@@ -16,6 +16,7 @@ const WL_MIN = 0.7;
 const WL_MAX = 5.1;
 const MARGIN = { left: 62, right: 14, top: 30, bottom: 40 };
 
+/** The spectrum plot: brightness against wavelength, with feature marks. A click on a point jumps to its image. */
 export function SpectrumPlot({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

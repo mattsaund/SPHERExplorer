@@ -5,6 +5,7 @@
 import { actions, describeFeature, spectrumFeatures, useStore } from "../core";
 import "./styles/features.css";
 
+/** What stands out in the spectrum, in plain words, with a button that marks those features on the plot. */
 export function FeaturesList() {
   // The engine keeps the last answer, so this is cheap to ask on every change.
   const report = useStore((s) => spectrumFeatures(s));

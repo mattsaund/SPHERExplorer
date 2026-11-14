@@ -42,6 +42,7 @@ export async function fitsArchive(request: CutoutRequest, signal?: AbortSignal):
 /** An error with a message fit to show a person. */
 export class ApiError extends Error {}
 
+/** Fetch JSON from our API. Failures become an ApiError with words fit to show a person. */
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   let response: Response;
   try {
@@ -57,6 +58,7 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+/** Instrument facts and the live data collections. Loaded once. */
 export function getMeta(signal?: AbortSignal): Promise<Meta> {
   return getJson<Meta>("/meta", signal);
 }
@@ -135,6 +137,7 @@ export interface SearchResult {
   };
 }
 
+/** Every SPHEREx image that covers a sky position. */
 export function searchFrames(ra: number, dec: number, signal?: AbortSignal): Promise<SearchResult> {
   return getJson<SearchResult>(`/search?ra=${ra.toFixed(7)}&dec=${dec.toFixed(7)}`, signal);
 }

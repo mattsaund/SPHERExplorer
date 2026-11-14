@@ -15,6 +15,7 @@ const STOPS: Record<ColorMap, string[]> = {
 
 export const COLOR_MAPS = Object.keys(STOPS) as ColorMap[];
 
+/** A color written as "#rrggbb" as three numbers from 0 to 255. */
 function hex(color: string): [number, number, number] {
   const n = parseInt(color.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];

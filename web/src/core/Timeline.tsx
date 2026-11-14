@@ -20,6 +20,7 @@ interface Panel {
   x1: number;
 }
 
+/** The timeline: every image as a dot by date and wavelength. A click on a dot jumps to that image. */
 export function Timeline({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

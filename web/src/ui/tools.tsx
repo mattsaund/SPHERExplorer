@@ -25,6 +25,7 @@ export interface ToolProps {
   showImages(): void;
 }
 
+/** What a tool shows before any target is chosen. */
 function NoTarget({ then }: { then: string }) {
   return <p className="muted">Pick a target first, with the Find box or the Examples. {then}</p>;
 }
@@ -35,6 +36,7 @@ function NeedsTarget({ children, then }: { children: ReactNode; then: string }) 
   return hasTarget ? <>{children}</> : <NoTarget then={then} />;
 }
 
+/** The spectrum plot with its side panel: what stands out, plot options, how to measure, and feature marks. */
 function Spectrum() {
   const settings = useStore((s) => s.spectrum);
   // Most measurements untrusted means the source is too bright for the detector.
@@ -295,6 +297,7 @@ function Telescopes({ showMap }: ToolProps) {
   );
 }
 
+/** Everything that can be saved or shared: pictures, films, FITS files, tables, a link, and embed code. */
 function SaveAndShare() {
   const count = useStore((s) => s.sequence.length);
   const exporting = useStore((s) => s.exporting);

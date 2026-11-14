@@ -16,10 +16,12 @@ export interface FramePixels {
 
 const store = new Map<number, FramePixels>();
 
+/** Keep the pixels of a loaded frame. */
 export function setPixels(id: number, pixels: FramePixels): void {
   store.set(id, pixels);
 }
 
+/** The pixels of a frame, or undefined when it is not loaded. */
 export function getPixels(id: number): FramePixels | undefined {
   return store.get(id);
 }
@@ -32,6 +34,7 @@ export function imageOf(id: number): Float32Array | undefined {
   return pixels.float;
 }
 
+/** Let go of every frame's pixels, when a new target is loaded. */
 export function clearPixels(): void {
   store.clear();
 }

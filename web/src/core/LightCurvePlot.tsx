@@ -12,6 +12,7 @@ import { actions, useStore, type AppState } from "./store";
 const MARGIN = { left: 62, right: 14, top: 14, bottom: 26 };
 const GAP = 14;
 
+/** The brightness-over-time plot. It redraws when the measurements or the size of its box change. */
 export function LightCurvePlot({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

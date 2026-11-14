@@ -44,10 +44,12 @@ const COVERAGE = [
   { key: "deepFields", file: "deep-fields", name: "SPHEREx deep fields", color: "--map-deep", fallback: "#c79bff" },
 ] as const;
 
+/** The value of a CSS variable on an element, or a fallback when the page does not set it. */
 function cssVariable(element: HTMLElement, name: string, fallback: string): string {
   return getComputedStyle(element).getPropertyValue(name).trim() || fallback;
 }
 
+/** The sky map. It fills its parent and follows the map part of the store. */
 export function SkyMap({ className }: { className?: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
 

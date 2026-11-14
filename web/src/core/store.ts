@@ -249,6 +249,7 @@ function resequence(frames = get().frames, mode = get().mode, filters = get().fi
   return { sequence, player: { ...player, index } };
 }
 
+/** Take a batch of frames that just arrived: keep their pixels, mark them ready or failed, and rebuild the sequence. */
 function applyFrames(batch: WireFrame[], byKey: Map<string, number>): void {
   const frames = get().frames.slice();
   let loaded = get().loaded;
@@ -324,6 +325,7 @@ function emptyStudy(): Partial<AppState> {
   };
 }
 
+/** Start a study: find every image of the target, then stream them in. A newer call cancels an older one. */
 async function load(target: Target, fieldSize: number): Promise<void> {
   abort?.abort();
   abort = new AbortController();
@@ -491,6 +493,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
 
 let ticker: ReturnType<typeof setTimeout> | null = null;
 
+/** One beat of the film: show the next step, and schedule the beat after it. */
 function tick(): void {
   const { player, sequence } = get();
   if (!player.playing) return;
@@ -501,11 +504,13 @@ function tick(): void {
 /** The timer that swaps the two pictures while blinking. */
 let blinker: ReturnType<typeof setInterval> | null = null;
 
+/** Stop swapping the two pictures. */
 function stopBlink(): void {
   if (blinker) clearInterval(blinker);
   blinker = null;
 }
 
+/** Stop the film. */
 function pause(): void {
   if (ticker) clearTimeout(ticker);
   ticker = null;

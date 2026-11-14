@@ -26,6 +26,7 @@ export function fileName(state: AppState, what: string, extension: string): stri
   return `spherexplorer_${safe}_${what}.${extension}`;
 }
 
+/** Hand a file made in the browser to the person, under a given name. */
 export function download(blob: Blob, name: string): void {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -111,6 +112,7 @@ export function spectrumCsv(state: AppState): string {
   return lines.join("\n") + "\n";
 }
 
+/** Save the spectrum table. False when there is nothing measured yet. */
 export function exportSpectrum(state: AppState): boolean {
   const text = spectrumCsv(state);
   if (text.split("\n").length < 10) return false;
@@ -239,6 +241,7 @@ export function lightCurveCsv(state: AppState): string {
   return lines.join("\n") + "\n";
 }
 
+/** Save the brightness-over-time table. False when there is nothing measured yet. */
 export function exportLightCurve(state: AppState): boolean {
   const text = lightCurveCsv(state);
   if (text.split("\n").length < 7) return false;
@@ -277,6 +280,7 @@ export function changesCsv(state: AppState): string {
   return lines.join("\n") + "\n";
 }
 
+/** Save the change report. False when the change finder has not run. */
 export function exportChanges(state: AppState): boolean {
   const text = changesCsv(state);
   if (!text) return false;

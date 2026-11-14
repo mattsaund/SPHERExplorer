@@ -34,6 +34,7 @@ export interface LightCurve {
 /** A channel's average must be detected at least this strongly to serve as a reference. */
 const MIN_REFERENCE_SNR = 5;
 
+/** Turn measurements at many wavelengths into brightness over time, each compared with its own wavelength's average. */
 export function lightCurve(points: SpectrumPoint[]): LightCurve {
   // Average brightness per channel over all visits, from trusted measurements.
   const channels = new Map<number, { weight: number; flux: number; seasons: Set<number> }>();

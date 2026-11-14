@@ -9,10 +9,12 @@ export interface CaptureSource {
 
 let source: CaptureSource | null = null;
 
+/** Called by the frame viewer when it appears, and with null when it goes away. */
 export function registerCapture(next: CaptureSource | null): void {
   source = next;
 }
 
+/** A picture of one step of the sequence, or null when no viewer is on the page. */
 export function captureStep(index: number): HTMLCanvasElement | null {
   return source ? source.renderStep(index) : null;
 }

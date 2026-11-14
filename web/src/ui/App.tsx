@@ -70,6 +70,7 @@ function useClosable<T>(value: T | null): [boolean, () => void] {
   return [value !== null && value !== closed, () => setClosed(value)];
 }
 
+/** The three-way switch in the top bar: the sky map, the images, or both side by side. */
 function ViewSwitch({ view, onChange }: { view: ViewId; onChange: (view: ViewId) => void }) {
   return (
     <div className="segmented" role="radiogroup" aria-label="What to show">
@@ -80,6 +81,7 @@ function ViewSwitch({ view, onChange }: { view: ViewId; onChange: (view: ViewId)
   );
 }
 
+/** A top bar button that opens and closes a drawer. Its arrow turns while the drawer is open. */
 function DrawerToggle({ open, onClick, children }: { open: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button className="toggle" aria-expanded={open} aria-controls="top-drawer" onClick={onClick}>
@@ -303,6 +305,7 @@ function EmptyImages() {
   );
 }
 
+/** What is under the pointer in the image: position, value, wavelength, and any flags. */
 function Readout() {
   const hover = useStore((s) => s.hover);
   const flags = useStore((s) => s.meta?.flags);
@@ -490,6 +493,7 @@ function Dock({ tool, open, tall, onTool, onTall, onClose, showMap, showImages }
   );
 }
 
+/** The whole page: top bar, settings drawer, stage, status line, player, and tool dock. */
 export function App() {
   const [view, setView] = useState<ViewId>("map");
   // The view as the engine's listeners see it, without waiting for a render.

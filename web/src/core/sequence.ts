@@ -16,12 +16,14 @@ export function formatWavelength(microns: number): string {
   return Number.isFinite(microns) ? `${microns.toFixed(2)} µm` : "";
 }
 
+/** The average of a list. NaN for an empty list. */
 function mean(values: number[]): number {
   let total = 0;
   for (const v of values) total += v;
   return values.length ? total / values.length : NaN;
 }
 
+/** Gather frames that share a key into one step each, in time order, with a label per step. */
 function group(frames: Frame[], prefix: string, keyOf: (f: Frame) => number, labelOf: (members: Frame[]) => string): SequenceItem[] {
   const buckets = new Map<number, Frame[]>();
   for (const frame of frames) {

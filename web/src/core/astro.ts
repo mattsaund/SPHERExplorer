@@ -25,6 +25,7 @@ export function formatMonth(mjd: number): string {
   return mjdToDate(mjd).toLocaleDateString("en-US", { year: "numeric", month: "short", timeZone: "UTC" });
 }
 
+/** Split a value into degrees (or hours), minutes, and seconds, as zero-padded text. */
 function sexagesimal(value: number, places: number): [string, string, string] {
   const total = Math.round(Math.abs(value) * 3600 * 10 ** places) / 10 ** places;
   const first = Math.floor(total / 3600);
@@ -163,6 +164,7 @@ export function parseCoordinates(text: string): SkyPosition | null {
   return null;
 }
 
+/** A position when the numbers are a real place on the sky, otherwise null. */
 function valid(ra: number, dec: number): SkyPosition | null {
   if (!Number.isFinite(ra) || !Number.isFinite(dec) || Math.abs(dec) > 90 || ra < 0 || ra > 360) return null;
   return { ra: ra === 360 ? 0 : ra, dec };
@@ -248,6 +250,7 @@ export function assignSeasons(mjds: number[], gapDays = 45): number[] {
 /** A stretch of observing longer than this many days is cut into calendar months. */
 const LONG_WATCH_DAYS = 60;
 
+/** A count of months since year 0, so two dates in the same month give the same number. */
 function monthOf(mjd: number): number {
   const date = mjdToDate(mjd);
   return date.getUTCFullYear() * 12 + date.getUTCMonth();
@@ -275,6 +278,7 @@ export function summarizeVisits(mjds: number[], seasons: number[]): { season: nu
 const LIGHT_YEARS_PER_PARSEC = 3.26156;
 const KM_PER_AU = 149597870.7;
 
+/** A whole number with thousands separators: 25400 becomes "25,400". */
 function grouped(value: number): string {
   return Math.round(value).toLocaleString("en-US");
 }

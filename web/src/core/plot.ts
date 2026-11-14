@@ -15,6 +15,7 @@ export interface PlotTheme {
 // Okabe-Ito colors: distinct for people with color-vision deficiency.
 const SERIES = ["#56b4e9", "#e69f00", "#009e73", "#cc79a7", "#f0e442", "#d55e00"];
 
+/** The plot colors the page sets through CSS variables, with defaults for any it leaves out. */
 export function readTheme(element: HTMLElement): PlotTheme {
   const style = getComputedStyle(element);
   const pick = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;

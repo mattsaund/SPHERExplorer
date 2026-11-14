@@ -113,6 +113,7 @@ function sample(member: StackMember, n: number, scale: number, badMask: number, 
   }
 }
 
+/** Sum frames onto one north-up grid: each is resampled to the grid, its background removed, and outliers dropped. */
 export function stackFrames(members: StackMember[], options: StackOptions): Stack {
   const n = Math.max(3, Math.round(options.size / options.scale) | 1); // odd, so the center is a pixel
   const center = (n - 1) / 2;

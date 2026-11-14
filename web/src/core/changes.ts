@@ -222,6 +222,7 @@ const MATCH_RADIUS = 9;
 const CAUTION_RADIUS = 45;
 const CHANNELS_PER_DETECTOR = 17;
 
+/** The middle value of a list. NaN for an empty list. */
 function median(values: number[]): number {
   if (!values.length) return NaN;
   const sorted = values.slice().sort((a, b) => a - b);
@@ -229,6 +230,7 @@ function median(values: number[]): number {
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
+/** Keep a value inside a range. */
 function clamp(value: number, [low, high]: [number, number]): number {
   return Math.min(high, Math.max(low, value));
 }
@@ -507,6 +509,7 @@ function pause(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+/** A report with nothing in it, and a note that says why. */
 function empty(note: string): ChangeReport {
   return { sources: 0, visits: [], skipped: [], channels: 0, positionReferences: 0, brightnessReferences: 0, positionScatter: NaN, brightnessScatter: NaN, changes: [], checked: [], note };
 }

@@ -12,6 +12,7 @@ const MODES: { value: SequenceMode; label: string }[] = [
   { value: "deep", label: "Deepest" },
 ];
 
+/** The compact layout for a page opened with embed=1: the images, a player, and a link to the full tool. */
 export function Embed() {
   const target = useStore((s) => s.target);
   const targetState = useStore((s) => s.targetState);

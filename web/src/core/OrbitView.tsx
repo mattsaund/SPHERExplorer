@@ -25,6 +25,7 @@ interface Props {
 /** How close a click must be to a mark to count, in CSS pixels. */
 const PICK_RADIUS = 14;
 
+/** The live world map of telescopes. `focus` gets its orbit track drawn, and `onPick` hears clicks on a telescope. */
 export function OrbitView({ className, focus = "spherex", onPick }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // The drawing loop outlives a change of focus, so it reads these through refs.

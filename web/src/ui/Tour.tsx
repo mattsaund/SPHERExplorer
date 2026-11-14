@@ -105,6 +105,7 @@ export function tourIsDue(): boolean {
   }
 }
 
+/** Remember that the tour has been seen, so it does not offer itself again. */
 function markSeen(): void {
   try {
     window.localStorage.setItem(SEEN_KEY, "seen");

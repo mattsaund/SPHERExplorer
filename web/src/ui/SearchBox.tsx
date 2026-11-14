@@ -18,6 +18,7 @@ const TAGS: Record<Suggestion["group"], string> = {
   match: "Name found",
 };
 
+/** The Find box and its dropdown of suggestions. */
 export function SearchBox() {
   const suggestions = useStore((s) => s.suggestions);
   const [text, setText] = useState("");

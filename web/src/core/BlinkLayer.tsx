@@ -8,6 +8,7 @@ import { offsetToSky } from "./astro";
 import { blinkPartner } from "./blink";
 import { useStore, type AppState } from "./store";
 
+/** The older picture for blinking, as a layer that fills the image viewer. */
 export function BlinkLayer() {
   const hostRef = useRef<HTMLDivElement>(null);
   // On screen only at the moments the blink shows the older picture.

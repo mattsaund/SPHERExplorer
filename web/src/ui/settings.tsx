@@ -39,6 +39,7 @@ export function Examples() {
   );
 }
 
+/** Six switches, one per detector, each with its wavelength range. */
 function Detectors() {
   const detectors = useStore((s) => s.filters.detectors);
   const meta = useStore((s) => s.meta);
@@ -60,6 +61,7 @@ function Detectors() {
   );
 }
 
+/** How pixel values become shades: the curve, the black and white points, and auto contrast. */
 function Brightness() {
   const display = useStore((s) => s.display);
   return (
@@ -84,6 +86,7 @@ function Brightness() {
   );
 }
 
+/** The color table, invert, and full color with its recipe. */
 function Color() {
   const display = useStore((s) => s.display);
   return (
@@ -112,6 +115,7 @@ function Color() {
   );
 }
 
+/** What to subtract from the image on screen, so only what changed is left. */
 function Changes() {
   const subtract = useStore((s) => s.subtract);
   return (
@@ -131,6 +135,7 @@ function Changes() {
   );
 }
 
+/** The marks drawn over the image, each with its own switch. */
 function Marks() {
   const display = useStore((s) => s.display);
   return (
@@ -146,6 +151,7 @@ function Marks() {
   );
 }
 
+/** How much sky is loaded, whether sums follow a moving target, and a zoom reset. */
 function Field() {
   const fieldSize = useStore((s) => s.fieldSize);
   const follow = useStore((s) => s.follow);

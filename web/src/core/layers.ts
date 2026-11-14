@@ -34,6 +34,7 @@ const COLOR_BALANCE = [1.7, 1.25, 1.0];
 const stacks = new Map<string, Stack>();
 const MAX_STACKS = 160;
 
+/** Keep a finished sum for reuse, and drop the oldest ones past the limit. */
 function remember(key: string, stack: Stack): void {
   stacks.set(key, stack);
   while (stacks.size > MAX_STACKS) stacks.delete(stacks.keys().next().value!);
@@ -97,6 +98,7 @@ function referenceFor(item: SequenceItem, state: AppState): Scene | null {
   return sumOf({ key: `ref:${label}:${members.length}`, label: "", frameIds: members, mjd: item.mjd, wavelength: item.wavelength }, { ...state, follow: false }, null);
 }
 
+/** What to draw for a step before any subtraction: one exposure as it is, or a sum in one color or three. */
 function plainScene(item: SequenceItem, state: AppState): Scene | null {
   const { frames, display, session } = state;
 

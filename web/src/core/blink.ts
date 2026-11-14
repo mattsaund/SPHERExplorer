@@ -16,6 +16,7 @@ export interface BlinkPartner {
   url: string;
 }
 
+/** The tile address of a sky map layer, by its id. */
 function tiles(layer: string): string {
   return SKY_LAYERS.find((entry) => entry.id === layer)?.url ?? "";
 }

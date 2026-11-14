@@ -50,6 +50,7 @@ function plainNumber(text: string): boolean {
   return /^[+-]?(\d+\.?\d*|\.\d+)$/.test(text);
 }
 
+/** A number from the address, or undefined when it is missing, not a number, or out of range. */
 function number(params: URLSearchParams, name: string, min: number, max: number): number | undefined {
   const text = params.get(name);
   if (text === null || text.trim() === "") return undefined;

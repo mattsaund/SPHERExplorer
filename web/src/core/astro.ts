@@ -186,11 +186,27 @@ export function offsetToSky(east: number, north: number, center: SkyPosition): S
 export function assignSeasons(mjds: number[], gapDays = 45): number[] {
   const seasons: number[] = [];
   let season = 0;
+  let start = 0;
   for (let i = 0; i < mjds.length; i++) {
-    if (i > 0 && mjds[i] - mjds[i - 1] > gapDays) season++;
+    if (i > 0 && mjds[i] - mjds[i - 1] > gapDays) {
+      season++;
+      start = i;
+    } else if (i > 0 && mjds[i] - mjds[start] > LONG_WATCH_DAYS && monthOf(mjds[i]) !== monthOf(mjds[i - 1])) {
+      // Fields near the ecliptic poles are watched almost without a break.
+      // Cut such a long watch at each new calendar month so change over time stays visible.
+      season++;
+    }
     seasons.push(season);
   }
   return seasons;
+}
+
+/** A stretch of observing longer than this many days is cut into calendar months. */
+const LONG_WATCH_DAYS = 60;
+
+function monthOf(mjd: number): number {
+  const date = mjdToDate(mjd);
+  return date.getUTCFullYear() * 12 + date.getUTCMonth();
 }
 
 /** Summarize the visits of a time-sorted list of exposures that already carry visit numbers. */

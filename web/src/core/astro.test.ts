@@ -113,4 +113,14 @@ describe("assignSeasons", () => {
     expect(assignSeasons([60800, 60801, 60810, 60980, 60990, 61170])).toEqual([0, 0, 0, 1, 1, 2]);
     expect(assignSeasons([])).toEqual([]);
   });
+  it("cuts a long unbroken watch into calendar months", () => {
+    // One exposure every 5 days for 150 days, starting 2025 May 1 (MJD 60796).
+    const mjds = Array.from({ length: 31 }, (_, i) => 60796 + i * 5);
+    const seasons = assignSeasons(mjds);
+    // The first 60 days stay together. After that each new month starts a new visit.
+    expect(seasons[0]).toBe(0);
+    expect(seasons[12]).toBe(0);
+    expect(new Set(seasons).size).toBeGreaterThanOrEqual(3);
+    expect(seasons).toEqual([...seasons].sort((a, b) => a - b));
+  });
 });

@@ -58,6 +58,12 @@ export interface Stack {
 const CLIP_SIGMA = 4.5;
 /** Clipping needs at least this many samples to judge the scatter. */
 const CLIP_MIN = 5;
+/** Up to this many frames, "clipped" keeps every sample and uses medians. Beyond it, two passes. */
+const SORT_LIMIT = 48;
+/** Beyond SORT_LIMIT frames, samples further than this many standard deviations from the mean are dropped. */
+const MEAN_CLIP_SIGMA = 3.5;
+/** Rounds of finding the mean and spread before the final sum. */
+const CLIP_ROUNDS = 3;
 
 /** Median of the first n entries of a scratch array. Reorders the scratch array. */
 function medianOf(values: Float32Array, n: number): number {
@@ -75,52 +81,62 @@ export function robustNoise(image: Float32Array): { median: number; rms: number 
   return { median: middle, rms: 1.4826 * medianOf(finite, finite.length) };
 }
 
+/**
+ * Visit every output pixel that a member covers with a usable sample.
+ * visit(out, value) receives the output index and the background-subtracted value.
+ * covered counts frames that reach each pixel, usable or not.
+ */
+function sample(member: StackMember, n: number, scale: number, badMask: number, covered: Uint16Array | null, visit: (out: number, value: number) => void): void {
+  const [a, b, c, d] = member.m;
+  const det = a * d - b * c;
+  if (!det || !(member.rms > 0)) return;
+  // Inverse matrix: sky offset to pixel offset.
+  const ia = d / det, ib = -b / det, ic = -c / det, id = a / det;
+  const center = (n - 1) / 2;
+  const { image, flags, nx, ny, bg } = member;
+  for (let j = 0; j < n; j++) {
+    const north = (j - center) * scale + member.shift[1];
+    for (let i = 0; i < n; i++) {
+      // Output x grows to the right, which is west on the sky.
+      const east = -(i - center) * scale + member.shift[0];
+      const px = Math.round(member.cx + ia * east + ib * north);
+      const py = Math.round(member.cy + ic * east + id * north);
+      if (px < 0 || py < 0 || px >= nx || py >= ny) continue;
+      const at = py * nx + px;
+      const out = j * n + i;
+      if (covered) covered[out]++;
+      const value = image[at];
+      if (value !== value) continue; // NaN: saturated or missing
+      if (flags && flags[at] & badMask) continue;
+      visit(out, value - bg);
+    }
+  }
+}
+
 export function stackFrames(members: StackMember[], options: StackOptions): Stack {
   const n = Math.max(3, Math.round(options.size / options.scale) | 1); // odd, so the center is a pixel
   const center = (n - 1) / 2;
   const scale = options.scale;
   const total = n * n;
-  const sum = new Float32Array(total);
-  const weight = new Float32Array(total);
-  // The median and the clipped mean need every sample: one row per member.
-  const samples = options.method === "mean" ? null : new Float32Array(total * members.length).fill(NaN);
   const weights = members.map((member) => (member.rms > 0 ? 1 / (member.rms * member.rms) : 0));
   // Counts frames that cover each output pixel, whether or not the sample was usable.
   const covered = new Uint16Array(total);
-
-  members.forEach((member, index) => {
-    const [a, b, c, d] = member.m;
-    const det = a * d - b * c;
-    if (!det || !(member.rms > 0)) return;
-    // Inverse matrix: sky offset to pixel offset.
-    const ia = d / det, ib = -b / det, ic = -c / det, id = a / det;
-    const w = 1 / (member.rms * member.rms);
-    const { image, flags, nx, ny } = member;
-    for (let j = 0; j < n; j++) {
-      const north = (j - center) * scale + member.shift[1];
-      for (let i = 0; i < n; i++) {
-        // Output x grows to the right, which is west on the sky.
-        const east = -(i - center) * scale + member.shift[0];
-        const px = Math.round(member.cx + ia * east + ib * north);
-        const py = Math.round(member.cy + ic * east + id * north);
-        if (px < 0 || py < 0 || px >= nx || py >= ny) continue;
-        const at = py * nx + px;
-        const out = j * n + i;
-        covered[out]++;
-        const value = image[at];
-        if (value !== value) continue; // NaN: saturated or missing
-        if (flags && flags[at] & options.badMask) continue;
-        if (samples) samples[index * total + out] = value - member.bg;
-        else {
-          sum[out] += w * (value - member.bg);
-          weight[out] += w;
-        }
-      }
-    }
-  });
-
   const image = new Float32Array(total);
-  if (samples) {
+  const empty = (out: number) => (covered[out] ? Infinity : NaN);
+
+  // Keeping every sample for a per-pixel median costs memory and time in proportion to the
+  // number of frames. Past a few dozen frames, clip against the mean and spread instead,
+  // which needs a few quick passes and no sample storage.
+  const keepSamples = options.method === "median" || (options.method === "clipped" && members.length <= SORT_LIMIT);
+
+  if (keepSamples) {
+    const samples = new Float32Array(total * members.length).fill(NaN);
+    members.forEach((member, index) => {
+      const base = index * total;
+      sample(member, n, scale, options.badMask, covered, (out, value) => {
+        samples[base + out] = value;
+      });
+    });
     const values = new Float32Array(members.length);
     const scratch = new Float32Array(members.length);
     const which = new Int32Array(members.length);
@@ -135,7 +151,7 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
         }
       }
       if (!count) {
-        image[out] = covered[out] ? Infinity : NaN;
+        image[out] = empty(out);
         continue;
       }
       scratch.set(values.subarray(0, count));
@@ -158,7 +174,56 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
       image[out] = bottom > 0 ? top / bottom : middle;
     }
   } else {
-    for (let out = 0; out < total; out++) image[out] = weight[out] > 0 ? sum[out] / weight[out] : covered[out] ? Infinity : NaN;
+    const sum = new Float64Array(total);
+    const weight = new Float64Array(total);
+    if (options.method === "clipped") {
+      // Find the mean and spread of each pixel across frames, then repeat using only the samples
+      // inside the limit. One round is not enough: a single huge outlier widens the spread so
+      // much that smaller ones hide behind it.
+      const plain = new Float64Array(total);
+      const squares = new Float64Array(total);
+      const count = new Uint32Array(total);
+      const mean = new Float32Array(total);
+      const limit = new Float32Array(total).fill(Infinity);
+      for (let round = 0; round < CLIP_ROUNDS; round++) {
+        plain.fill(0);
+        squares.fill(0);
+        count.fill(0);
+        for (const member of members) {
+          sample(member, n, scale, options.badMask, round === 0 ? covered : null, (out, value) => {
+            if (Math.abs(value - mean[out]) > limit[out]) return;
+            plain[out] += value;
+            squares[out] += value * value;
+            count[out]++;
+          });
+        }
+        for (let out = 0; out < total; out++) {
+          const c = count[out];
+          if (!c) continue;
+          mean[out] = plain[out] / c;
+          limit[out] = MEAN_CLIP_SIGMA * Math.sqrt(Math.max(0, squares[out] / c - mean[out] * mean[out]));
+        }
+      }
+      // Last pass: weighted mean of the samples that sit within the final limit.
+      members.forEach((member, index) => {
+        const w = weights[index];
+        sample(member, n, scale, options.badMask, null, (out, value) => {
+          if (Math.abs(value - mean[out]) > limit[out]) return;
+          sum[out] += w * value;
+          weight[out] += w;
+        });
+      });
+      for (let out = 0; out < total; out++) image[out] = weight[out] > 0 ? sum[out] / weight[out] : count[out] ? mean[out] : empty(out);
+    } else {
+      members.forEach((member, index) => {
+        const w = weights[index];
+        sample(member, n, scale, options.badMask, covered, (out, value) => {
+          sum[out] += w * value;
+          weight[out] += w;
+        });
+      });
+      for (let out = 0; out < total; out++) image[out] = weight[out] > 0 ? sum[out] / weight[out] : empty(out);
+    }
   }
 
   return {

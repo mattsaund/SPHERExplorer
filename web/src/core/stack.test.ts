@@ -68,6 +68,17 @@ describe("stackFrames", () => {
     expect(kept.image[kept.cy * kept.nx + kept.cx]).toBeCloseTo(45, 5);
   });
 
+  it("clips artifacts in large sets without keeping every sample", () => {
+    // 100 steady frames with small scatter, plus three wild ones.
+    const steady = Array.from({ length: 100 }, (_, i) => member([6, 0, 0, 6], 0, 0, 5 + ((i % 5) - 2) * 0.05));
+    const wild = [member([6, 0, 0, 6], 0, 0, 900), member([6, 0, 0, 6], 0, 0, -400), member([6, 0, 0, 6], 0, 0, 2500)];
+    const stack = stackFrames([...steady, ...wild], { ...options, method: "clipped" });
+    expect(stack.image[stack.cy * stack.nx + stack.cx]).toBeCloseTo(5.0, 2);
+    // The plain mean is pulled far off by the same three frames.
+    const plain = stackFrames([...steady, ...wild], { ...options, method: "mean" });
+    expect(plain.image[plain.cy * plain.nx + plain.cx]).toBeGreaterThan(20);
+  });
+
   it("marks uncovered pixels NaN and covered-but-unusable pixels Infinity", () => {
     const saturated = member([6, 0, 0, 6], 0, 0, NaN);
     const stack = stackFrames([saturated], options);

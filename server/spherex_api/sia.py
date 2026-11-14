@@ -186,6 +186,50 @@ async def search_index(index, ra: float, dec: float) -> dict:
     }
 
 
+async def search_moving(index, path) -> dict:
+    """Every image that caught a moving body, with the body's position at each exposure."""
+    from .solarsystem import find_moving  # imported here to keep module load order simple
+
+    rows, detectors, x, y, ra, dec, delta, r, mag = find_moving(index, path)
+    keys = [index.key(int(row), int(det)) for row, det in zip(rows, detectors)]
+    records = index.rows[rows]
+    size = config.DETECTOR_SIZE
+    grids = await _wave_grids([{"key": key} for key in keys], detectors) if len(keys) else {}
+    wavelength = np.full(len(keys), np.nan)
+    bandwidth = np.full(len(keys), np.nan)
+    for detector, grid in grids.items():
+        pick = detectors == detector
+        wavelength[pick], bandwidth[pick] = grid.at(np.clip(x[pick], 0, size - 1), np.clip(y[pick], 0, size - 1))
+    channel = np.where(np.isfinite(wavelength), channel_index(detectors, np.nan_to_num(wavelength)), -1) if len(keys) else np.zeros(0, int)
+    zeros = np.zeros(len(keys)).tolist()
+    return {
+        "source": "index",
+        "collections": index.collections,
+        "errors": [],
+        "count": len(keys),
+        "frames": {
+            "key": keys,
+            "coll": (records["release"].astype(int) * 2 + records["deep"].astype(int)).tolist(),
+            "obsid": [value.decode() for value in records["obsid"]],
+            "det": detectors.tolist(),
+            "mjd": np.round(records["mjd"], 6).tolist(),
+            "x": np.round(x, 1).tolist(),
+            "y": np.round(y, 1).tolist(),
+            "wl": _rounded(wavelength, 5),
+            "bw": _rounded(bandwidth, 5),
+            "chan": channel.tolist(),
+            "pfra": zeros,
+            "pfdec": zeros,
+            # Where the body was at each exposure, seen from the center of the Earth.
+            "ra": np.round(ra, 6).tolist(),
+            "dec": np.round(dec, 6).tolist(),
+            "delta": np.round(delta, 6).tolist(),
+            "r": np.round(r, 5).tolist(),
+            "mag": _rounded(mag, 2),
+        },
+    }
+
+
 async def search(ra: float, dec: float, radius: float = 0.001) -> dict:
     """All SPHEREx images covering (ra, dec), time-ordered, in a compact columnar form.
 

@@ -40,15 +40,19 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 2. `GET /api/search` looks up every SPHEREx image that covers the position in the exposure index. It returns one row per image with time, detector, and an estimated wavelength at the target.
 3. `POST /api/cutouts` streams the frames. For each one the server reads the needed rows of IMAGE, FLAGS, and VARIANCE from S3, crops them, and measures the target with the cached PSF.
 4. The browser shows frames as they arrive. It groups them by time and wavelength, stacks them, subtracts them, and plots the spectrum.
-5. The sky map loads HiPS tiles directly from IRSA and ESA. Catalog overlays come through `/api/catalog/*`.
+5. The sky map loads HiPS tiles directly from IRSA. Labels for known objects come through `/api/objects` (SIMBAD). The full-color SPHEREx layer comes from `/api/hips/spherex-color`.
+6. `/api/missions` adds Gaia, 2MASS, and WISE data for the field.
+7. A planet, asteroid, or comet is followed instead of a fixed position. `/api/resolve` recognizes the name, `/api/moving` matches its JPL Horizons path against the exposure index, and each frame is cut out around the body, corrected for where the spacecraft was.
 
 ## The frontend contract
 
 `web/src/core/index.ts` is the only door into the engine. UI code imports from `../core` and nothing deeper.
 
-- State. `useStore(selector)` reads state. Slices: `target`, `frames`, `sequence`, `player`, `display`, `compare`, `spectrum`, `overlays`, `map`.
-- Actions. `actions.*` change state. Examples: `actions.goTo(query)`, `actions.play()`, `actions.setStretch(...)`.
-- Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, and `Timeline` draw into the element they are given. They carry no chrome. The UI wraps them with controls.
+- State. `useStore(selector)` reads state. The fields are documented on `AppState` in `core/store.ts`.
+- Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
+- Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, and `Timeline` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
+- Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
+- The starter UI in `ui/App.tsx` uses every one of these. It is the working example.
 - Types. Everything exported from `core/types.ts`.
 
 Rules for both sides.

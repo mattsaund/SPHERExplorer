@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, resolve, sia
+from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, resolve, sia, solarsystem
 
 
 async def _warm_up() -> None:
@@ -104,8 +104,27 @@ async def resolve_name(name: str = Query(min_length=1, max_length=120)):
     """Look up an object by name. Positions come back at epoch 2026.0 with motion."""
     found = await resolve.resolve(name)
     if found is None:
+        # Not a star or galaxy. It may be a planet, an asteroid, or a comet.
+        body = await solarsystem.lookup(name)
+        if body is not None:
+            return {**body, "moving": True}
         raise HTTPException(404, f'No object named "{name.strip()}" was found. Check the spelling, or enter coordinates.')
     return found
+
+
+@app.get("/api/moving")
+async def moving(command: str = Query(min_length=3, max_length=60, description="Body identifier from /api/resolve")):
+    """Every SPHEREx image that caught a solar system body, with its position at each exposure."""
+    index = await exposures.get_index()
+    if index is None:
+        raise HTTPException(503, "The exposure index is not loaded yet. Try again in a moment.")
+    try:
+        path = await solarsystem.ephemeris(command, float(index.rows["mjd"].max()))
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
+    return await sia.search_moving(index, path)
 
 
 @app.get("/api/objects")
@@ -177,6 +196,10 @@ class FrameRequest(BaseModel):
     key: str
     pra: float | None = None
     pdec: float | None = None
+    # A moving body has its own position in every frame. delta is its distance from Earth in au.
+    ra: float | None = Field(None, ge=0, lt=360)
+    dec: float | None = Field(None, ge=-90, le=90)
+    delta: float | None = Field(None, gt=0)
 
 
 class BatchRequest(BaseModel):
@@ -201,7 +224,11 @@ async def many_cutouts(body: BatchRequest):
     async def build(frame: FrameRequest) -> bytes:
         async with gate:
             phot = (frame.pra, frame.pdec) if frame.pra is not None and frame.pdec is not None else None
-            return await cutout.make_cutout(frame.key, body.ra, body.dec, body.size, phot=phot, sigma_plane=body.sigma, dtype=body.dtype)
+            own = frame.ra is not None and frame.dec is not None
+            return await cutout.make_cutout(
+                frame.key, frame.ra if own else body.ra, frame.dec if own else body.dec, body.size,
+                phot=phot, sigma_plane=body.sigma, dtype=body.dtype, delta=frame.delta if own else None,
+            )
 
     async def stream():
         tasks = [asyncio.ensure_future(build(frame)) for frame in body.frames]

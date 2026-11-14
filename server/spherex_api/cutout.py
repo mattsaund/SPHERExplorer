@@ -13,6 +13,7 @@ from astropy.io.fits.hdu.compressed._compression import decompress_rice_1_c
 from . import calib, config, net, photometry
 from .instrument import BAD_MASK, channel_index
 from .layout import FileInfo, get_head, get_layout
+from .solarsystem import topocentric
 
 MAGIC = b"SPXF"
 FORMAT_VERSION = 1
@@ -105,19 +106,28 @@ async def make_cutout(
     phot: tuple[float, float] | None = None,
     sigma_plane: bool = False,
     dtype: str = "f2",
+    delta: float | None = None,
 ) -> bytes:
-    """Build and encode one frame. Never raises. A failed frame is encoded with ok=false."""
+    """Build and encode one frame. Never raises. A failed frame is encoded with ok=false.
+
+    delta is the distance in au of a solar system body at (ra, dec) as seen from the center of
+    the Earth. When given, the position is shifted to what the spacecraft saw.
+    """
     try:
-        return await _make(key, ra, dec, size, phot, sigma_plane, dtype)
+        return await _make(key, ra, dec, size, phot, sigma_plane, dtype, delta)
     except asyncio.CancelledError:
         raise
     except Exception as error:  # noqa: BLE001 (one bad file must not stop a stream)
         return failure(key, f"{type(error).__name__}: {error}")
 
 
-async def _make(key, ra, dec, size, phot, sigma_plane, dtype) -> bytes:
+async def _make(key, ra, dec, size, phot, sigma_plane, dtype, delta=None) -> bytes:
     head = await get_head(key)
     wcs = head.wcs
+    if delta:
+        spacecraft = [head.cards.get(name) for name in ("X_SC", "Y_SC", "Z_SC")]
+        if all(value is not None for value in spacecraft):
+            ra, dec = topocentric(ra, dec, delta, spacecraft)
     x, y = (float(v) for v in wcs.sky2pix(ra, dec))
     if not (-0.5 <= x < head.nx - 0.5 and -0.5 <= y < head.ny - 0.5):
         return failure(key, "The position is off this detector", "outside")
@@ -176,6 +186,8 @@ async def _make(key, ra, dec, size, phot, sigma_plane, dtype) -> bytes:
         "y0": y0,
         "cx": x - x0,
         "cy": y - y0,
+        "ra": ra,
+        "dec": dec,
         "m": [matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]],
         "det": info.detector,
         "mjd": _clean(cards.get("MJD-AVG")),

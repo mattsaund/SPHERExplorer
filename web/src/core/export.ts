@@ -79,8 +79,10 @@ export function spectrumCsv(state: AppState): string {
   const target = state.target;
   const lines = [
     `# SPHERExplorer spectrum of ${target?.name ?? "a sky position"}`,
-    target ? `# Position (ICRS, epoch ${target.epoch}): RA ${target.ra.toFixed(6)} deg, Dec ${target.dec.toFixed(6)} deg` : "#",
-    target?.pmRa !== undefined ? `# Proper motion followed: ${target.pmRa} mas/yr east, ${target.pmDec} mas/yr north` : "# No proper motion applied",
+    target?.moving
+      ? `# Solar system body followed with a JPL Horizons ephemeris (${target.moving.command})`
+      : target ? `# Position (ICRS, epoch ${target.epoch}): RA ${target.ra.toFixed(6)} deg, Dec ${target.dec.toFixed(6)} deg` : "#",
+    target?.moving ? "# Each image is centered on the body's position at that time, as seen from SPHEREx" : target?.pmRa !== undefined ? `# Proper motion followed: ${target.pmRa} mas/yr east, ${target.pmDec} mas/yr north` : "# No proper motion applied",
     "# Flux is a PSF-fit point-source flux density from each SPHEREx Level 2 image.",
     "# good = 0 marks measurements touched by saturation or flagged pixels.",
     `# ${DATA_CREDIT}. DOIs 10.26131/IRSA678 and 10.26131/IRSA662.`,

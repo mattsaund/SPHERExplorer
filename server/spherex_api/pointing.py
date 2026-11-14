@@ -68,10 +68,12 @@ def sip_inverse(cards: dict) -> np.ndarray:
 def project(frames: np.ndarray, scale_inverse: np.ndarray, target: np.ndarray, sip: np.ndarray | None = None, crpix: float = 1020.5):
     """Pixel position of a sky direction on detectors with the given frames.
 
-    frames has shape (n, 3, 3). sip is the detector's inverse distortion from sip_inverse.
+    frames has shape (n, 3, 3). target is one direction for all frames, or one per frame (n, 3)
+    for a moving body. sip is the detector's inverse distortion from sip_inverse.
     Returns 0-based (x, y) and a mask of frames facing the target.
     """
-    local = np.einsum("nji,j->ni", frames, target)  # frame transpose times target
+    # Frame transpose times target.
+    local = np.einsum("nji,nj->ni", frames, target) if np.ndim(target) == 2 else np.einsum("nji,j->ni", frames, target)
     facing = local[:, 2] > 0.2
     depth = np.where(facing, local[:, 2], 1.0)
     plane = local[:, :2] / depth[:, None]

@@ -22,6 +22,11 @@ export interface Target extends SkyPosition {
   kind?: string;
   /** Where the position came from, for example "SIMBAD". */
   source?: string;
+  /**
+   * Set for a solar system body, which is somewhere else in every image.
+   * `command` is its identifier at JPL Horizons. ra and dec then hold its latest observed position.
+   */
+  moving?: { command: string };
 }
 
 /** Progress of anything that loads. */
@@ -121,6 +126,15 @@ export interface Frame {
   season: number;
   /** Where the target is at this frame's time, after proper motion and parallax. */
   track: SkyPosition;
+  /**
+   * The sky position this frame is centered on. Normally the field center.
+   * For a solar system body it is the body's own position at the time of the frame.
+   */
+  center?: SkyPosition;
+  /** For a solar system body: distance from Earth and from the Sun in au, and predicted magnitude. */
+  earthDistance?: number;
+  sunDistance?: number;
+  magnitude?: number | null;
   status: FrameStatus;
   /** Why the frame failed, in plain words. */
   error?: string;

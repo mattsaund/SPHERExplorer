@@ -100,6 +100,6 @@ Add the license and version when a library goes into the build.
 | Sesame name resolver (CDS), through the CfA and IDIA mirrors | Credit required | SIMBAD and VizieR acknowledgments | Yes (name lookup) |
 | MAST catalog API (Gaia DR3) | Public | MAST, STScI | Yes |
 | IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
-| JPL Horizons and SBDB | Public | JPL Solar System Dynamics | Not yet |
+| JPL Horizons and Small-Body Database APIs | Public | JPL Solar System Dynamics. Giorgini et al. 1996 | Yes (names and paths of planets, asteroids, and comets) |
 | CelesTrak | Public, rate limited | CelesTrak | Not yet |
 | CADC (NEOSSat) | Public | CADC | Not yet |

@@ -1,7 +1,7 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, getMissions, getObjects, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
+import { ApiError, getMeta, getMissions, getObjects, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
@@ -207,6 +207,8 @@ function applyFrames(batch: WireFrame[], byKey: Map<string, number>): void {
       ny: header.ny,
       cx: header.cx,
       cy: header.cy,
+      // The server reports the exact position it centered on (for a body, after the spacecraft shift).
+      center: { ra: header.ra, dec: header.dec },
       m: header.m,
       wavelength: header.wl,
       bandwidth: header.bw,
@@ -253,9 +255,12 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     view: { east: 0, north: 0, zoom: 1 },
   });
 
+  // A solar system body has no fixed field, so there are no field objects or survey matches to fetch.
+  const moving = target.moving;
+
   // Known objects in and around the field. Not essential, so a failure here is silent.
   const reach = Math.max(fieldSize / 3600, 0.1);
-  getObjects(target.ra, target.dec, reach, 150, signal).then(
+  if (!moving) getObjects(target.ra, target.dec, reach, 150, signal).then(
     (objects) => {
       if (mine !== generation) return;
       const half = fieldSize / 2;
@@ -275,7 +280,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
 
   // Other missions. The cone is widened by how far the target has moved since 2MASS looked in 1999.
   const drift = (Math.hypot(target.pmRa ?? 0, target.pmDec ?? 0) / 1000) * 28;
-  getMissions(target.ra, target.dec, Math.min(1800, fieldSize * 0.75 + drift), signal).then(
+  if (!moving) getMissions(target.ra, target.dec, Math.min(1800, fieldSize * 0.75 + drift), signal).then(
     (missions) => {
       if (mine === generation) set({ missions });
     },
@@ -284,25 +289,40 @@ async function load(target: Target, fieldSize: number): Promise<void> {
 
   try {
     await ensureMeta();
-    const result = await searchFrames(target.ra, target.dec, signal);
+    const result = moving ? await searchMoving(moving.command, signal) : await searchFrames(target.ra, target.dec, signal);
     if (mine !== generation) return;
     const collections = result.collections;
     const f = result.frames;
     const seasons = assignSeasons(f.mjd);
-    const frames: Frame[] = f.key.map((key, i) => ({
-      id: i,
-      key,
-      collection: collections[f.coll[i]] ?? "",
-      obsId: f.obsid[i],
-      detector: f.det[i],
-      mjd: f.mjd[i],
-      wavelength: f.wl[i] ?? NaN,
-      bandwidth: f.bw[i] ?? NaN,
-      channel: f.chan[i],
-      season: seasons[i],
-      track: positionAt(target, f.mjd[i], [f.pfra[i], f.pfdec[i]]),
-      status: "pending",
-    }));
+    const frames: Frame[] = f.key.map((key, i) => {
+      // A solar system body: the frame is centered on where the body was at that moment.
+      const own = f.ra && f.dec ? { ra: f.ra[i], dec: f.dec[i] } : null;
+      return {
+        id: i,
+        key,
+        collection: collections[f.coll[i]] ?? "",
+        obsId: f.obsid[i],
+        detector: f.det[i],
+        mjd: f.mjd[i],
+        wavelength: f.wl[i] ?? NaN,
+        bandwidth: f.bw[i] ?? NaN,
+        channel: f.chan[i],
+        season: seasons[i],
+        track: own ?? positionAt(target, f.mjd[i], [f.pfra[i], f.pfdec[i]]),
+        center: own ?? { ra: target.ra, dec: target.dec },
+        earthDistance: f.delta?.[i],
+        sunDistance: f.r?.[i],
+        magnitude: f.mag?.[i],
+        status: "pending" as const,
+      };
+    });
+    if (moving && frames.length) {
+      // Point the target, and the map, at the body's most recent observed position.
+      const last = frames[frames.length - 1].track;
+      target = { ...target, ra: last.ra, dec: last.dec };
+      set({ target });
+      actions.flyTo(target, Math.min(get().map.fov, 2));
+    }
     set({
       frames,
       visits: summarizeVisits(f.mjd, seasons),
@@ -328,7 +348,11 @@ async function load(target: Target, fieldSize: number): Promise<void> {
         ra: target.ra,
         dec: target.dec,
         size: fieldSize,
-        frames: frames.map((frame) => ({ key: frame.key, pra: frame.track.ra, pdec: frame.track.dec })),
+        frames: frames.map((frame) =>
+          moving
+            ? { key: frame.key, ra: frame.track.ra, dec: frame.track.dec, delta: frame.earthDistance }
+            : { key: frame.key, pra: frame.track.ra, pdec: frame.track.dec },
+        ),
       },
       (frame) => {
         queue.push(frame);
@@ -414,7 +438,8 @@ export const actions = {
   /** Study a target: search for its images, then download them. The map moves there too. */
   goTo(target: Target): void {
     // Keep a wide map view wide enough to show context, but come in close from an all-sky view.
-    actions.flyTo(target, Math.min(get().map.fov, 2));
+    // A solar system body's position is known only after its images are found.
+    if (!target.moving) actions.flyTo(target, Math.min(get().map.fov, 2));
     void load(target, get().fieldSize);
   },
 
@@ -432,7 +457,13 @@ export const actions = {
     }
     set({ targetState: "loading", error: null, notice: null });
     try {
-      actions.goTo(await resolveName(query));
+      const found = await resolveName(query);
+      if ("moving" in found && found.moving === true) {
+        // A planet, asteroid, or comet. Its position is filled in from the images that caught it.
+        actions.goTo({ name: found.name, kind: found.kind, ra: 0, dec: 0, epoch: 2026.0, source: "JPL Horizons", moving: { command: found.command } });
+      } else {
+        actions.goTo(found as Target);
+      }
       return true;
     } catch (error) {
       set({ targetState: "failed", error: error instanceof ApiError ? error.message : "The name lookup failed. Try coordinates instead." });

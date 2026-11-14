@@ -269,8 +269,10 @@ export function FrameView({ className }: { className?: string }) {
       if (!scene || !state.target) return;
       const box = wrap.getBoundingClientRect();
       const [east, north] = skyAt(event.clientX - box.left, event.clientY - box.top, state);
-      const position = offsetToSky(east, north, state.target);
       const item = state.sequence[state.player.index];
+      // For a solar system body the sky under the pointer depends on which frame is showing.
+      const origin = state.target.moving && item ? state.frames[item.frameIds[0]].center ?? state.target : state.target;
+      const position = offsetToSky(east, north, origin);
       let value: number | null = null;
       let wavelength: number | null = item?.wavelength ?? null;
       let bits = 0;

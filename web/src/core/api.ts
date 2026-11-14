@@ -32,9 +32,17 @@ export function getMeta(signal?: AbortSignal): Promise<Meta> {
   return getJson<Meta>("/meta", signal);
 }
 
+/** What a name lookup returns: a fixed target, or a solar system body to be followed. */
+export type Resolved = Target | { moving: true; name: string; kind: string; command: string };
+
 /** Look up an object by name. Rejects with a plain-language ApiError when it is not found. */
-export function resolveName(name: string, signal?: AbortSignal): Promise<Target> {
-  return getJson<Target>(`/resolve?name=${encodeURIComponent(name.trim())}`, signal);
+export function resolveName(name: string, signal?: AbortSignal): Promise<Resolved> {
+  return getJson<Resolved>(`/resolve?name=${encodeURIComponent(name.trim())}`, signal);
+}
+
+/** Every image that caught a solar system body, with the body's position in each. */
+export function searchMoving(command: string, signal?: AbortSignal): Promise<SearchResult> {
+  return getJson<SearchResult>(`/moving?command=${encodeURIComponent(command)}`, signal);
 }
 
 /** Known objects within `radius` degrees of a position, best known first. */
@@ -50,8 +58,6 @@ export function getMissions(ra: number, dec: number, radius: number, signal?: Ab
 
 /** The search result as the server sends it: one array per column, rows sorted by time. */
 export interface SearchResult {
-  ra: number;
-  dec: number;
   collections: string[];
   /** Collections that could not be searched this time. */
   errors: string[];
@@ -69,6 +75,12 @@ export interface SearchResult {
     chan: number[];
     pfra: number[];
     pfdec: number[];
+    /** Only for a solar system body: where it was at each exposure (seen from Earth's center), its distances in au, and magnitude. */
+    ra?: number[];
+    dec?: number[];
+    delta?: number[];
+    r?: number[];
+    mag?: (number | null)[];
   };
 }
 
@@ -90,6 +102,9 @@ export interface WireHeader {
   y0: number;
   cx: number;
   cy: number;
+  /** The sky position at (cx, cy), degrees. */
+  ra: number;
+  dec: number;
   m: [number, number, number, number];
   det: number;
   mjd: number | null;
@@ -141,7 +156,7 @@ export interface CutoutRequest {
   dec: number;
   /** Field width in arcseconds. */
   size: number;
-  frames: { key: string; pra?: number; pdec?: number }[];
+  frames: { key: string; pra?: number; pdec?: number; ra?: number; dec?: number; delta?: number }[];
 }
 
 /**

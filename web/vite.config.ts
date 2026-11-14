@@ -13,5 +13,8 @@ export default defineConfig({
     proxy: { "/api": { target: apiTarget, changeOrigin: true } },
   },
   build: { target: "es2022", sourcemap: true },
+  // satellite.js ships an optional multi-threaded build that uses top-level await in a worker.
+  // Workers must be emitted as ES modules for that to compile.
+  worker: { format: "es" },
   test: { environment: "node", include: ["src/**/*.test.ts"] },
 });

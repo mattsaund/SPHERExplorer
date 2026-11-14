@@ -1,6 +1,6 @@
 // Talks to the SPHERExplorer API: metadata, search, and the binary frame stream.
 // Written with Claude Code (Anthropic) assistance.
-import type { Meta, MissionData, PartnerData, Photometry, SkyObject, Target } from "./types";
+import type { Meta, MissionData, PartnerData, Photometry, SkyObject, SpacecraftInfo, Target } from "./types";
 
 /** Base path of the API. Same origin by default. Set VITE_API_BASE to point elsewhere. */
 const BASE: string = import.meta.env.VITE_API_BASE ?? "/api";
@@ -59,6 +59,11 @@ export function getMissions(ra: number, dec: number, radius: number, signal?: Ab
 /** Visible-light images of a position from Canada's NEOSSat. */
 export function getNeossat(ra: number, dec: number, signal?: AbortSignal): Promise<PartnerData> {
   return getJson<PartnerData>(`/neossat?ra=${ra.toFixed(5)}&dec=${dec.toFixed(5)}`, signal);
+}
+
+/** Orbital elements of SPHEREx and the state of the public archive. */
+export function getSpacecraft(signal?: AbortSignal): Promise<SpacecraftInfo> {
+  return getJson<SpacecraftInfo>("/spacecraft", signal);
 }
 
 /** The search result as the server sends it: one array per column, rows sorted by time. */

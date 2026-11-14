@@ -1,14 +1,14 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, getMissions, getNeossat, getObjects, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
+import { ApiError, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
 import { buildLink, parseLink } from "./url";
-import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Subtract, Target, Visit } from "./types";
+import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -72,6 +72,10 @@ export interface AppState {
   embed: boolean;
   /** Progress of an animation being saved, from 0 to 1, or null when none is running. */
   exporting: number | null;
+  /** Orbital elements and archive facts for the spacecraft view. Null until loaded. */
+  spacecraft: SpacecraftInfo | null;
+  /** Where the spacecraft is this second. Updated while the orbit view is on the page. */
+  spacecraftNow: SpacecraftNow | null;
   map: MapState;
   /** A request to move the map. The map acts when `token` changes. */
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
@@ -129,6 +133,8 @@ export const useStore = create<AppState>(() => ({
   spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, families: [], redshift: 0 },
   embed: false,
   exporting: null,
+  spacecraft: null,
+  spacecraftNow: null,
   map: {
     ready: false,
     failure: null,
@@ -407,6 +413,9 @@ function pause(): void {
 
 /** True once init has read the page address. */
 let started = false;
+
+/** True once the spacecraft facts have been asked for. */
+let spacecraftRequested = false;
 
 /** Display settings to restore when subtraction is switched off. */
 let beforeSubtract: { follow: boolean; lo: number; hi: number; color: boolean; stretch: DisplaySettings["stretch"] } | null = null;
@@ -687,6 +696,23 @@ export const actions = {
   /** Save the spectrum as a CSV table, one row per image. */
   saveSpectrum(): void {
     exportSpectrum(get());
+  },
+
+  /** Fetch the spacecraft's orbital elements and the archive status. Safe to call more than once. */
+  loadSpacecraft(): void {
+    if (spacecraftRequested) return;
+    spacecraftRequested = true;
+    getSpacecraft().then(
+      (spacecraft) => set({ spacecraft }),
+      () => {
+        spacecraftRequested = false; // allow a retry
+      },
+    );
+  },
+
+  /** Used by the orbit view to publish the live position. */
+  spacecraftNow(now: SpacecraftNow): void {
+    set({ spacecraftNow: now });
   },
 
   /** Used by the frame view to publish what is under the pointer. */

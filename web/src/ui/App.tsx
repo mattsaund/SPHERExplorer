@@ -8,6 +8,7 @@ import {
   FrameView,
   LINE_FAMILIES,
   LightCurvePlot,
+  OrbitView,
   PROJECTIONS,
   SKY_LAYERS,
   SkyMap,
@@ -429,6 +430,36 @@ function spread<T>(items: T[], count: number): T[] {
   return Array.from({ length: count }, (_, i) => items[Math.round((i * (items.length - 1)) / (count - 1))]);
 }
 
+function SpacecraftPanel() {
+  const info = useStore((s) => s.spacecraft);
+  const now = useStore((s) => s.spacecraftNow);
+  const newest = info?.archive?.newest;
+  return (
+    <section className="panel" aria-label="The spacecraft">
+      <h2>Where is SPHEREx right now?</h2>
+      <p className="muted">
+        The telescope circles the Earth from pole to pole about every 98 minutes, riding the line between day and night.
+      </p>
+      <div className="orbit"><OrbitView /></div>
+      {now && (
+        <p>
+          Over latitude {now.latitude.toFixed(1)}°, longitude {now.longitude.toFixed(1)}°. {Math.round(now.altitude)} km up, moving at{" "}
+          {now.speed.toFixed(2)} km per second. One lap takes {now.period.toFixed(1)} minutes. {now.sunlit ? "In sunlight." : "In the Earth's shadow."}
+        </p>
+      )}
+      {info?.archive && (
+        <p className="muted">
+          {info.archive.exposures.toLocaleString("en-US")} exposures are public
+          {newest != null && `. The newest is from ${formatDate(newest)}`}. Launched {info.launched}.
+        </p>
+      )}
+      {info && info.recent.length > 0 && (
+        <button onClick={() => actions.flyTo(info.recent[0], 25)}>Show where the newest public image looked</button>
+      )}
+    </section>
+  );
+}
+
 function PartnerPanel() {
   const partner = useStore((s) => s.partner);
   if (!partner || partner.count === 0) return null;
@@ -479,6 +510,7 @@ export function App() {
       </nav>
       <Status />
       <MapPanel />
+      <SpacecraftPanel />
       <main>
         <section className="stage" aria-label="Image viewer">
           <div className="frame">{hasTarget && <FrameView />}</div>

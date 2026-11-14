@@ -444,3 +444,33 @@ export interface PartnerData {
   /** Newest first. */
   images: PartnerImage[];
 }
+
+/** Orbital elements of the spacecraft and facts about the public archive. */
+export interface SpacecraftInfo {
+  name: string;
+  fullName: string;
+  /** Launch date, ISO. */
+  launched: string;
+  /** Orbit in plain words. */
+  orbit: string;
+  /** Orbital elements in the OMM format, or null when they could not be fetched. */
+  elements: Record<string, string | number> | null;
+  /** How many exposures are public and how recent the newest is (Modified Julian Date). */
+  archive: { exposures: number; built: string; newest: number | null; releases: string[] } | null;
+  /** Where the newest public exposures looked. */
+  recent: { obsId: string; mjd: number; ra: number; dec: number }[];
+}
+
+/** Where the spacecraft is right now, worked out in the browser from its orbital elements. */
+export interface SpacecraftNow {
+  /** Point on the ground directly below, degrees. */
+  latitude: number;
+  longitude: number;
+  /** Height above the ground and speed, in km and km/s. */
+  altitude: number;
+  speed: number;
+  /** Minutes for one trip around the Earth. */
+  period: number;
+  /** True when the spacecraft is in sunlight. */
+  sunlit: boolean;
+}

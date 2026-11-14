@@ -24,6 +24,8 @@ export type {
   SequenceMode,
   SkyObject,
   SkyPosition,
+  SpacecraftInfo,
+  SpacecraftNow,
   SpectrumSettings,
   Stretch,
   Subtract,
@@ -56,3 +58,4 @@ export { LightCurvePlot } from "./LightCurvePlot";
 export { formatChange, lightCurve } from "./lightcurve";
 export type { LightCurve, LightPoint, VisitChange } from "./lightcurve";
 export { DATA_CREDIT, spectrumCsv } from "./export";
+export { OrbitView } from "./OrbitView";

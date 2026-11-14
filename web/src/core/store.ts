@@ -292,6 +292,8 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     notice: null,
     hover: null,
     spectrum: { ...get().spectrum, probe: null, halo: false },
+    // The picked area has become the target, or been left behind. Either way its square goes.
+    map: { ...get().map, picked: null },
     player: { ...get().player, index: 0, playing: false },
     view: { east: 0, north: 0, zoom: 1 },
   });

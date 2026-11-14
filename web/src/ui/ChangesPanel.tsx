@@ -11,7 +11,8 @@ function list(names: string[]): string {
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-export function ChangesPanel() {
+/** onShow runs when "Show" is pressed, so the page can bring the images to the front. */
+export function ChangesPanel({ onShow }: { onShow?: () => void }) {
   const report = useStore((s) => s.changes);
   const finding = useStore((s) => s.finding);
   const ready = useStore((s) => s.framesState === "ready" && s.loaded > 0);
@@ -51,7 +52,14 @@ export function ChangesPanel() {
                 <div className="row wrap">
                   <strong>{change.target && targetName ? targetName : change.object?.name ?? (change.target ? "The target" : `${formatRa(change.ra)} ${formatDec(change.dec)}`)}</strong>
                   {change.object?.kind && <span className="muted">{change.object.kind}</span>}
-                  <button onClick={() => actions.showChange(change)}>Show</button>
+                  <button
+                    onClick={() => {
+                      actions.showChange(change);
+                      onShow?.();
+                    }}
+                  >
+                    Show
+                  </button>
                   {change.object && <a href={change.object.url} target="_blank" rel="noreferrer">Details</a>}
                 </div>
                 <p>{describeChange(change)}</p>

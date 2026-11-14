@@ -1,18 +1,24 @@
-/* Design tokens. Starter values. Austin's side owns this file.
+/* Design tokens: fonts, colors, sizes, and the colors the canvases read. Austin's side owns this file.
    Written with Claude Code (Anthropic) assistance. */
 :root {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --color-bg: #0f1215;
-  --color-surface: #181c21;
+  --color-bar: #15191e;
+  --color-surface: #1b2026;
   --color-border: #2c333b;
   --color-text: #e8ebee;
   --color-text-muted: #a3acb5;
   --color-accent: #4c9be8;
+  /* Fill for open tabs and chosen options. White text on it passes WCAG AA. */
+  --color-accent-strong: #2f6db0;
   --color-danger: #e5645a;
   /* Marks and lists of found changes. */
   --color-change: #ff9f43;
+  --color-stage: #000000;
+  /* Labels laid over the sky. Nearly opaque, so text stays readable over bright stars. */
+  --color-overlay: rgba(15, 18, 21, 0.9);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -22,6 +28,21 @@
 
   --radius: 6px;
   --control-height: 40px;
-  /* Width of the tools panel. */
-  --dock-width: 340px;
+
+  /* Colors read by the canvases in core. Each component lists its names in its header comment. */
+  --frame-ink: rgba(255, 255, 255, 0.92);
+  --frame-marker: #ffd24a;
+  --frame-label: #9be8ff;
+  --frame-gaia: #7dffa0;
+  --frame-flag: #e5484d;
+  --frame-empty: #5b2a86;
+  --frame-change: #ff9f43;
+  --map-label: #9be8ff;
+  --map-marker: #ff6b6b;
+  --map-field: #ffd24a;
+  --orbit-land: #3d5a45;
+  --orbit-sea: #0e2233;
+  --orbit-night: rgba(0, 0, 0, 0.45);
+  --orbit-track: #ffd24a;
+  --orbit-craft: #ffffff;
 }

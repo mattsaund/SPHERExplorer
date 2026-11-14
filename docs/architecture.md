@@ -52,25 +52,26 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 - Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
 - Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, `Timeline`, and `OrbitView` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
 - Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
-- The UI under `web/src/ui/` uses every one of these. It is the working example.
+- The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
 - Types. Everything exported from `core/types.ts`.
 
 ## The page layout
 
-One full screen, no page scrolling. `ui/App.tsx` puts five parts in a column.
+One full screen between a top bar and a bottom bar. Both bars expand. Austin's side designed it.
 
 | Part | File | Holds |
 |---|---|---|
-| Top bar | `ui/shell/TopBar.tsx` | Name, search box with suggestions, the switch between sky map, images, and side by side, the tools button, share |
-| Stage | `ui/shell/Stage.tsx` | The sky map and the image viewer. Both stay mounted while hidden. Cards for clicked objects and spots float over it, with the pointer readout |
-| Tools panel | `ui/shell/Dock.tsx` | Folding groups: about the target, what to play, color and change, brightness, marks, the map's settings, save and share |
-| Tray | `ui/shell/Tray.tsx` | Tabs above the bottom bar: spectrum, what changed, brightness over time, motion, timeline, other telescopes, spacecraft. A tab opens the tray. The same tab closes it |
-| Bottom bar | `ui/shell/BottomBar.tsx` | Play, step, scrub, sequence type, speed, and what the app is doing |
+| Top bar | `ui/App.tsx`, `ui/SearchBox.tsx` | Name, search box with suggestions, the switch between sky map, images, and both, and two drawers |
+| Top drawers | `ui/settings.tsx` | "Examples" holds NASA's five test targets. "Image settings" holds every setting for how images are drawn |
+| Stage | `ui/App.tsx` | The sky map, the image viewer, or both side by side on a wide screen. Both stay mounted while hidden. A label says what is on screen, and boxes for clicked objects, spots, and messages lie over it |
+| Status line | `ui/App.tsx` | Progress on the left, the pointer readout or map help on the right. Fixed height |
+| Control bar | `ui/App.tsx` | The player for the images, the map's controls for the map, or both |
+| Tool dock | `ui/tools.tsx` | Tabs that open upward: details, spectrum, what changed, motion, brightness over time, timeline, other telescopes, spacecraft, save and share, about. Only the open tool is on the page |
 
-- `ui/layout.ts` holds the page's own state: what fills the stage, and which panels are open.
+- A new tool usually needs one component and one entry in `TOOLS` in `ui/tools.tsx`.
+- `ui/ChangesPanel.tsx`, `ui/FeaturesList.tsx`, and `ui/SearchBox.tsx` are self-contained pieces with their own style files.
 - `ui/Embed.tsx` is the compact layout used when the address holds `embed=1`.
-- `ui/SearchBox.tsx`, `ui/ChangesPanel.tsx`, and `ui/FeaturesList.tsx` are self-contained pieces any layout can place.
-- Under 1000 pixels wide the tools panel slides over the stage. Under 640 the bars stack into short rows.
+- A search keeps the current view. On a screen at least 1100 pixels wide, a search from the map puts the images beside it. Study buttons bring the images forward.
 - Space plays and pauses. The left and right arrows step.
 
 Rules for both sides.

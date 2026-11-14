@@ -130,8 +130,9 @@ export function SearchBox() {
           </ul>
         )}
       </div>
-      <button type="submit">Go</button>
-      {problem && <p className="problem" role="alert">{problem}</p>}
+      <button type="submit" className="primary">Go</button>
+      {/* Laid over the page below the search box, so the top bar never changes height. */}
+      {problem && <p className="problem popover" role="alert">{problem}</p>}
     </form>
   );
 }

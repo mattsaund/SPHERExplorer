@@ -4,7 +4,7 @@ Every tool the app offers, and the engine pieces the UI must use to offer it. A 
 
 `scripts/check_ui_coverage.py` reads the third column of these tables and fails when a piece is not used anywhere under `web/src/ui/`. CI runs it on every pull request. When the engine gains a tool, its row is added here in the same commit that adds it to the UI.
 
-The working example of every row is the UI under `web/src/ui/`. `docs/architecture.md` says which part of the page holds what.
+The working example of every row is in `web/src/ui/`: `App.tsx` holds the page and its bars, `settings.tsx` the top drawer, and `tools.tsx` the tools in the bottom dock. A new tool usually needs one component and one entry in `TOOLS` in `tools.tsx`. `docs/architecture.md` says which part of the page holds what.
 
 ## Start and search
 

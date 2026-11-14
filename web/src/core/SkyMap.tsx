@@ -130,15 +130,17 @@ export function SkyMap({ className }: { className?: string }) {
       ];
     }
 
-    /** The squares on the map that can be resized: the picked area and the field being studied. */
+    /**
+     * The square on the map that can be resized. There is only ever one: the area just picked,
+     * or, with nothing picked, the field being studied. Two squares at once were confusing.
+     */
     function squares(state: AppState): { center: SkyPosition; studied: boolean }[] {
-      const list: { center: SkyPosition; studied: boolean }[] = [];
-      if (state.map.picked) list.push({ center: state.map.picked, studied: false });
-      if (state.target && !state.target.moving) list.push({ center: state.target, studied: true });
-      return list;
+      if (state.map.picked) return [{ center: state.map.picked, studied: false }];
+      if (state.target && !state.target.moving) return [{ center: state.target, studied: true }];
+      return [];
     }
 
-    /** Draw the studied field, the picked area, and the selected object. */
+    /** Draw the picked area or the studied field, and the selected object. */
     function drawMarks(state: AppState) {
       if (!marks) return;
       // Aladin keeps drawing a shape it thinks the pointer is over, even after the shape is
@@ -346,7 +348,10 @@ export function SkyMap({ className }: { className?: string }) {
       });
       layer = aladin.getBaseImageLayer();
       // A handle for debugging in development builds only.
-      if (import.meta.env.DEV) (window as unknown as { spxMap?: unknown }).spxMap = aladin;
+      if (import.meta.env.DEV) {
+        (window as unknown as { spxMap?: unknown }).spxMap = aladin;
+        (window as unknown as { spxMarks?: unknown }).spxMarks = marks;
+      }
       applied = { projection: state.map.projection, layer: state.map.layer, grid: state.map.grid, goal: state.mapGoal.token };
       if (start.cube) whenReady(layer, generation, (cube) => setChannel(cube, useStore.getState().map.channel));
 

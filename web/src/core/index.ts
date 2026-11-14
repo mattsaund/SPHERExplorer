@@ -49,3 +49,6 @@ export type { ProjectionId, SkyLayer } from "./skyLayers";
 export { COLOR_PRESETS } from "./colorBands";
 export type { LinkState } from "./url";
 export { surveyPoints } from "./surveys";
+export { LightCurvePlot } from "./LightCurvePlot";
+export { formatChange, lightCurve } from "./lightcurve";
+export type { LightCurve, LightPoint, VisitChange } from "./lightcurve";

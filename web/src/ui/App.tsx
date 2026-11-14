@@ -7,6 +7,7 @@ import {
   COLOR_PRESETS,
   FrameView,
   LINE_FAMILIES,
+  LightCurvePlot,
   PROJECTIONS,
   SKY_LAYERS,
   SkyMap,
@@ -379,6 +380,16 @@ function SpectrumPanel() {
   );
 }
 
+function LightCurvePanel() {
+  return (
+    <section className="panel" aria-label="Brightness over time">
+      <h2>Brightness over time</h2>
+      <p className="muted">Is it getting brighter or fainter? Each point compares one image with the target's usual brightness at that wavelength.</p>
+      <div className="plot short"><LightCurvePlot /></div>
+    </section>
+  );
+}
+
 function TimelinePanel() {
   return (
     <section className="panel" aria-label="Timeline">
@@ -412,6 +423,7 @@ export function App() {
           <PlayerControls />
           {hasTarget && <TimelinePanel />}
           {hasTarget && <SpectrumPanel />}
+          {hasTarget && <LightCurvePanel />}
         </section>
         <aside>
           <Readout />

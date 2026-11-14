@@ -76,6 +76,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Coordinates | Read the coordinates under the pointer and at the center of the map, and copy the center | `mapHover`, `center` |
 | Coverage | Show where SPHEREx spectral images exist, and where the deep fields are | `coverage`, `deepFields` |
 | Tile grid | Show the HEALPix tiles that all-sky maps are cut into | `tiles` |
+| Solar system | See the Sun, the Moon, the planets, dwarf planets, large asteroids, and well-known comets where they are right now, open one for its facts, and study it in SPHEREx | `solar`, `formatAu` |
 | Measure | Drag on the map to measure the angle between two points | `measuring`, `measured`, `formatAngle` |
 
 ## Telescopes

@@ -122,6 +122,8 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 .swatch { flex: none; width: 12px; height: 12px; border-radius: 2px; }
 .swatch.coverage { background: var(--map-coverage); }
 .swatch.deep { background: var(--map-deep); }
+/* A diamond, like the marks of the solar system on the map. */
+.swatch.solar { background: var(--map-solar); transform: rotate(45deg) scale(0.8); }
 /* The image study's groups come in pairs. A pair is only a real column when there are three columns. */
 .settings-column { display: contents; }
 /* How many groups sit side by side depends on the width of the half, not of the page. */

@@ -148,7 +148,16 @@ Checked on known objects.
 - Checked with Astropy on Epsilon Indi B. The server's cutout puts the target at the center pixel of a 67 by 69 pixel cutout, with pixels of 6.15 arcsec. The browser's sum passes Astropy's format check and puts the target on its brightest pixel. A unit test proves that a cutout's pixel and the same pixel of the parent image give the same sky position.
 - Tables are CSV with a few comment lines that say what each column is: the spectrum, the brightness over time, and what the change finder found.
 
-## 15. The sky map's overlays and measure tool
+## 15. The solar system on the sky map
+
+- The map marks 41 bodies where they are right now, and moves them once a minute: the Sun, the Moon, the planets, Pluto and nine more dwarf planets and likely dwarf planets, thirteen asteroids, six comets, and the three known visitors from other stars.
+- Each body has an orbit around the Sun from JPL Horizons, taken on the day `scripts/update_solar.py` was last run (osculating elements). The browser moves the body along that orbit with Kepler's equation, does the same for the Earth, and takes the difference, with one correction for the time light takes to arrive. Closed and open orbits are both handled, so the interstellar visitors work too. No service is called to place them.
+- The Moon is different. The Sun pulls its orbit about too quickly for one fixed orbit to hold, so it comes from the low-precision series of the Astronomical Almanac.
+- Checked against JPL Horizons 30 days after the orbits were taken, which the unit test repeats. Every body is within 16 arcsec: the planets and small bodies mostly within 5, Venus 15, Mercury 9. The Moon is within 0.06 degree, a tenth of its own width.
+- The orbits drift from the truth over months, mostly for bodies that pass close to planets. Running the script again renews them.
+- Clicking a body shows what it is and how far it is from the Earth and the Sun right now. "Study in SPHEREx" then follows it through the images with the exact path from JPL Horizons, as for any moving target (section 5).
+
+## 16. The sky map's overlays and measure tool
 
 - The two coverage overlays are IRSA's own coverage maps, the ones its SPHEREx Data Explorer shows: every part of the sky with spectral images in the archive, and the deep fields. They are files in the IVOA MOC format. The API relays them, because IRSA does not let browsers read them directly, and keeps each for a day.
 - The tile grid is the HEALPix grid that every all-sky map (HiPS) is cut into. Aladin Lite draws it.

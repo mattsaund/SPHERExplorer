@@ -200,6 +200,7 @@ export const useStore = create<AppState>(() => ({
     coverage: false,
     deepFields: false,
     tiles: false,
+    solar: true,
     measuring: false,
     measured: null,
   },
@@ -848,8 +849,8 @@ export const actions = {
     set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false } });
   },
 
-  /** Change map settings: projection, layer, channel, grid, labels, the coverage overlays, the tile grid, or the measure tool. */
-  setMap(change: Partial<Pick<MapState, "projection" | "layer" | "channel" | "grid" | "labels" | "coverage" | "deepFields" | "tiles" | "measuring">>): void {
+  /** Change map settings: projection, layer, channel, grid, labels, the coverage overlays, the tile grid, the solar system, or the measure tool. */
+  setMap(change: Partial<Pick<MapState, "projection" | "layer" | "channel" | "grid" | "labels" | "coverage" | "deepFields" | "tiles" | "solar" | "measuring">>): void {
     const before = get().map;
     const map = { ...before, ...change };
     map.channel = Math.min(101, Math.max(0, Math.round(map.channel)));

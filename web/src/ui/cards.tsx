@@ -3,7 +3,7 @@
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
-import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
+import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
 import { copyText } from "./copy";
 
 /** Points down. Turns up while the thing it belongs to is open (see app.css). */
@@ -68,6 +68,27 @@ export function AreaCard({ onClose }: { onClose: () => void }) {
 
 /** Facts about an object chosen on the sky map. `onStudy` runs after its images are asked for. */
 export function ObjectCard({ object, onStudy }: { object: SkyObject; onStudy: () => void }) {
+  const solar = object.solar;
+  if (solar) {
+    // A body of the solar system. Its place on the map is where it is right now, and studying
+    // it means following it through the SPHEREx images, not loading one fixed patch of sky.
+    const query = solar.query;
+    return (
+      <section className="box" aria-label={`About ${object.name}`}>
+        <h2>{object.name}</h2>
+        <p>{object.kind}. {solar.note}</p>
+        <p className="mono">{coordinates(object)}</p>
+        <p>
+          Right now: {formatAu(solar.earth)} from Earth{solar.sun > 0 && `, ${formatAu(solar.sun)} from the Sun`}.
+        </p>
+        <div className="row wrap">
+          {query && <button className="primary" onClick={() => { void actions.search(query); onStudy(); }}>Study in SPHEREx</button>}
+          <a className="button" href={object.url} target="_blank" rel="noreferrer">Full details</a>
+          <button onClick={() => actions.selectObject(null)}>Close</button>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="box" aria-label={`About ${object.name}`}>
       <h2>{object.name}</h2>

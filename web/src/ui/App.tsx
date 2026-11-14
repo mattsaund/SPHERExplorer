@@ -546,8 +546,9 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // With both on screen, nothing needs to come to the front.
-  const showImages = () => setView((now) => (now === "both" ? now : "images"));
+  // Bring the images up. From the map alone they come up beside it on a wide screen, and in
+  // its place on a narrow one. With images already on screen, nothing changes.
+  const showImages = () => setView((now) => (now !== "map" ? now : window.innerWidth >= WIDE ? "both" : "images"));
   const showMap = () => setView((now) => (now === "both" ? now : "map"));
 
   function chooseTool(id: string) {

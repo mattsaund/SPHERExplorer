@@ -2,11 +2,12 @@
 // Built on Aladin Lite (CDS, Strasbourg), loaded on demand. All of Aladin's own buttons are
 // switched off, so the UI supplies the controls through actions.setMap and friends.
 // Colors come from CSS variables: --map-label, --map-field, --map-pick, --map-coverage,
-// --map-deep, --map-measure.
+// --map-deep, --map-measure, --map-solar.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef } from "react";
 import { apiUrl, coverageUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
+import { solarPlaces } from "./solar";
 import { separation, skyOffset, skyPath } from "./astro";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
@@ -27,6 +28,8 @@ const TINY_PIXELS = 14;
  */
 const CROSS_GAP = 8;
 const CROSS_ARM = 10;
+/** How often the bodies of the solar system are moved to where they are now, in milliseconds. */
+const SOLAR_MS = 60000;
 /** A press that moves less than this many screen pixels is a click, not a drag. */
 const CLICK_SLOP = 4;
 /** How close, in screen pixels, a click must be to an object's ring to choose it. */
@@ -69,6 +72,11 @@ export function SkyMap({ className }: { className?: string }) {
     let request: AbortController | null = null;
     let lastObjectClick = 0;
     let applied: Partial<AppState["map"]> & { goal?: number; target?: unknown; fieldSize?: number } = {};
+    // The solar system's marks, and the bodies they stand for, as they were last placed.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let planets: any = null;
+    let solarNow: SkyObject[] = [];
+    let solarTimer: ReturnType<typeof setInterval> | null = null;
     // Coverage maps already on the map, by their switch in the map state.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const coverage: Record<string, any> = {};
@@ -143,6 +151,36 @@ export function SkyMap({ className }: { className?: string }) {
       unlabeled.removeAll();
       labeled.addSources(objects.slice(0, LABEL_LIMIT).map(toSource));
       unlabeled.addSources(objects.slice(LABEL_LIMIT).map(toSource));
+    }
+
+    /**
+     * Put the bodies of the solar system where they are at this moment. Each becomes an object
+     * like any other on the map, so a click opens its facts.
+     */
+    function placeSolar() {
+      if (!aladin || !planets) return;
+      const year = 2000 + (Date.now() / 86400000 - 10957.5) / 365.25;
+      solarNow = solarPlaces(new Date()).map((body) => ({
+        id: `solar:${body.id}`, name: body.name, ra: body.ra, dec: body.dec, epoch: year, kind: body.kind, code: null,
+        pmRa: null, pmDec: null, parallax: null, redshift: null, spectralType: null, refs: null, vMag: null, kMag: null,
+        url: body.url, distance: null, solar: { query: body.query, earth: body.earth, sun: body.sun, note: body.note },
+      }));
+      planets.removeAll();
+      planets.addSources(solarNow.map((object) => A.source(object.ra, object.dec, { name: object.name, object })));
+    }
+
+    /** Switch the solar system on or off. While on, the bodies are moved along once a minute. */
+    function showSolar(on: boolean) {
+      if (!planets) return;
+      if (solarTimer) clearInterval(solarTimer);
+      solarTimer = null;
+      if (on) {
+        planets.show();
+        placeSolar();
+        solarTimer = setInterval(placeSolar, SOLAR_MS);
+      } else {
+        planets.hide();
+      }
     }
 
     /** Corners of a north-up square of `size` arcseconds around a position, as [ra, dec] pairs. */
@@ -347,10 +385,11 @@ export function SkyMap({ className }: { className?: string }) {
      */
     function clickAt(x: number, y: number) {
       const state = useStore.getState();
-      if (state.map.labels) {
+      {
         let nearest: SkyObject | null = null;
         let reach = OBJECT_REACH;
-        for (const object of state.map.objects) {
+        const shown = [...(state.map.labels ? state.map.objects : []), ...(state.map.solar ? solarNow : [])];
+        for (const object of shown) {
           const at = aladin.world2pix(object.ra, object.dec) as [number, number] | null;
           if (!at) continue;
           const distance = Math.hypot(at[0] - x, at[1] - y);
@@ -541,6 +580,10 @@ export function SkyMap({ className }: { className?: string }) {
         aladin.showHealpixGrid(map.tiles);
         applied.tiles = map.tiles;
       }
+      if (applied.solar !== map.solar) {
+        showSolar(map.solar);
+        applied.solar = map.solar;
+      }
       if (applied.measuring !== map.measuring) {
         wantCursor(map.measuring ? "crosshair" : "");
         applyCursor();
@@ -621,7 +664,7 @@ export function SkyMap({ className }: { className?: string }) {
         (window as unknown as { spxMap?: unknown }).spxMap = aladin;
         (window as unknown as { spxMarks?: unknown }).spxMarks = marks;
       }
-      applied = { projection: state.map.projection, layer: state.map.layer, grid: state.map.grid, goal: state.mapGoal.token, coverage: false, deepFields: false, tiles: false, measuring: false };
+      applied = { projection: state.map.projection, layer: state.map.layer, grid: state.map.grid, goal: state.mapGoal.token, coverage: false, deepFields: false, tiles: false, solar: false, measuring: false };
       if (start.cube) whenReady(layer, generation, (cube) => setChannel(cube, useStore.getState().map.channel));
 
       const labelColor = cssVariable(host, "--map-label", "#9be8ff");
@@ -633,8 +676,12 @@ export function SkyMap({ className }: { className?: string }) {
       labeled = A.catalog({ name: "Known objects", shape: "circle", sourceSize: 14, color: labelColor, displayLabel: true, labelColumn: "name", labelColor, labelFont: `13px ${font}`, onClick });
       unlabeled = A.catalog({ name: "More objects", shape: "circle", sourceSize: 9, color: labelColor, onClick });
       marks = A.graphicOverlay({ color: "#ffd24a", lineWidth: 2 });
+      // The solar system wears its own color and a diamond, so it reads apart from the fixed sky.
+      const solarColor = cssVariable(host, "--map-solar", "#a8e6a1");
+      planets = A.catalog({ name: "Solar system", shape: "rhomb", sourceSize: 14, color: solarColor, displayLabel: true, labelColumn: "name", labelColor: solarColor, labelFont: `13px ${font}`, onClick });
       aladin.addCatalog(labeled);
       aladin.addCatalog(unlabeled);
+      aladin.addCatalog(planets);
       aladin.addOverlay(marks);
 
       aladin.on("positionChanged", moved);
@@ -664,6 +711,7 @@ export function SkyMap({ className }: { className?: string }) {
       host.removeEventListener("pointerup", onPointerUp, true);
       host.removeEventListener("pointercancel", onPointerUp, true);
       host.removeEventListener("pointerleave", onPointerLeave);
+      if (solarTimer) clearInterval(solarTimer);
       host.removeEventListener("pointermove", applyCursor);
       host.removeEventListener("mousemove", applyCursor);
       if (hoverFrame) cancelAnimationFrame(hoverFrame);

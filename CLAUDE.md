@@ -120,6 +120,7 @@ Details in `docs/research/`.
 | `docs/deploy.md` | How to put the site online (one container on Google Cloud Run) |
 | `docs/methods.md` | How each result is computed and how it was checked |
 | `docs/ui-checklist.md` | Every tool the UI must offer, checked in CI |
+| `scripts/update_solar.py` | Renews the orbits behind the solar system marks on the sky map. Run every few months |
 | `docs/embedding.md` | Link options and how to embed the viewer in another page |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |

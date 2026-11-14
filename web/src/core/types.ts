@@ -337,6 +337,12 @@ export interface SkyObject extends SkyPosition {
   url: string;
   /** How far away it is, when a parallax or redshift is known. */
   distance: Distance | null;
+  /**
+   * Set for a body of the solar system, whose place on the map is where it is right now.
+   * `query` is what to search for to study it in SPHEREx images, or null for the Sun and the
+   * Moon. Distances are in au.
+   */
+  solar?: { query: string | null; earth: number; sun: number; note: string };
 }
 
 /** State of the sky map. */
@@ -380,6 +386,8 @@ export interface MapState {
   deepFields: boolean;
   /** The HEALPix tile grid that all-sky maps are cut into, on or off. */
   tiles: boolean;
+  /** The Sun, Moon, planets, dwarf planets, and other bodies of the solar system, where they are now, on or off. */
+  solar: boolean;
   /** True while the measure tool is on. A drag on the map then measures an angle instead of moving the map. */
   measuring: boolean;
   /** The line last measured on the map, if any. */

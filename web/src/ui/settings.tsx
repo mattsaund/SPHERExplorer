@@ -211,10 +211,15 @@ function MapOverlays() {
   const coverage = useStore((s) => s.map.coverage);
   const deepFields = useStore((s) => s.map.deepFields);
   const tiles = useStore((s) => s.map.tiles);
+  const solar = useStore((s) => s.map.solar);
   return (
     <fieldset>
       <legend>On the map</legend>
       <label className="check"><input type="checkbox" checked={labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Object labels</label>
+      <label className="check" title="The Sun, the Moon, the planets, dwarf planets, large asteroids, and well-known comets, where they are right now">
+        <input type="checkbox" checked={solar} onChange={(e) => actions.setMap({ solar: e.target.checked })} /> Solar system
+        <span className="swatch solar" aria-hidden="true" />
+      </label>
       <label className="check" title="Every part of the sky that has SPHEREx spectral images in the archive">
         <input type="checkbox" checked={coverage} onChange={(e) => actions.setMap({ coverage: e.target.checked })} /> SPHEREx spectral images
         <span className="swatch coverage" aria-hidden="true" />

@@ -47,13 +47,26 @@ export function formatDec(deg: number): string {
 }
 
 /**
- * Read coordinates typed by a person. Returns null when the text is not coordinates.
- * Accepts decimal degrees ("133.76 -7.24"), sexagesimal with letters or colons
- * ("08h55m10.8s -07d14m42s", "08:55:10.8 -07:14:42"), six plain numbers, and
- * catalog-style names with embedded coordinates ("J085510.83-071442.5").
+ * Read coordinates typed by a person. Returns null when the text is not coordinates,
+ * so the caller can treat it as an object name instead.
+ *
+ * Coordinates are J2000 equatorial (ICRS), the system used by NASA's challenge and by catalogs.
+ * Accepted forms:
+ * - decimal degrees: "133.76 -7.24", "133.76d -7.24d", "ra=133.76 dec=-7.24"
+ * - hours, minutes, seconds: "08h55m10.8s -07d14m42s", "08:55:10.8 -07:14:42", "08 55 10.8 -07 14 42"
+ * - hours and decimal minutes: "08 55.18 -07 14.7"
+ * - decimal hours: "8.9197h -7.245d"
+ * - labels and notes around them: "RA 08h55m10.831s, Dec -7d14m42.53s (J2000)"
+ * - catalog names with built-in coordinates: "WISE J085510.83-071442.5"
+ * - galactic coordinates when marked: "gal 359.94 -0.05" or "l=359.94 b=-0.05"
  */
 export function parseCoordinates(text: string): SkyPosition | null {
-  const clean = text.trim().replace(/[,;]/g, " ").replace(/\s+/g, " ");
+  let clean = text
+    .trim()
+    // Typed minus signs come in several shapes. Make them all a plain hyphen.
+    .replace(/[\u2212\u2013\u2014\u2010\u2011]/g, "-")
+    .replace(/[,;]/g, " ")
+    .replace(/\s+/g, " ");
   if (!clean) return null;
 
   // Catalog designation, for example "WISE J085510.83-071442.5".
@@ -65,26 +78,66 @@ export function parseCoordinates(text: string): SkyPosition | null {
     return valid(ra, dec);
   }
 
-  // Two decimal numbers are degrees.
-  const pair = clean.match(/^([+-]?\d+(?:\.\d+)?)\s*(?:d|deg|°)?\s+([+-]?\d+(?:\.\d+)?)\s*(?:d|deg|°)?$/i);
-  if (pair) return valid(Number(pair[1]), Number(pair[2]));
+  // Galactic longitude and latitude, only when marked as such.
+  const galactic = clean.match(/^(?:gal(?:actic)?\s+|l\s*=\s*)([+-]?\d+(?:\.\d+)?)\s*(?:b\s*=\s*)?([+-]?\d+(?:\.\d+)?)$/i);
+  if (galactic) {
+    const l = Number(galactic[1]);
+    const b = Number(galactic[2]);
+    return l >= 0 && l <= 360 && Math.abs(b) <= 90 ? galacticToEquatorial(l, b) : null;
+  }
+
+  // Drop notes about the system, and the labels in front of each number.
+  clean = clean
+    .replace(/\(?\b(?:J2000(?:\.0)?|ICRS|FK5|equatorial|equinox|epoch)\b\)?/gi, " ")
+    .replace(/(?:^|\s)(?:r\.?a\.?|right ascension|dec(?:l(?:ination)?)?\.?|\u03b1|\u03b4)\s*[:=]?\s*(?=[+-]?\d)/gi, " ")
+    .replace(/[()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Two decimal numbers. Degrees, unless the first is marked as hours.
+  const pair = clean.match(/^([+-]?\d+(?:\.\d+)?)\s*(h|hr|hours?|d|deg|\u00b0)?\s+([+-]?\d+(?:\.\d+)?)\s*(?:d|deg|\u00b0)?$/i);
+  if (pair) {
+    const hours = /^h/i.test(pair[2] ?? "");
+    return valid(Number(pair[1]) * (hours ? 15 : 1), Number(pair[3]));
+  }
 
   // Sexagesimal. Split into numbers, keeping the sign of the declination.
-  const parts = clean.replace(/[hdms°'"′″:]/gi, " ").trim().split(/\s+/);
-  if (parts.length === 6 && parts.every((p) => /^[+-]?\d+(\.\d+)?$/.test(p))) {
-    const n = parts.map(Number);
+  const parts = clean.replace(/[hdms\u00b0'"\u2032\u2033:]/gi, " ").trim().split(/\s+/);
+  if (!parts.every((p) => /^[+-]?\d+(\.\d+)?$/.test(p))) return null;
+  const n = parts.map(Number);
+  if (parts.length === 6) {
     const ra = (Math.abs(n[0]) + n[1] / 60 + n[2] / 3600) * 15;
-    const negative = parts[3].startsWith("-");
-    const dec = (Math.abs(n[3]) + n[4] / 60 + n[5] / 3600) * (negative ? -1 : 1);
-    return valid(ra, dec);
+    const dec = (Math.abs(n[3]) + n[4] / 60 + n[5] / 3600) * (parts[3].startsWith("-") ? -1 : 1);
+    return n[1] < 60 && n[2] < 60 && n[4] < 60 && n[5] < 60 ? valid(ra, dec) : null;
+  }
+  if (parts.length === 4) {
+    // Hours and decimal minutes, degrees and decimal minutes.
+    const ra = (Math.abs(n[0]) + n[1] / 60) * 15;
+    const dec = (Math.abs(n[2]) + n[3] / 60) * (parts[2].startsWith("-") ? -1 : 1);
+    return n[1] < 60 && n[3] < 60 ? valid(ra, dec) : null;
   }
   return null;
 }
 
 function valid(ra: number, dec: number): SkyPosition | null {
-  if (!Number.isFinite(ra) || !Number.isFinite(dec) || Math.abs(dec) > 90) return null;
-  // Wrap only when needed, so in-range values keep their exact digits.
-  return { ra: ra < 0 || ra >= 360 ? ((ra % 360) + 360) % 360 : ra, dec };
+  if (!Number.isFinite(ra) || !Number.isFinite(dec) || Math.abs(dec) > 90 || ra < 0 || ra > 360) return null;
+  return { ra: ra === 360 ? 0 : ra, dec };
+}
+
+/** Galactic longitude and latitude in degrees to J2000 equatorial (IAU 1958 system, Hipparcos constants). */
+export function galacticToEquatorial(l: number, b: number): SkyPosition {
+  // Rows of the rotation from equatorial to galactic. Its transpose goes the other way.
+  const R = [
+    [-0.0548755604162154, -0.8734370902348850, -0.4838350155487132],
+    [0.4941094278755837, -0.4448296299600112, 0.7469822444972189],
+    [-0.8676661490190047, -0.1980763734312015, 0.4559837761750669],
+  ];
+  const g = [Math.cos(b * DEG) * Math.cos(l * DEG), Math.cos(b * DEG) * Math.sin(l * DEG), Math.sin(b * DEG)];
+  const x = R[0][0] * g[0] + R[1][0] * g[1] + R[2][0] * g[2];
+  const y = R[0][1] * g[0] + R[1][1] * g[1] + R[2][1] * g[2];
+  const z = R[0][2] * g[0] + R[1][2] * g[1] + R[2][2] * g[2];
+  const ra = (Math.atan2(y, x) / DEG + 360) % 360;
+  return { ra, dec: Math.asin(Math.max(-1, Math.min(1, z))) / DEG };
 }
 
 /**

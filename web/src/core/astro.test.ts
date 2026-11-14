@@ -23,10 +23,44 @@ describe("parseCoordinates", () => {
   it("keeps the sign of a declination between 0 and -1 degrees", () => {
     expect(parseCoordinates("10 00 00 -00 30 00")!.dec).toBeCloseTo(-0.5, 9);
   });
+  it("reads J2000 coordinates written the way papers and NASA write them", () => {
+    const nasa = parseCoordinates("RA 08h55m10.831s, Dec -7d14m42.53s")!;
+    expect(nasa.ra).toBeCloseTo(133.795129, 5);
+    expect(nasa.dec).toBeCloseTo(-7.245147, 5);
+    const noted = parseCoordinates("R.A. = 17h57m48.50s, Decl. = +04\u00b041\u203236.1\u2033 (J2000.0)")!;
+    expect(noted.ra).toBeCloseTo(269.452083, 5);
+    expect(noted.dec).toBeCloseTo(4.693361, 5);
+    expect(parseCoordinates("ra=133.76 dec=-7.24 J2000")).toEqual({ ra: 133.76, dec: -7.24 });
+    expect(parseCoordinates("ICRS 133.76\u00b0 \u22127.24\u00b0")).toEqual({ ra: 133.76, dec: -7.24 });
+    expect(parseCoordinates("133.76d -7.24d")).toEqual({ ra: 133.76, dec: -7.24 });
+    expect(parseCoordinates("\u03b1 = 22:04:23.2, \u03b4 = \u221256:48:02")!.dec).toBeCloseTo(-56.800556, 5);
+  });
+  it("reads decimal hours and decimal minutes", () => {
+    expect(parseCoordinates("8.5h -7.25d")).toEqual({ ra: 127.5, dec: -7.25 });
+    const minutes = parseCoordinates("08 55.18 -07 14.7")!;
+    expect(minutes.ra).toBeCloseTo(133.795, 6);
+    expect(minutes.dec).toBeCloseTo(-7.245, 6);
+  });
+  it("reads galactic coordinates only when marked", () => {
+    const center = parseCoordinates("gal 0 0")!;
+    expect(center.ra).toBeCloseTo(266.405, 2);
+    expect(center.dec).toBeCloseTo(-28.936, 2);
+    const pole = parseCoordinates("l=123.4 b=90")!;
+    expect(pole.ra).toBeCloseTo(192.8595, 3);
+    expect(pole.dec).toBeCloseTo(27.1283, 3);
+    expect(parseCoordinates("galactic 400 0")).toBeNull();
+  });
+  it("leaves object names alone", () => {
+    for (const name of ["NGC 1068", "M 31", "3C 273", "47 Tuc", "G 29-38", "HD 209458", "Gliese 229", "RA Lacertae", "Dec 2025 nova", "TRAPPIST-1", "61 Cyg"]) {
+      expect(parseCoordinates(name)).toBeNull();
+    }
+  });
   it("rejects names and nonsense", () => {
     expect(parseCoordinates("Barnard's Star")).toBeNull();
     expect(parseCoordinates("M31")).toBeNull();
     expect(parseCoordinates("120 95")).toBeNull();
+    expect(parseCoordinates("400 10")).toBeNull();
+    expect(parseCoordinates("10 70 00 +10 00 00")).toBeNull();
     expect(parseCoordinates("")).toBeNull();
   });
 });

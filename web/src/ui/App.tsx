@@ -43,7 +43,7 @@ function SearchBar() {
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!text.trim()) {
-      setProblem('Enter a name such as "Vega", or coordinates such as "133.76 -7.24".');
+      setProblem('Enter a name such as "Vega", or J2000 coordinates such as "133.76 -7.24" or "08h55m10.8s -07d14m42s".');
       return;
     }
     setProblem(null);
@@ -57,7 +57,7 @@ function SearchBar() {
         id="search-input"
         value={text}
         onChange={(event) => setText(event.target.value)}
-        placeholder="Object name or coordinates, for example Vega or 133.76 -7.24"
+        placeholder="Object name, or RA and Dec (J2000), for example Vega or 08h55m10.8s -07d14m42s"
         autoComplete="off"
         spellCheck={false}
       />

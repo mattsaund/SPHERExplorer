@@ -81,6 +81,11 @@ export interface AppState {
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
 }
 
+/** Most image pixels held for one target. About 120 MB as received, more once sums are built. */
+const PIXEL_BUDGET = 6e7;
+/** Always load at least this many images, however wide the field. */
+const MIN_FRAMES = 60;
+
 /** Proper motion, in mas per year, above which a nearby object is offered as "did you mean". */
 const FAST_MOTION = 150;
 
@@ -350,7 +355,22 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     });
     if (!frames.length) return;
 
-    const byKey = new Map(frames.map((frame) => [frame.key, frame.id]));
+    // A wide field times thousands of images is more than a phone can hold. Past the budget,
+    // load an even sample across time, which keeps every visit and every wavelength represented.
+    const perFrame = (fieldSize / (get().meta?.pixelScale ?? 6.15)) ** 2 * 2;   // the cutout is padded for rotation
+    const budget = Math.max(MIN_FRAMES, Math.floor(PIXEL_BUDGET / perFrame));
+    let wanted = frames;
+    if (frames.length > budget) {
+      const stride = frames.length / budget;
+      wanted = Array.from({ length: budget }, (_, i) => frames[Math.floor(i * stride)]);
+      const keep = new Set(wanted.map((frame) => frame.id));
+      set({
+        frames: frames.map((frame) => (keep.has(frame.id) ? frame : { ...frame, status: "outside" as const, error: "Not loaded, to keep the page fast" })),
+        notice: `Loading ${budget.toLocaleString("en-US")} of ${frames.length.toLocaleString("en-US")} images, spread evenly over time, to keep the page fast. Choose a smaller field to load them all.`,
+      });
+    }
+
+    const byKey = new Map(wanted.map((frame) => [frame.key, frame.id]));
     // Frames arrive in bursts. Apply them in small batches so the page stays smooth.
     let queue: WireFrame[] = [];
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -366,7 +386,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
         ra: target.ra,
         dec: target.dec,
         size: fieldSize,
-        frames: frames.map((frame) =>
+        frames: wanted.map((frame) =>
           moving
             ? { key: frame.key, ra: frame.track.ra, dec: frame.track.dec, delta: frame.earthDistance }
             : { key: frame.key, pra: frame.track.ra, pdec: frame.track.dec },

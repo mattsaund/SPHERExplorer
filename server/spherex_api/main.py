@@ -50,6 +50,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 # Only Level 2 image files inside the SPHEREx bucket may be read.
 KEY_PATTERN = re.compile(r"^[a-z0-9_]+/level2/[A-Za-z0-9_\-./]+\.fits$")
 MAX_BATCH = 6000
+MAX_BATCH_PIXELS = 2.5e8   # about four times what the web app asks for
 
 
 def check_key(key: str) -> str:
@@ -243,6 +244,10 @@ async def many_cutouts(body: BatchRequest):
     """
     for frame in body.frames:
         check_key(frame.key)
+    # Guard the server's memory and the archive: frames times pixels has a ceiling.
+    pixels = len(body.frames) * (body.size / config.PIXEL_SCALE) ** 2 * 2
+    if pixels > MAX_BATCH_PIXELS:
+        raise HTTPException(413, "That is too many images for a field this wide. Ask for a smaller field or fewer images.")
     gate = asyncio.Semaphore(config.FRAME_CONCURRENCY)
 
     async def build(frame: FrameRequest) -> bytes:

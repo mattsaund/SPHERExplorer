@@ -75,7 +75,8 @@ function SearchBar() {
 function Status() {
   const targetState = useStore((s) => s.targetState);
   const framesState = useStore((s) => s.framesState);
-  const total = useStore((s) => s.frames.length);
+  // Images skipped on purpose (off the detector edge, or thinned for speed) are not waited for.
+  const total = useStore((s) => s.frames.filter((f) => f.status !== "outside").length);
   const loaded = useStore((s) => s.loaded);
   const failed = useStore((s) => s.failed);
   const error = useStore((s) => s.error);

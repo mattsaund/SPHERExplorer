@@ -6,11 +6,13 @@ import asyncio
 import json
 import math
 import struct
+import zlib
 
 import numpy as np
 from astropy.io.fits.hdu.compressed._compression import decompress_rice_1_c
 
 from . import calib, config, net, photometry
+from .cache import ByteLRU
 from .instrument import BAD_MASK, channel_index
 from .layout import FileInfo, get_head, get_layout
 from .solarsystem import topocentric
@@ -21,6 +23,11 @@ MIN_HALF = 10        # pixels. Keeps room for the photometry sky ring.
 MAX_HALF = 320       # pixels. About 1.1 degrees across.
 VARIANCE_HALF = 4    # rows of variance read around the photometry position
 F16_LIMIT = 65000.0  # float16 tops out near 65504
+
+# Finished frames, compressed. Level 2 files never change, so a frame built once stays right.
+_frames = ByteLRU(config.FRAME_CACHE_MB * 1_000_000)
+# Frames being built now, so two viewers asking for the same frame share one build.
+_building: dict[tuple, asyncio.Future] = {}
 
 
 def _clean(value):
@@ -113,12 +120,39 @@ async def make_cutout(
     delta is the distance in au of a solar system body at (ra, dec) as seen from the center of
     the Earth. When given, the position is shifted to what the spacecraft saw.
     """
+    name = (
+        key, round(ra, 7), round(dec, 7), round(size, 2),
+        None if phot is None else (round(phot[0], 7), round(phot[1], 7)),
+        sigma_plane, dtype, None if delta is None else round(delta, 9),
+    )
+    stored = _frames.get(name)
+    if stored is not None:
+        return zlib.decompress(stored)
+    running = _building.get(name)
+    if running is None:
+        running = asyncio.ensure_future(_build(name, key, ra, dec, size, phot, sigma_plane, dtype, delta))
+        _building[name] = running
+        running.add_done_callback(lambda _: _building.pop(name, None))
+    # Shielded, so one viewer leaving does not cancel a build another viewer is waiting for.
+    return await asyncio.shield(running)
+
+
+async def _build(name: tuple, key, ra, dec, size, phot, sigma_plane, dtype, delta) -> bytes:
+    """Build one frame and remember it. A failure is returned but not remembered, since it may pass."""
     try:
-        return await _make(key, ra, dec, size, phot, sigma_plane, dtype, delta)
+        frame = await _make(key, ra, dec, size, phot, sigma_plane, dtype, delta)
     except asyncio.CancelledError:
         raise
     except Exception as error:  # noqa: BLE001 (one bad file must not stop a stream)
         return failure(key, f"{type(error).__name__}: {error}")
+    # The flags plane is mostly zeros, so light compression fits about four times as many frames.
+    _frames.put(name, zlib.compress(frame, 1))
+    return frame
+
+
+def cache_stats() -> dict:
+    """How full the frame memory is and how often it answered."""
+    return {**_frames.stats(), "building": len(_building)}
 
 
 async def _make(key, ra, dec, size, phot, sigma_plane, dtype, delta=None) -> bytes:

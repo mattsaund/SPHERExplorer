@@ -38,7 +38,7 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 
 1. The user gives a name or coordinates. `GET /api/resolve` returns a position, proper motion, and parallax.
 2. `GET /api/search` looks up every SPHEREx image that covers the position in the exposure index. It returns one row per image with time, detector, and an estimated wavelength at the target.
-3. `POST /api/cutouts` streams the frames. For each one the server reads the needed rows of IMAGE, FLAGS, and VARIANCE from S3, crops them, and measures the target with the cached PSF.
+3. `POST /api/cutouts` streams the frames. For each one the server reads the needed rows of IMAGE, FLAGS, and VARIANCE from S3, crops them, and measures the target with the cached PSF. Finished frames stay in memory (256 MB, least recently used first out), so a target that was opened before reloads without touching S3.
 4. The browser shows frames as they arrive. It groups them by time and wavelength, stacks them, subtracts them, and plots the spectrum.
 5. The sky map loads HiPS tiles directly from IRSA. Labels for known objects come through `/api/objects` (SIMBAD). The full-color SPHEREx layer comes from `/api/hips/spherex-color`.
 6. `/api/missions` adds Gaia, 2MASS, and WISE data for the field.

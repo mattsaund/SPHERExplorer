@@ -15,7 +15,9 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem, spacecraft
+from . import __version__, cache, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem, spacecraft
+
+SWEEP_SECONDS = 600
 
 
 async def _warm_up() -> None:
@@ -27,11 +29,22 @@ async def _warm_up() -> None:
         pass
 
 
+async def _sweep() -> None:
+    """Keep the cache folder under its ceiling. The walk runs in a thread so requests are not held up."""
+    while True:
+        try:
+            await asyncio.to_thread(cache.prune, config.CACHE_MAX_MB * 1_000_000)
+        except Exception:  # noqa: BLE001 (a failed sweep only costs disk space)
+            pass
+        await asyncio.sleep(SWEEP_SECONDS)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    warm = asyncio.ensure_future(_warm_up())
+    jobs = [asyncio.ensure_future(_warm_up()), asyncio.ensure_future(_sweep())]
     yield
-    warm.cancel()
+    for job in jobs:
+        job.cancel()
     await net.close()
 
 
@@ -66,6 +79,7 @@ async def health():
         "status": "ok",
         "version": __version__,
         "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "frames": cutout.cache_stats(),
     }
 
 

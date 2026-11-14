@@ -23,6 +23,7 @@ COPY --from=web /web/dist ./site
 # Caches live in /tmp, which is memory on Cloud Run. They refill on demand.
 ENV SPX_STATIC_DIR=/app/site \
     SPX_CACHE_DIR=/tmp/spherexplorer \
+    SPX_CACHE_MAX_MB=300 \
     PORT=8080
 EXPOSE 8080
 CMD ["sh", "-c", "exec uv run --no-sync uvicorn spherex_api.main:app --host 0.0.0.0 --port ${PORT}"]

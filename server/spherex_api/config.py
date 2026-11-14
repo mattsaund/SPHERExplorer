@@ -26,6 +26,12 @@ INDEX_URL = os.environ.get(
 S3_CONCURRENCY = int(os.environ.get("SPX_S3_CONCURRENCY", "128"))
 FRAME_CONCURRENCY = int(os.environ.get("SPX_FRAME_CONCURRENCY", "48"))
 
+# Memory for finished frames, in megabytes. A target that was opened before reloads from here.
+FRAME_CACHE_MB = int(os.environ.get("SPX_FRAME_CACHE_MB", "256"))
+
+# Ceiling on the cache folder, in megabytes. The oldest files go first. The index is never deleted.
+CACHE_MAX_MB = int(os.environ.get("SPX_CACHE_MAX_MB", "2000"))
+
 # Sent to upstream services. Kept generic by default.
 USER_AGENT = os.environ.get("SPX_USER_AGENT", "spherex-viewer/0.1")
 

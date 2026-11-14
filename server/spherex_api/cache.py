@@ -1,8 +1,9 @@
-# Small caches: an in-memory LRU and a JSON or NumPy file store under the cache directory.
+# Small caches: in-memory LRUs and a JSON or NumPy file store under the cache directory.
 # Written with Claude Code (Anthropic) assistance.
 
 import hashlib
 import json
+import os
 from collections import OrderedDict
 from pathlib import Path
 
@@ -29,6 +30,82 @@ class LRU:
         self.items.move_to_end(key)
         while len(self.items) > self.size:
             self.items.popitem(last=False)
+
+
+class ByteLRU:
+    """Least-recently-used map of byte strings with a ceiling on their total size."""
+
+    def __init__(self, budget: int):
+        self.budget = budget
+        self.items: OrderedDict = OrderedDict()
+        self.bytes = 0
+        self.hits = 0
+        self.misses = 0
+
+    def get(self, key) -> bytes | None:
+        value = self.items.get(key)
+        if value is None:
+            self.misses += 1
+            return None
+        self.items.move_to_end(key)
+        self.hits += 1
+        return value
+
+    def put(self, key, value: bytes) -> None:
+        # One item larger than the whole budget is not worth keeping.
+        if len(value) > self.budget:
+            return
+        old = self.items.pop(key, None)
+        if old is not None:
+            self.bytes -= len(old)
+        self.items[key] = value
+        self.bytes += len(value)
+        while self.bytes > self.budget:
+            _, dropped = self.items.popitem(last=False)
+            self.bytes -= len(dropped)
+
+    def stats(self) -> dict:
+        return {"items": len(self.items), "bytes": self.bytes, "budget": self.budget, "hits": self.hits, "misses": self.misses}
+
+
+# Never pruned: the exposure index is needed to search at all.
+KEEP = ("index",)
+
+
+def prune(budget: int) -> tuple[int, int]:
+    """Delete the least recently written cache files until the folder fits in `budget` bytes.
+
+    Returns (bytes kept, files deleted). On Cloud Run the cache folder is held in memory,
+    so without a ceiling it would grow until the instance ran out.
+    """
+    files = []
+    total = 0
+    for folder, _, names in os.walk(config.CACHE_DIR):
+        relative = Path(folder).relative_to(config.CACHE_DIR).parts
+        if relative and relative[0] in KEEP:
+            continue
+        for name in names:
+            path = os.path.join(folder, name)
+            try:
+                status = os.stat(path)
+            except OSError:
+                continue
+            files.append((status.st_mtime, status.st_size, path))
+            total += status.st_size
+    deleted = 0
+    if total > budget:
+        files.sort()
+        for _, size, path in files:
+            # Stop a little under the ceiling so the next sweep is not needed right away.
+            if total <= budget * 0.8:
+                break
+            try:
+                os.remove(path)
+            except OSError:
+                continue
+            total -= size
+            deleted += 1
+    return total, deleted
 
 
 def _path(kind: str, name: str, suffix: str) -> Path:

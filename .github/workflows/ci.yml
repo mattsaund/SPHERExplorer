@@ -9,11 +9,13 @@ on:
 
 jobs:
   text:
-    name: Writing rules
+    name: Writing rules and UI coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/check_text.py
+      - name: Every tool is still reachable from the UI
+        run: python3 scripts/check_ui_coverage.py
 
   server:
     name: API tests

@@ -6,8 +6,9 @@
 import { useEffect, useRef } from "react";
 import { apiUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
+import { skyOffset } from "./astro";
 import { actions, useStore, type AppState } from "./store";
-import type { SkyObject } from "./types";
+import type { SkyObject, SkyPosition } from "./types";
 
 /** How many objects to ask for, and how many of those get a text label. */
 const OBJECT_LIMIT = 160;
@@ -15,6 +16,8 @@ const LABEL_LIMIT = 45;
 /** Wait this long after the view stops moving before asking for objects. */
 const SETTLE_MS = 450;
 const LIGHT_SPEED = 299792458; // meters per second
+/** How close, in screen pixels, the pointer must be to a square's outline to grab it. */
+const GRAB_PIXELS = 9;
 
 function cssVariable(element: HTMLElement, name: string, fallback: string): string {
   return getComputedStyle(element).getPropertyValue(name).trim() || fallback;
@@ -117,26 +120,134 @@ export function SkyMap({ className }: { className?: string }) {
       unlabeled.addSources(objects.slice(LABEL_LIMIT).map(toSource));
     }
 
-    /** Draw the studied field and any picked spot. */
+    /** Corners of a north-up square of `size` arcseconds around a position, as [ra, dec] pairs. */
+    function squareCorners(center: SkyPosition, size: number): [number, number][] {
+      const half = size / 3600 / 2;
+      const wide = half / Math.max(Math.cos((center.dec * Math.PI) / 180), 0.01);
+      return [
+        [center.ra - wide, center.dec - half], [center.ra + wide, center.dec - half],
+        [center.ra + wide, center.dec + half], [center.ra - wide, center.dec + half],
+      ];
+    }
+
+    /** The squares on the map that can be resized: the picked area and the field being studied. */
+    function squares(state: AppState): { center: SkyPosition; studied: boolean }[] {
+      const list: { center: SkyPosition; studied: boolean }[] = [];
+      if (state.map.picked) list.push({ center: state.map.picked, studied: false });
+      if (state.target && !state.target.moving) list.push({ center: state.target, studied: true });
+      return list;
+    }
+
+    /** Draw the studied field, the picked area, and the selected object. */
     function drawMarks(state: AppState) {
       if (!marks) return;
+      // Aladin keeps drawing a shape it thinks the pointer is over, even after the shape is
+      // removed. Release the old shapes from that state first, so no stale outline is left behind.
+      try {
+        const old: unknown[] = marks.overlayItems ?? [];
+        for (const item of old as { unhover?: () => void; deselect?: () => void }[]) {
+          item.unhover?.();
+          item.deselect?.();
+        }
+        const held = aladin.view.lastHoveredObject as unknown[] | null;
+        if (held) aladin.view.lastHoveredObject = held.filter((item) => !old.includes(item));
+      } catch {
+        // These are Aladin internals. If they change, the worst case is a brief leftover outline.
+      }
       marks.removeAll();
-      const target = state.target;
-      if (target) {
-        // The studied field as a square, north up.
-        const half = state.fieldSize / 3600 / 2;
-        const wide = half / Math.max(Math.cos((target.dec * Math.PI) / 180), 0.01);
-        marks.add(A.polygon([
-          [target.ra - wide, target.dec - half], [target.ra + wide, target.dec - half],
-          [target.ra + wide, target.dec + half], [target.ra - wide, target.dec + half],
-        ], { color: cssVariable(host, "--map-field", "#ffd24a"), lineWidth: 2 }));
+      const [fovX] = aladin.getFov();
+      const pixel = fovX / Math.max(host.clientWidth, 1); // degrees per screen pixel
+      const field = cssVariable(host, "--map-field", "#ffd24a");
+      const marker = cssVariable(host, "--map-marker", "#ff6b6b");
+      for (const square of squares(state)) {
+        // A north-up square, the true shape and size of the area that is loaded.
+        const color = square.studied ? field : marker;
+        const corners = squareCorners(square.center, state.fieldSize);
+        marks.add(A.polygon(corners, { color, lineWidth: 2 }));
+        // Small grips on the corners show that the square can be dragged to resize.
+        for (const [ra, dec] of corners) marks.add(A.circle(ra, dec, 3.5 * pixel, { color, lineWidth: 2 }));
+        // From far out the square is too small to see, so a ring marks the place.
+        if (state.fieldSize / 3600 < 14 * pixel) marks.add(A.circle(square.center.ra, square.center.dec, 9 * pixel, { color, lineWidth: 2 }));
       }
-      const picked = state.map.picked ?? state.map.selected;
-      if (picked) {
-        const [fovX] = aladin.getFov();
-        marks.add(A.circle(picked.ra, picked.dec, Math.max(fovX / 60, 0.002), { color: cssVariable(host, "--map-marker", "#ff6b6b"), lineWidth: 2 }));
-      }
+      const selected = state.map.selected;
+      if (selected) marks.add(A.circle(selected.ra, selected.dec, Math.max(fovX / 60, 0.002), { color: marker, lineWidth: 2 }));
     }
+
+    // ---- Resizing a square with the mouse or a finger -------------------------------------------
+    let resizing: { center: SkyPosition; studied: boolean } | null = null;
+    let swallowClick = false;
+
+    /** Distance in screen pixels from a point to the outline of a square, or Infinity when it is off screen. */
+    function outlineDistance(x: number, y: number, center: SkyPosition, size: number): number {
+      const points = squareCorners(center, size).map(([ra, dec]) => aladin.world2pix(ra, dec) as [number, number] | null);
+      if (points.some((point) => !point)) return Infinity;
+      let best = Infinity;
+      for (let i = 0; i < 4; i++) {
+        const [ax, ay] = points[i]!;
+        const [bx, by] = points[(i + 1) % 4]!;
+        const length = (bx - ax) ** 2 + (by - ay) ** 2;
+        const along = length ? Math.min(1, Math.max(0, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / length)) : 0;
+        best = Math.min(best, Math.hypot(x - (ax + along * (bx - ax)), y - (ay + along * (by - ay))));
+      }
+      return best;
+    }
+
+    /** The square whose outline is under the pointer, if any. */
+    function grabbed(event: { clientX: number; clientY: number }) {
+      if (!aladin) return null;
+      const box = host.getBoundingClientRect();
+      const state = useStore.getState();
+      for (const square of squares(state)) {
+        if (outlineDistance(event.clientX - box.left, event.clientY - box.top, square.center, state.fieldSize) <= GRAB_PIXELS) return square;
+      }
+      return null;
+    }
+
+    // These run before Aladin's own handlers, so a drag on a square's outline resizes it
+    // instead of moving the map.
+    function onPointerDown(event: PointerEvent) {
+      const square = grabbed(event);
+      if (!square) return;
+      resizing = square;
+      event.stopPropagation();
+      event.preventDefault();
+      host.setPointerCapture(event.pointerId);
+    }
+    function onPointerMove(event: PointerEvent) {
+      if (!resizing) {
+        host.style.cursor = grabbed(event) ? "nwse-resize" : "";
+        return;
+      }
+      event.stopPropagation();
+      event.preventDefault();
+      const box = host.getBoundingClientRect();
+      const sky = aladin.pix2world(event.clientX - box.left, event.clientY - box.top) as [number, number] | undefined;
+      if (!sky) return;
+      // The square reaches as far as the pointer is from its center, east-west or north-south.
+      const [east, north] = skyOffset({ ra: sky[0], dec: sky[1] }, resizing.center);
+      actions.setFieldSize(2 * Math.max(Math.abs(east), Math.abs(north)), false);
+    }
+    function onPointerUp(event: PointerEvent) {
+      if (!resizing) return;
+      event.stopPropagation();
+      event.preventDefault();
+      const studied = resizing.studied;
+      resizing = null;
+      swallowClick = true;
+      setTimeout(() => (swallowClick = false), 50);
+      // The field being studied reloads at its new size once the drag ends.
+      if (studied) actions.setFieldSize(useStore.getState().fieldSize, true);
+    }
+    /** While a square is being dragged, keep the matching mouse and touch events from reaching the map. */
+    function shield(event: Event) {
+      if (resizing || swallowClick || (event.type === "mousedown" && grabbed(event as MouseEvent))) event.stopPropagation();
+    }
+    const SHIELDED = ["mousedown", "mousemove", "mouseup", "click", "touchstart", "touchmove", "touchend"];
+    host.addEventListener("pointerdown", onPointerDown, true);
+    host.addEventListener("pointermove", onPointerMove, true);
+    host.addEventListener("pointerup", onPointerUp, true);
+    host.addEventListener("pointercancel", onPointerUp, true);
+    for (const type of SHIELDED) host.addEventListener(type, shield, true);
 
     /** Apply store changes to the map. */
     function sync(state: AppState) {
@@ -175,12 +286,13 @@ export function SkyMap({ className }: { className?: string }) {
         if (state.mapGoal.fov) aladin.setFoV(state.mapGoal.fov);
         applied.goal = state.mapGoal.token;
       }
-      if (applied.target !== state.target || applied.fieldSize !== state.fieldSize || applied.picked !== map.picked || applied.selected !== map.selected) {
+      if (applied.target !== state.target || applied.fieldSize !== state.fieldSize || applied.picked !== map.picked || applied.selected !== map.selected || applied.fov !== map.fov) {
         drawMarks(state);
         applied.target = state.target;
         applied.fieldSize = state.fieldSize;
         applied.picked = map.picked;
         applied.selected = map.selected;
+        applied.fov = map.fov; // the grips are sized in screen pixels, so they follow the zoom
       }
     }
 
@@ -272,6 +384,11 @@ export function SkyMap({ className }: { className?: string }) {
     return () => {
       disposed = true;
       unsubscribe();
+      host.removeEventListener("pointerdown", onPointerDown, true);
+      host.removeEventListener("pointermove", onPointerMove, true);
+      host.removeEventListener("pointerup", onPointerUp, true);
+      host.removeEventListener("pointercancel", onPointerUp, true);
+      for (const type of SHIELDED) host.removeEventListener(type, shield, true);
       request?.abort();
       if (settle) clearTimeout(settle);
       actions.mapReport({ ready: false });

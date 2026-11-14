@@ -8,7 +8,7 @@ The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this
 |---|---|---|
 | `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. | Matt |
 | `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. | Matt |
-| `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. | Austin |
+| `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. | Austin. Matt adds wiring for new engine tools |
 | `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. | Shared. Say so in the pull request before changing them. |
 | `docs/` | Team docs. | Shared |
 
@@ -61,6 +61,7 @@ Rules for both sides.
 - `core` ships no visible styling beyond the canvases. Colors used inside canvases come from CSS variables that `ui` defines.
 - A change to an exported name or type is a contract change. Announce it in the pull request title with the prefix `contract:`.
 - UI-only state (open panels, theme, tips) lives in `ui`.
+- A redesign must keep every tool. `docs/ui-checklist.md` is the list, and CI enforces it.
 
 ## UI rules (from the team concept)
 

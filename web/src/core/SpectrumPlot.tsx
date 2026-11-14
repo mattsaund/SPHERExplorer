@@ -7,10 +7,10 @@ import { useEffect, useRef } from "react";
 import { formatDate } from "./astro";
 import { LINE_FAMILIES } from "./lines";
 import { fitCanvas, linearTicks, logTicks, quantile, readTheme } from "./plot";
-import { binSpectrum, formatFlux, spectrumOf, type SpectrumBin, type SpectrumPoint } from "./spectrum";
+import { currentSpectrum } from "./measure";
+import { binSpectrum, formatFlux, type SpectrumBin, type SpectrumPoint } from "./spectrum";
 import { actions, useStore, type AppState } from "./store";
 import { surveyPoints } from "./surveys";
-import type { Frame } from "./types";
 
 const WL_MIN = 0.7;
 const WL_MAX = 5.1;
@@ -22,8 +22,6 @@ export function SpectrumPlot({ className }: { className?: string }) {
   useEffect(() => {
     const canvas = canvasRef.current!;
     let raf = 0;
-    // Spectrum data is rebuilt only when the frames change.
-    let source: Frame[] | null = null;
     let points: SpectrumPoint[] = [];
     let hover: SpectrumPoint | null = null;
     let pointer: { x: number; y: number } | null = null;
@@ -37,10 +35,7 @@ export function SpectrumPlot({ className }: { className?: string }) {
     function draw() {
       raf = 0;
       const state = useStore.getState();
-      if (state.frames !== source) {
-        source = state.frames;
-        points = spectrumOf(state.frames, state.meta?.badMask ?? 0);
-      }
+      points = currentSpectrum(state);
       const { ctx, width, height } = fitCanvas(canvas);
       const theme = readTheme(canvas);
       const settings = state.spectrum;
@@ -50,7 +45,9 @@ export function SpectrumPlot({ className }: { className?: string }) {
 
       const good = points.filter((p) => p.good);
       const bins = binSpectrum(points, settings.perVisit);
-      const basis = (bins.length ? bins.map((b) => b.flux) : good.map((p) => p.flux)).filter(Number.isFinite);
+      // Scale to the channel averages. With no trusted points at all, scale to the suspect ones
+      // so they are still on screen.
+      const basis = (bins.length ? bins.map((b) => b.flux) : (good.length ? good : points).map((p) => p.flux)).filter(Number.isFinite);
 
       // Brightness range from the averages, with head room. Outliers don't set the scale.
       let yMin: number;
@@ -214,7 +211,7 @@ export function SpectrumPlot({ className }: { className?: string }) {
       }
 
       // The same target as 2MASS and WISE saw it: one square per band, with a bar for the band's width.
-      if (settings.showSurveys) {
+      if (settings.showSurveys && !settings.probe) {
         const points = surveyPoints(state.target, state.missions);
         ctx.font = `11px ${theme.font}`;
         ctx.textAlign = "center";

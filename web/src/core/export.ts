@@ -4,7 +4,8 @@
 import { GIFEncoder, applyPalette, quantize } from "gifenc";
 import { mjdToDate } from "./astro";
 import { captureStep } from "./capture";
-import { spectrumOf } from "./spectrum";
+import { currentSpectrum } from "./measure";
+import { DEFAULT_APERTURE } from "./spectrum";
 import type { AppState } from "./store";
 
 /** Longest side of an exported animation in pixels, and the most steps it may hold. */
@@ -75,15 +76,20 @@ export async function exportAnimation(state: AppState, onProgress: (done: number
 
 /** The spectrum as comma-separated text: one row per image, with the measurement and its quality. */
 export function spectrumCsv(state: AppState): string {
-  const points = spectrumOf(state.frames, state.meta?.badMask ?? 0);
+  const points = currentSpectrum(state);
   const target = state.target;
+  const { aperture, probe } = state.spectrum;
+  const how = aperture !== null || probe
+    ? `# Flux is the light inside a circle of radius ${aperture ?? DEFAULT_APERTURE} arcsec, minus the sky in a ring around it.`
+    : "# Flux is a PSF-fit point-source flux density from each SPHEREx Level 2 image.";
   const lines = [
     `# SPHERExplorer spectrum of ${target?.name ?? "a sky position"}`,
     target?.moving
       ? `# Solar system body followed with a JPL Horizons ephemeris (${target.moving.command})`
       : target ? `# Position (ICRS, epoch ${target.epoch}): RA ${target.ra.toFixed(6)} deg, Dec ${target.dec.toFixed(6)} deg` : "#",
     target?.moving ? "# Each image is centered on the body's position at that time, as seen from SPHEREx" : target?.pmRa !== undefined ? `# Proper motion followed: ${target.pmRa} mas/yr east, ${target.pmDec} mas/yr north` : "# No proper motion applied",
-    "# Flux is a PSF-fit point-source flux density from each SPHEREx Level 2 image.",
+    how,
+    probe ? `# Measured at a spot ${probe[0].toFixed(1)} arcsec east and ${probe[1].toFixed(1)} arcsec north of the position above.` : "#",
     "# good = 0 marks measurements touched by saturation or flagged pixels.",
     `# ${DATA_CREDIT}. DOIs 10.26131/IRSA678 and 10.26131/IRSA662.`,
     "wavelength_um,bandwidth_um,flux_uJy,flux_err_uJy,mjd,date_utc,detector,channel,visit,good,file",
@@ -100,7 +106,7 @@ export function spectrumCsv(state: AppState): string {
 
 export function exportSpectrum(state: AppState): boolean {
   const text = spectrumCsv(state);
-  if (text.split("\n").length < 9) return false;
+  if (text.split("\n").length < 10) return false;
   download(new Blob([text], { type: "text/csv" }), fileName(state, "spectrum", "csv"));
   return true;
 }

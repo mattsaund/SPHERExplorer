@@ -1,6 +1,6 @@
 // The frame viewer: a WebGL canvas for the image and a 2D canvas on top for the marker,
 // compass, and scale bar. It fills its parent and carries no chrome of its own.
-// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-gaia, --frame-flag, --frame-empty.
+// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-gaia, --frame-pick, --frame-flag, --frame-empty.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
 import { offsetToSky, positionAt, skyOffset } from "./astro";
@@ -8,6 +8,7 @@ import { registerCapture } from "./capture";
 import { sceneFor, type Scene } from "./layers";
 import { getPixels, imageOf } from "./pixels";
 import { FrameRenderer } from "./render/renderer";
+import { DEFAULT_APERTURE } from "./spectrum";
 import { actions, useStore, type AppState } from "./store";
 import type { SequenceItem, SkyObject } from "./types";
 
@@ -160,6 +161,30 @@ export function FrameView({ className }: { className?: string }) {
         ctx.stroke();
       }
 
+      // The circle the spectrum is measured in, when one is in use.
+      const { aperture, probe } = state.spectrum;
+      if (aperture !== null || probe) {
+        const [east, north] = probe ?? scene.marker;
+        ctx.strokeStyle = marker;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.arc(w / 2 - (east - state.view.east) / scale, h / 2 - (north - state.view.north) / scale, (aperture ?? DEFAULT_APERTURE) / scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // A spot picked by a click, until the UI acts on it or clears it.
+      const picked = state.map.picked;
+      if (picked && state.target && !state.target.moving) {
+        const [east, north] = skyOffset(picked, state.target);
+        const x = w / 2 - (east - state.view.east) / scale;
+        const y = h / 2 - (north - state.view.north) / scale;
+        ctx.strokeStyle = cssColor(wrap, "--frame-pick", "#ff6b6b").css;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - 7, y - 7, 14, 14);
+      }
+
       // Known objects, moved to where they were at the time of the image on screen.
       labels = [];
       if (state.display.showObjects && state.target && item) {
@@ -304,15 +329,54 @@ export function FrameView({ className }: { className?: string }) {
     const pointers = new Map<number, { x: number; y: number }>();
     let pinch = 0;
     let pressed: { x: number; y: number } | null = null;
+    let sizing = false;
+
+    /** Center (screen pixels) and radius of the measuring circle, or null when none is shown. */
+    function circleOnScreen(state: AppState): { x: number; y: number; radius: number } | null {
+      const { aperture, probe } = state.spectrum;
+      if (!scene || (aperture === null && !probe)) return null;
+      const [east, north] = probe ?? scene.marker;
+      const scale = scaleOf(state);
+      return {
+        x: wrap.clientWidth / 2 - (east - state.view.east) / scale,
+        y: wrap.clientHeight / 2 - (north - state.view.north) / scale,
+        radius: (aperture ?? DEFAULT_APERTURE) / scale,
+      };
+    }
+
+    /** True when the pointer is on the edge of the measuring circle. */
+    function onCircleEdge(event: PointerEvent): boolean {
+      const circle = circleOnScreen(useStore.getState());
+      if (!circle) return false;
+      const box = wrap.getBoundingClientRect();
+      const distance = Math.hypot(event.clientX - box.left - circle.x, event.clientY - box.top - circle.y);
+      return Math.abs(distance - circle.radius) <= 7;
+    }
+
     function onDown(event: PointerEvent) {
       wrap.setPointerCapture(event.pointerId);
+      if (onCircleEdge(event)) {
+        // Dragging the circle's edge resizes it instead of moving the picture.
+        sizing = true;
+        return;
+      }
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
       pressed = { x: event.clientX, y: event.clientY };
       pinch = 0;
     }
     function onMove(event: PointerEvent) {
+      if (sizing) {
+        const state = useStore.getState();
+        const circle = circleOnScreen(state);
+        if (!circle) return;
+        const box = wrap.getBoundingClientRect();
+        const pixels = Math.hypot(event.clientX - box.left - circle.x, event.clientY - box.top - circle.y);
+        actions.setSpectrum({ aperture: pixels * scaleOf(state) });
+        return;
+      }
       const last = pointers.get(event.pointerId);
       if (!last) {
+        wrap.style.cursor = onCircleEdge(event) ? "ew-resize" : "crosshair";
         publishHover(event);
         return;
       }
@@ -333,6 +397,10 @@ export function FrameView({ className }: { className?: string }) {
       }
     }
     function onUp(event: PointerEvent) {
+      if (sizing) {
+        sizing = false;
+        return;
+      }
       const start = pressed;
       pressed = null;
       pointers.delete(event.pointerId);
@@ -384,7 +452,7 @@ export function FrameView({ className }: { className?: string }) {
     registerCapture({ renderStep });
     // Redraw on any change except the pointer readout, which does not affect the picture.
     const unsubscribe = useStore.subscribe((state, before) => {
-      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects && state.subtract === before.subtract && state.missions === before.missions) return;
+      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects && state.subtract === before.subtract && state.missions === before.missions && state.spectrum === before.spectrum && state.map.picked === before.map.picked) return;
       schedule();
     });
 

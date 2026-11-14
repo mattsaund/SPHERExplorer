@@ -4,6 +4,8 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | The UI moves from stacked cards to a full-screen layout with top and bottom bars. Austin's Claude builds it. No tool may be lost | Matt | Enforced by `docs/ui-checklist.md` and a CI check |
+| 2026-11-14 | The selected area on the map is a square, resizable with the mouse | Matt | It is the true shape of the loaded field |
 | 2026-11-14 | Show the distance in the details box, and link to the page with everything known about the object | Matt | Asked for during the build |
 | 2026-11-14 | Search by J2000 RA and Dec in every common written form | Matt | Asked for during the build |
 | 2026-11-14 | Add full color: three-band color images and a color SPHEREx sky | Matt | Asked for during the build |

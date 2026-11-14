@@ -288,6 +288,16 @@ export interface SpectrumSettings {
   showPoints: boolean;
   /** Show the target's 2MASS and WISE brightness next to the SPHEREx spectrum. */
   showSurveys: boolean;
+  /**
+   * Radius in arcseconds of the circle to measure, or null to use the point-source fit.
+   * A circle suits galaxies, nebulae, and comet comas. The fit is best for stars.
+   */
+  aperture: number | null;
+  /**
+   * A spot other than the target to take the spectrum of, as a sky offset [east, north] in
+   * arcseconds from the field center. Null measures the target. A probe is always measured with a circle.
+   */
+  probe: [number, number] | null;
   /** Ids of the feature families to mark, from LINE_FAMILIES. */
   families: string[];
   /** Redshift applied to the feature marks. 0 for nearby objects. */

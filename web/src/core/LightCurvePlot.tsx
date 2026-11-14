@@ -6,9 +6,8 @@ import { useEffect, useRef } from "react";
 import { formatDate } from "./astro";
 import { formatChange, lightCurve, type LightCurve, type LightPoint } from "./lightcurve";
 import { fitCanvas, linearTicks, quantile, readTheme } from "./plot";
-import { spectrumOf } from "./spectrum";
+import { currentSpectrum } from "./measure";
 import { actions, useStore, type AppState } from "./store";
-import type { Frame } from "./types";
 
 const MARGIN = { left: 62, right: 14, top: 14, bottom: 26 };
 const GAP = 14;
@@ -19,7 +18,7 @@ export function LightCurvePlot({ className }: { className?: string }) {
   useEffect(() => {
     const canvas = canvasRef.current!;
     let raf = 0;
-    let source: Frame[] | null = null;
+    let source: unknown = null;
     let curve: LightCurve = { points: [], visits: [] };
     let pointer: { x: number; y: number } | null = null;
     let hover: LightPoint | null = null;
@@ -32,9 +31,10 @@ export function LightCurvePlot({ className }: { className?: string }) {
     function draw() {
       raf = 0;
       const state = useStore.getState();
-      if (state.frames !== source) {
-        source = state.frames;
-        curve = lightCurve(spectrumOf(state.frames, state.meta?.badMask ?? 0));
+      const spectrum = currentSpectrum(state);
+      if (spectrum !== source) {
+        source = spectrum;
+        curve = lightCurve(spectrum);
       }
       const { ctx, width, height } = fitCanvas(canvas);
       const theme = readTheme(canvas);
@@ -195,7 +195,7 @@ export function LightCurvePlot({ className }: { className?: string }) {
     const observer = new ResizeObserver(schedule);
     observer.observe(canvas);
     const unsubscribe = useStore.subscribe((state: AppState, before: AppState) => {
-      if (state.frames !== before.frames || state.visits !== before.visits || state.player.index !== before.player.index || state.sequence !== before.sequence || state.framesState !== before.framesState) schedule();
+      if (state.frames !== before.frames || state.visits !== before.visits || state.player.index !== before.player.index || state.sequence !== before.sequence || state.framesState !== before.framesState || state.spectrum !== before.spectrum) schedule();
     });
     schedule();
 

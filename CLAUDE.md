@@ -105,6 +105,8 @@ Details in `docs/research/`.
   - Shared: `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts`, `docs/`. Say so in the pull request before changing them.
 - The shared contract is `web/src/core/index.ts`. UI code imports from `../core` only. Title a pull request that changes an exported name or type with the prefix `contract:`.
 - Read `docs/architecture.md` before starting. Pull `main` often, because the contract grows as features land.
+- No tool may be lost in a UI change. `docs/ui-checklist.md` lists every tool and the engine pieces behind it. `scripts/check_ui_coverage.py` fails a pull request whose UI stops using one. Run `scripts/check_all.sh` before opening a pull request.
+- Both sides may edit `web/src/ui/`. Austin's side owns layout and style. Matt's side adds the wiring a new engine tool needs, in small commits, and adds its row to the checklist.
 - Branches: `matt/<topic>` and `austin/<topic>`. Small commits. `git pull --rebase` before pushing. Merge to `main` often. Never force-push `main`.
 - Personal settings go in `.claude/settings.local.json` and `CLAUDE.local.md`. Both are gitignored.
 - More in `docs/team/workflow.md`.
@@ -117,6 +119,7 @@ Details in `docs/research/`.
 | `docs/architecture.md` | Technical plan, stack, ownership, the frontend contract, and how to run it |
 | `docs/deploy.md` | How to put the site online (one container on Google Cloud Run) |
 | `docs/methods.md` | How each result is computed and how it was checked |
+| `docs/ui-checklist.md` | Every tool the UI must offer, checked in CI |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |

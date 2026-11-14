@@ -138,7 +138,7 @@ export const useStore = create<AppState>(() => ({
   follow: true,
   subtract: "none",
   hover: null,
-  spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, families: [], redshift: 0 },
+  spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, aperture: null, probe: null, families: [], redshift: 0 },
   embed: false,
   exporting: null,
   motion: null,
@@ -271,6 +271,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     error: null,
     notice: null,
     hover: null,
+    spectrum: { ...get().spectrum, probe: null },
     player: { ...get().player, index: 0, playing: false },
     view: { east: 0, north: 0, zoom: 1 },
   });
@@ -518,12 +519,16 @@ export const actions = {
     }
   },
 
-  /** Change the field width in arcseconds and reload. */
-  setFieldSize(arcsec: number): void {
+  /**
+   * Change the field width in arcseconds. By default the current target reloads at the new size.
+   * Pass reload = false while the user is still dragging, or when sizing an area not yet studied.
+   */
+  setFieldSize(arcsec: number, reload = true): void {
     const fieldSize = Math.min(3600, Math.max(60, Math.round(arcsec)));
+    if (fieldSize === get().fieldSize && !reload) return;
     set({ fieldSize });
     const target = get().target;
-    if (target) void load(target, fieldSize);
+    if (target && reload) void load(target, fieldSize);
   },
 
   /** Load the current target again. */
@@ -637,7 +642,19 @@ export const actions = {
   setSpectrum(change: Partial<SpectrumSettings>): void {
     const spectrum = { ...get().spectrum, ...change };
     spectrum.redshift = Math.min(12, Math.max(0, spectrum.redshift));
+    if (spectrum.aperture !== null) spectrum.aperture = Math.min(120, Math.max(4, spectrum.aperture));
     set({ spectrum });
+  },
+
+  /**
+   * Take the spectrum of another spot in the field instead of the target. Pass a sky position,
+   * or null to return to the target. The spot is measured with a circle on the loaded frames,
+   * so the spectrum changes at once.
+   */
+  probe(position: SkyPosition | null): void {
+    const target = get().target;
+    const probe = position && target && !target.moving ? skyOffset(position, target) : null;
+    set({ spectrum: { ...get().spectrum, probe } });
   },
 
   /** Switch a family of spectral features on or off in the spectrum plot. */

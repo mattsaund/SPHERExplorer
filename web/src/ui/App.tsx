@@ -190,8 +190,8 @@ function DisplayControls() {
       <label>
         Field width
         <select value={fieldSize} onChange={(event) => actions.setFieldSize(Number(event.target.value))}>
-          {FIELD_SIZES.map((size) => (
-            <option key={size} value={size}>{size / 60} arcmin</option>
+          {[...new Set([...FIELD_SIZES, fieldSize])].sort((a, b) => a - b).map((size) => (
+            <option key={size} value={size}>{Number((size / 60).toFixed(1))} arcmin</option>
           ))}
         </select>
       </label>
@@ -290,11 +290,12 @@ function Readout() {
           <button onClick={() => actions.studyObject(mover)}>Follow {mover.name}</button>
         </p>
       ))}
-      {picked && (
+      {picked && target && !target.moving && (
         <div className="card">
           <strong>Selected spot</strong>
           <span className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</span>
           <div className="row wrap">
+            <button onClick={() => actions.probe(picked)}>Spectrum here</button>
             <button onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
             <button onClick={() => actions.pick(null)}>Close</button>
           </div>
@@ -335,6 +336,7 @@ function Readout() {
 function MapPanel() {
   const map = useStore((s) => s.map);
   const meta = useStore((s) => s.meta);
+  const fieldSize = useStore((s) => s.fieldSize);
   const layer = SKY_LAYERS.find((entry) => entry.id === map.layer) ?? SKY_LAYERS[0];
   const chosen = map.selected;
   const picked = map.picked;
@@ -387,10 +389,11 @@ function MapPanel() {
       )}
       {picked && (
         <div className="card">
-          <strong>Selected spot</strong>
+          <strong>Selected area</strong>
           <span className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</span>
+          <span>{(fieldSize / 60).toFixed(1)} arcminutes across. Drag the edge of the red square to resize it.</span>
           <div className="row wrap">
-            <button className="primary" onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
+            <button className="primary" onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this area</button>
             <button onClick={() => actions.pick(null)}>Close</button>
           </div>
         </div>
@@ -411,6 +414,17 @@ function SpectrumPanel() {
         <label className="check"><input type="checkbox" checked={settings.showPoints} onChange={(e) => actions.setSpectrum({ showPoints: e.target.checked })} /> Every measurement</label>
         <label className="check"><input type="checkbox" checked={settings.log} onChange={(e) => actions.setSpectrum({ log: e.target.checked })} /> Log scale</label>
         <label className="check"><input type="checkbox" checked={settings.showSurveys} onChange={(e) => actions.setSpectrum({ showSurveys: e.target.checked })} /> 2MASS and WISE</label>
+        <label>
+          Measure
+          <select value={settings.aperture === null ? "fit" : String(settings.aperture)} onChange={(e) => actions.setSpectrum({ aperture: e.target.value === "fit" ? null : Number(e.target.value) })}>
+            <option value="fit">A point (best for stars)</option>
+            <option value="8">A small circle, 8″</option>
+            <option value="12">A circle, 12″</option>
+            <option value="20">A wide circle, 20″</option>
+            <option value="40">A very wide circle, 40″</option>
+          </select>
+        </label>
+        {settings.probe && <button onClick={() => actions.probe(null)}>Back to the target</button>}
         <label>
           Redshift {settings.redshift.toFixed(2)}
           <input type="range" min={0} max={8} step={0.01} value={settings.redshift} onChange={(e) => actions.setSpectrum({ redshift: Number(e.target.value) })} />

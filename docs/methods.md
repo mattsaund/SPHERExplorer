@@ -31,6 +31,8 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 - A measurement is marked suspect when under 75 percent of the PSF weight fell on good pixels, when the core holds a saturated pixel, or when a flag that spoils photometry is set.
 - Checked: recovers injected fluxes without bias. For Epsilon Indi B the spectrum matches 2MASS J, H, Ks and WISE W1, W2 within about 10 percent.
 
+- For extended things (galaxies, nebulae, comet comas) the browser can instead sum the light in a circle of chosen size and subtract the median of a ring around it (`aperture.ts`). Edge pixels count by the share inside the circle. This runs on the frames already loaded, so the spectrum of any clicked spot appears at once. A circle holding a saturated or flagged pixel is marked suspect.
+
 ## 5. Following things that move
 
 - Stars: positions are carried to each exposure's date with proper motion and parallax (`astro.ts`, with parallax factors from the API). Barnard's Star moves 1.7 pixels across the public data.

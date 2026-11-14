@@ -8,6 +8,9 @@ cd "$(dirname "$0")/.."
 echo "== writing rules"
 python3 scripts/check_text.py
 
+echo "== UI coverage"
+python3 scripts/check_ui_coverage.py
+
 echo "== API tests"
 (cd server && uv run pytest -q | tail -1)
 

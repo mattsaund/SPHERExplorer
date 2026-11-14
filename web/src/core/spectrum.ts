@@ -1,6 +1,8 @@
 // Builds a spectrum from the per-frame brightness measurements. Every SPHEREx exposure sees
 // the target at a different wavelength, so the frames of one visit trace out a full spectrum.
 // Written with Claude Code (Anthropic) assistance.
+import { measureAperture } from "./aperture";
+import { getPixels } from "./pixels";
 import type { Frame } from "./types";
 
 /** One brightness measurement of the target. */
@@ -35,23 +37,53 @@ export interface SpectrumBin {
 /** A measurement is trusted when at least this share of the PSF fell on usable pixels. */
 const MIN_PSF_SHARE = 0.75;
 
+/** How the brightness in each frame is measured. */
+export interface MeasureOptions {
+  /** Circle radius in arcseconds, or null for the point-source fit done by the server. */
+  aperture: number | null;
+  /** A spot other than the target, as a sky offset [east, north] from the field center, or null. */
+  probe: [number, number] | null;
+  /** Sky offset of the target in a frame, for circles that follow the target. */
+  trackOffset: (frame: Frame) => [number, number];
+}
+
+/** Circle radius used when a probe is set without a radius, in arcseconds. About one PSF across. */
+export const DEFAULT_APERTURE = 12;
+
 /** Every measured frame as a spectrum point, sorted by wavelength. */
-export function spectrumOf(frames: Frame[], badMask: number): SpectrumPoint[] {
+export function spectrumOf(frames: Frame[], badMask: number, options?: MeasureOptions): SpectrumPoint[] {
   const points: SpectrumPoint[] = [];
+  const circle = options && (options.aperture !== null || options.probe !== null);
   for (const frame of frames) {
-    const phot = frame.phot;
-    if (frame.status !== "ready" || !phot || phot.flux == null || phot.err == null || !(phot.err > 0)) continue;
+    if (frame.status !== "ready") continue;
+    let flux: number;
+    let err: number;
+    let good: boolean;
+    if (circle) {
+      const pixels = getPixels(frame.id);
+      if (!pixels) continue;
+      const [east, north] = options.probe ?? options.trackOffset(frame);
+      const measured = measureAperture(frame, pixels, east, north, options.aperture ?? DEFAULT_APERTURE, badMask);
+      if (!measured) continue;
+      ({ flux, err, good } = measured);
+    } else {
+      const phot = frame.phot;
+      if (!phot || phot.flux == null || phot.err == null || !(phot.err > 0)) continue;
+      flux = phot.flux;
+      err = phot.err;
+      good = phot.frac >= MIN_PSF_SHARE && phot.nan === 0 && (phot.bits & badMask) === 0;
+    }
     points.push({
       frameId: frame.id,
       wavelength: frame.wavelength,
       bandwidth: frame.bandwidth,
-      flux: phot.flux,
-      err: phot.err,
+      flux,
+      err,
       mjd: frame.mjd,
       detector: frame.detector,
       season: frame.season,
       channel: frame.channel,
-      good: phot.frac >= MIN_PSF_SHARE && phot.nan === 0 && (phot.bits & badMask) === 0,
+      good,
     });
   }
   return points.sort((a, b) => a.wavelength - b.wavelength);

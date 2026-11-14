@@ -40,7 +40,7 @@ function remember(key: string, stack: Stack): void {
 }
 
 /** Offset of the target's position in a frame from the field center. */
-function trackOffset(frame: Frame, state: AppState): [number, number] {
+export function trackOffset(frame: Frame, state: AppState): [number, number] {
   // Each frame of a solar system body is cut out around the body itself, so the offset is zero.
   if (!state.target || state.target.moving) return [0, 0];
   return skyOffset(frame.track, state.target);

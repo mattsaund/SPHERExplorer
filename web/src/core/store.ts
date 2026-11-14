@@ -472,7 +472,7 @@ export const actions = {
       const found = await resolveName(query);
       if ("moving" in found && found.moving === true) {
         // A planet, asteroid, or comet. Its position is filled in from the images that caught it.
-        actions.goTo({ name: found.name, kind: found.kind, ra: 0, dec: 0, epoch: 2026.0, source: "JPL Horizons", moving: { command: found.command } });
+        actions.goTo({ name: found.name, kind: found.kind, ra: 0, dec: 0, epoch: 2026.0, source: "JPL Horizons", url: found.url, moving: { command: found.command } });
       } else {
         actions.goTo(found as Target);
       }
@@ -657,6 +657,8 @@ export const actions = {
       parallax: object.parallax ?? undefined,
       kind: object.kind ?? undefined,
       source: "SIMBAD",
+      distance: object.distance,
+      url: object.url,
     });
   },
 

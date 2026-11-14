@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem
+from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem, spacecraft
 
 
 async def _warm_up() -> None:
@@ -150,6 +150,18 @@ async def other_missions(
 ):
     """Gaia DR3 sources and 2MASS and WISE brightness near a position."""
     return await missions.nearby(ra, dec, radius)
+
+
+@app.get("/api/spacecraft")
+async def spacecraft_status():
+    """Orbital elements of SPHEREx for a live position, plus how fresh the public archive is."""
+    index = await exposures.get_index()
+    return {
+        **spacecraft.FACTS,
+        "elements": await spacecraft.elements(),
+        "archive": index.summary() if index else None,
+        "recent": spacecraft.recent_pointings(index),
+    }
 
 
 @app.get("/api/neossat")

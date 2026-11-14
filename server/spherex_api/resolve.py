@@ -13,7 +13,10 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
-from . import cache, net
+from . import cache, distance, net
+
+# The SIMBAD page of one object: identifiers, measurements, and every paper that mentions it.
+SIMBAD_PAGE = "https://simbad.cfa.harvard.edu/simbad/sim-id?Ident="
 
 # Sesame endpoints, fastest and most reliable first.
 SESAME = (
@@ -80,15 +83,15 @@ def kind_of(code: str) -> str | None:
 # The NASA test targets at epoch 2026.0, with the spellings people are likely to type.
 BUILT_IN = [
     (("barnardsstar", "barnardstar", "barnard", "gj699", "gl699"),
-     {"name": "Barnard's Star", "ra": 269.446267, "dec": 4.768222, "pmRa": -801.551, "pmDec": 10362.394, "parallax": 546.976, "kind": "Fast-moving star"}),
+     {"name": "Barnard's Star", "ra": 269.446267, "dec": 4.768222, "pmRa": -801.551, "pmDec": 10362.394, "parallax": 546.976, "kind": "Fast-moving star", "simbad": "NAME Barnard's star"}),
     (("epsilonindib", "epsindb", "epsindib", "epsilonindb", "epsindiba"),
-     {"name": "Epsilon Indi B", "ra": 331.096656, "dec": -56.800664, "pmRa": 3981.977, "pmDec": -2466.832, "parallax": 274.843, "kind": "Brown dwarf"}),
+     {"name": "Epsilon Indi B", "ra": 331.096656, "dec": -56.800664, "pmRa": 3981.977, "pmDec": -2466.832, "parallax": 274.843, "kind": "Brown dwarf", "simbad": "* eps Ind B"}),
     (("wise0855", "wise08550714", "wisej08550714", "wise0855071442", "wisej085510.83071442.5", "wiseaj085510.74071442.5", "w0855"),
-     {"name": "WISE 0855-0714", "ra": 133.759765, "dec": -7.242182, "pmRa": -8123.7, "pmDec": 673.2, "parallax": 439.0, "kind": "Brown dwarf"}),
+     {"name": "WISE 0855-0714", "ra": 133.759765, "dec": -7.242182, "pmRa": -8123.7, "pmDec": 673.2, "parallax": 439.0, "kind": "Brown dwarf", "simbad": "WISEA J085510.74-071442.5"}),
     (("rwaurigae", "rwaur", "rwaura"),
-     {"name": "RW Aurigae", "ra": 76.956083, "dec": 30.401139, "kind": "Young star (T Tauri)"}),
+     {"name": "RW Aurigae", "ra": 76.956083, "dec": 30.401139, "kind": "Young star (T Tauri)", "simbad": "V* RW Aur"}),
     (("rdraconis", "rdra"),
-     {"name": "R Draconis", "ra": 248.167233, "dec": 66.755024, "kind": "Pulsating red giant (Mira variable)"}),
+     {"name": "R Draconis", "ra": 248.167233, "dec": 66.755024, "kind": "Pulsating red giant (Mira variable)", "simbad": "V* R Dra"}),
 ]
 
 _memory: dict[str, dict | None] = {}
@@ -148,14 +151,18 @@ def parse_sesame(text: str) -> dict | None:
             continue
         code = (resolver.findtext("otype") or "").strip()
         service = (resolver.get("name") or "").split("=", 1)[-1].split(" ", 1)[0]
+        oid = _number(resolver, "oid")
         return {
             "name": (resolver.findtext("oname") or "").strip() or None,
+            "oid": int(oid) if oid is not None else None,
             "ra": ra,
             "dec": dec,
             "pmRa": _number(resolver, "pm/pmRA"),
             "pmDec": _number(resolver, "pm/pmDE"),
             "parallax": _number(resolver, "plx/v"),
+            "parallaxError": _number(resolver, "plx/e"),
             "velocity": _number(resolver, "Vel/v"),
+            "redshift": _number(resolver, "z/v"),
             "kind": kind_of(code),
             "spectralType": (resolver.findtext("spType") or "").strip() or None,
             "source": service or "Sesame",
@@ -183,6 +190,8 @@ def _finish(found: dict, asked: str) -> dict:
         "kind": found["kind"],
         "spectralType": found.get("spectralType"),
         "source": found["source"],
+        # The page that lists everything known about the object.
+        "url": SIMBAD_PAGE + urllib.parse.quote(found["name"]) if found["name"] else None,
         # Where catalogs list the object, for reference.
         "raJ2000": found["ra"],
         "decJ2000": found["dec"],
@@ -201,8 +210,30 @@ def _tidy(name: str) -> str:
 def built_in(name: str) -> dict | None:
     token = normalize(name)
     for aliases, target in BUILT_IN:
-        if token in aliases:
-            return {"epoch": REFERENCE_EPOCH, "source": "Built in", **target}
+        # Match the spellings people type, and the name SIMBAD itself uses.
+        if token in aliases or token == normalize(target["simbad"]):
+            facts = {key: value for key, value in target.items() if key != "simbad"}
+            return {
+                "epoch": REFERENCE_EPOCH,
+                "source": "Built in",
+                "simbadId": target["simbad"],
+                "url": SIMBAD_PAGE + urllib.parse.quote(target["simbad"]),
+                "distance": distance.from_parallax(target.get("parallax")),
+                **facts,
+            }
+    return None
+
+
+async def _distance_from_simbad(simbad_id: str) -> dict | None:
+    """Look up the distance of an object by its SIMBAD name. Used when the built-in table has none."""
+    for base in SESAME:
+        try:
+            found = await _ask(base, simbad_id)
+        except Exception:  # noqa: BLE001 (try the next mirror)
+            continue
+        if found:
+            return await distance.best(found["parallax"], found["parallaxError"], found["redshift"], found["velocity"], found["oid"])
+        return None
     return None
 
 
@@ -221,6 +252,8 @@ async def resolve(name: str) -> dict | None:
     # The NASA test targets use vetted positions. SIMBAD lists some fast movers (WISE 0855 among
     # them) at the epoch they were observed, not at J2000, so its position can't be carried forward blindly.
     answer = built_in(name)
+    if answer is not None and answer["distance"] is None:
+        answer["distance"] = await _distance_from_simbad(answer["simbadId"])
     reached = False
     for base in SESAME if answer is None else ():
         try:
@@ -230,6 +263,9 @@ async def resolve(name: str) -> dict | None:
             continue
         if found:
             answer = _finish(found, name)
+            answer["distance"] = await distance.best(
+                found["parallax"], found["parallaxError"], found["redshift"], found["velocity"], found["oid"],
+            )
         break  # a mirror answered, found or not
     if answer is not None:
         _memory[token] = answer

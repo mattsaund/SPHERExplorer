@@ -4,6 +4,8 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Show the distance in the details box, and link to the page with everything known about the object | Matt | Asked for during the build |
+| 2026-11-14 | Search by J2000 RA and Dec in every common written form | Matt | Asked for during the build |
 | 2026-11-14 | Add full color: three-band color images and a color SPHEREx sky | Matt | Asked for during the build |
 | 2026-11-14 | Share a live preview on the local network for Austin's workstation | Matt | `npm run dev:lan` |
 | 2026-11-14 | Concept and feature list set. See `docs/concept.md` | Matt and Austin | Full use of SPHEREx for every field of space science |

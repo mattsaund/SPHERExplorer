@@ -8,7 +8,7 @@ import math
 import re
 import time
 
-from . import net
+from . import distance, net
 from .resolve import REFERENCE_EPOCH, built_in, kind_of
 
 # SIMBAD TAP endpoints, fastest first.
@@ -25,7 +25,7 @@ MAX_RADIUS = 90.0  # the cone function of SIMBAD's database stops at 90 degrees
 WIDE_RADIUS = 3.0  # cones this wide always hold many objects, so SIMBAD ranks them quickly
 FETCH_ALL = 2000   # rows fetched unranked from a narrow cone before deciding it is crowded
 
-COLUMNS = 'b.main_id, b.ra, b.dec, b.otype, b.pmra, b.pmdec, b.plx_value, b.rvz_redshift, b.sp_type, b.nbref, f."V", f."K"'
+COLUMNS = 'b.main_id, b.ra, b.dec, b.otype, b.pmra, b.pmdec, b.plx_value, b.rvz_redshift, b.sp_type, b.nbref, f."V", f."K", b.plx_err'
 
 _cache: dict[tuple, tuple[float, list]] = {}
 
@@ -40,7 +40,8 @@ def clean_name(main_id: str) -> str:
 
 
 def _shape(row: list) -> dict:
-    main_id, ra, dec, code, pm_ra, pm_dec, parallax, redshift, sp_type, refs, v_mag, k_mag = row
+    main_id, ra, dec, code, pm_ra, pm_dec, parallax, redshift, sp_type, refs, v_mag, k_mag = row[:12]
+    parallax_error = row[12] if len(row) > 12 else None
     years = REFERENCE_EPOCH - 2000.0
     vetted = built_in(main_id)
     if vetted:
@@ -66,6 +67,8 @@ def _shape(row: list) -> dict:
         "pmDec": pm_dec,
         "parallax": parallax,
         "redshift": redshift,
+        # Parallax for nearby stars, redshift for distant galaxies. Published distances are not fetched here.
+        "distance": distance.from_parallax(parallax, parallax_error) or distance.from_redshift(redshift),
         "spectralType": sp_type or None,
         "refs": refs,
         "vMag": v_mag,

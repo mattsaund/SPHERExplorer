@@ -54,7 +54,7 @@ def test_topocentric_shift_matches_horizons():
 
 def test_major_bodies_and_command_check():
     body = asyncio.run(solarsystem.lookup("  Neptune "))
-    assert body == {"name": "Neptune", "kind": "Planet", "command": "899"}
+    assert body == {"name": "Neptune", "kind": "Planet", "command": "899", "url": "https://science.nasa.gov/neptune/"}
     assert asyncio.run(solarsystem.lookup("planet uranus"))["command"] == "799"
     assert solarsystem.COMMAND.match("DES=20000001;") and solarsystem.COMMAND.match("DES=67P; CAP;")
     assert not solarsystem.COMMAND.match("799'; drop") and not solarsystem.COMMAND.match("x")

@@ -7,6 +7,16 @@ export interface SkyPosition {
   dec: number;
 }
 
+/** How far away an object is, and how that is known. */
+export interface Distance {
+  /** Distance in parsecs. For "redshift" this is where the object is now, after the universe expanded. */
+  parsecs: number;
+  /** "parallax" (measured shift against the background), "measured" (a published value), or "redshift". */
+  method: "parallax" | "measured" | "redshift";
+  /** For redshift distances: how many years the light has traveled. */
+  lightTravelYears?: number;
+}
+
 /** A place on the sky, with optional motion so it can be followed through time. */
 export interface Target extends SkyPosition {
   /** Display name, if the target was found by name. */
@@ -22,6 +32,10 @@ export interface Target extends SkyPosition {
   kind?: string;
   /** Where the position came from, for example "SIMBAD". */
   source?: string;
+  /** How far away it is, when known. Solar system bodies carry their distance on each frame instead. */
+  distance?: Distance | null;
+  /** A page that lists everything known about the object (SIMBAD, or JPL for solar system bodies). */
+  url?: string | null;
   /**
    * Set for a solar system body, which is somewhere else in every image.
    * `command` is its identifier at JPL Horizons. ra and dec then hold its latest observed position.
@@ -301,6 +315,8 @@ export interface SkyObject extends SkyPosition {
   kMag: number | null;
   /** Page with full details about the object. */
   url: string;
+  /** How far away it is, when a parallax or redshift is known. */
+  distance: Distance | null;
 }
 
 /** State of the sky map. */

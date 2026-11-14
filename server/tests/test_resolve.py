@@ -25,6 +25,8 @@ def test_parse_sesame():
     assert found["pmRa"] == 3981.977 and found["pmDec"] == -2466.832
     assert found["parallax"] == 270.658
     assert found["source"] == "Simbad"
+    assert found["oid"] is None and found["redshift"] is None and found["parallaxError"] is None
+    assert resolve._finish(found, "eps ind b")["url"].endswith("Ident=%2A%20eps%20Ind%20B")
     assert resolve.parse_sesame("<Sesame><Target><name>x</name></Target></Sesame>") is None
     assert resolve.parse_sesame("not xml") is None
 
@@ -51,6 +53,11 @@ def test_built_in_targets_and_names():
     assert resolve.built_in("  wise 0855-0714 ")["ra"] == 133.759765
     assert resolve.built_in("R Dra")["kind"].startswith("Pulsating")
     assert resolve.built_in("Vega") is None
+    barnard = resolve.built_in("NAME Barnard's star")   # the name SIMBAD uses also matches
+    assert barnard["name"] == "Barnard's Star" and barnard["simbadId"] == "NAME Barnard's star"
+    assert abs(barnard["distance"]["parsecs"] - 1.8282) < 0.001
+    assert barnard["url"].endswith("Ident=NAME%20Barnard%27s%20star")
+    assert resolve.built_in("RW Aur")["distance"] is None
     assert resolve.kind_of("QSO") == "Quasar"
     assert resolve.kind_of("zz*") == "Star"
     assert resolve.kind_of("") is None

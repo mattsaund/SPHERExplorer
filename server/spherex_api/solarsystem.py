@@ -14,6 +14,7 @@ import math
 import re
 import time
 from dataclasses import dataclass
+from urllib.parse import quote
 
 import numpy as np
 
@@ -68,7 +69,8 @@ async def lookup(name: str) -> dict | None:
         return None
     if token in MAJOR:
         command, label, kind = MAJOR[token]
-        return {"name": label, "kind": kind, "command": command}
+        page = "dwarf-planets/pluto" if token == "pluto" else token
+        return {"name": label, "kind": kind, "command": command, "url": f"https://science.nasa.gov/{page}/"}
     if token in _lookups:
         return _lookups[token]
     stored = cache.load_json("body", token)
@@ -94,6 +96,8 @@ async def lookup(name: str) -> dict | None:
         "kind": (body.get("orbit_class") or {}).get("name") or ("Comet" if comet else "Asteroid"),
         # Comets have one orbit solution per return. CAP picks the one closest to today.
         "command": f"DES={body['des']}; CAP;" if comet else f"DES={body['spkid']};",
+        # JPL's page for the body: orbit, size, discovery, and close approaches.
+        "url": "https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=" + quote(str(body["des"])),
     }
     _lookups[token] = answer
     cache.save_json("body", token, answer)

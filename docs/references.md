@@ -67,6 +67,7 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. Atomic line wavelengths in `web/src/core/lines.ts`.
 - Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
 - Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
+- Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.
 
 ## Software and services
 

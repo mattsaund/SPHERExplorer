@@ -33,7 +33,7 @@ export function getMeta(signal?: AbortSignal): Promise<Meta> {
 }
 
 /** What a name lookup returns: a fixed target, or a solar system body to be followed. */
-export type Resolved = Target | { moving: true; name: string; kind: string; command: string };
+export type Resolved = Target | { moving: true; name: string; kind: string; command: string; url?: string };
 
 /** Look up an object by name. Rejects with a plain-language ApiError when it is not found. */
 export function resolveName(name: string, signal?: AbortSignal): Promise<Resolved> {

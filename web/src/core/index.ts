@@ -5,6 +5,7 @@ export type {
   ColorBands,
   ColorMap,
   DisplaySettings,
+  Distance,
   Filters,
   FlagBit,
   Frame,
@@ -38,7 +39,7 @@ export type { AppState, View } from "./store";
 export { actions, useStore } from "./store";
 export { TEST_TARGETS } from "./targets";
 export { COLOR_MAPS } from "./colormaps";
-export { formatDate, formatDec, formatMonth, formatRa, mjdToDate, mjdToYear, parseCoordinates } from "./astro";
+export { distanceMethod, formatAu, formatDate, formatDec, formatDistance, formatMonth, formatRa, mjdToDate, mjdToYear, parseCoordinates } from "./astro";
 export { formatWavelength } from "./sequence";
 export { FrameView } from "./FrameView";
 export { SpectrumPlot } from "./SpectrumPlot";

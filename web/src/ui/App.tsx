@@ -15,8 +15,12 @@ import {
   TEST_TARGETS,
   Timeline,
   actions,
+  distanceMethod,
+  formatAu,
   formatDate,
   formatDec,
+  formatDistance,
+  formatFlux,
   formatRa,
   formatWavelength,
   useStore,
@@ -253,11 +257,29 @@ function Readout() {
   const flags = useStore((s) => s.meta?.flags);
   const movers = useStore((s) => s.movers);
   const chosen = useStore((s) => s.map.selected);
+  // The first image of the step on screen, for distances that change from image to image.
+  const shown = useStore((s) => {
+    const item = s.sequence[s.player.index];
+    return item ? s.frames[item.frameIds[0]] : null;
+  });
   const names = hover && flags ? flags.filter((f) => hover.bits & (1 << f.bit)).map((f) => f.name) : [];
   return (
     <fieldset>
       <legend>Details</legend>
       {target && <p><strong>{target.name ?? "Custom position"}</strong>{target.kind ? `. ${target.kind}` : ""}</p>}
+      {target?.distance && <p>Distance: {formatDistance(target.distance)}, {distanceMethod(target.distance.method)}.</p>}
+      {target?.moving && shown?.earthDistance != null && (
+        <p>
+          Distance at this image: {formatAu(shown.earthDistance)} from Earth
+          {shown.sunDistance != null && `, ${formatAu(shown.sunDistance)} from the Sun`}.
+        </p>
+      )}
+      {target?.url && (
+        <p>
+          <a href={target.url} target="_blank" rel="noreferrer">Full details{target.moving ? " at NASA JPL" : " in the SIMBAD database"}</a>
+          {target.moving ? " (orbit, size, and discovery)" : " (names, measurements, and research papers)"}
+        </p>
+      )}
       {movers.slice(0, 2).map((mover) => (
         <p key={mover.id} className="hint">
           {mover.name}{mover.kind ? ` (${mover.kind.toLowerCase()})` : ""} moves quickly across the sky and is near these coordinates. It may have moved since they were measured.{" "}
@@ -268,16 +290,17 @@ function Readout() {
         <div className="card">
           <strong>{chosen.name}</strong>
           <span>{chosen.kind ?? "Known object"}{chosen.spectralType ? `, type ${chosen.spectralType}` : ""}</span>
+          {chosen.distance && <span>Distance: {formatDistance(chosen.distance)}</span>}
           <div className="row wrap">
             <button onClick={() => actions.studyObject(chosen)}>Study in SPHEREx</button>
-            <a href={chosen.url} target="_blank" rel="noreferrer">More information</a>
+            <a href={chosen.url} target="_blank" rel="noreferrer">Full details</a>
           </div>
         </div>
       )}
       {frame && (
         <p>
           {formatDate(frame.mjd)}. Detector {frame.detector}. {formatWavelength(frame.wavelength)}.
-          {frame.phot?.flux != null && frame.phot.err != null && ` Brightness ${frame.phot.flux.toFixed(0)} ± ${frame.phot.err.toFixed(0)} µJy.`}
+          {frame.phot?.flux != null && frame.phot.err != null && ` Brightness ${formatFlux(frame.phot.flux)} ± ${formatFlux(frame.phot.err)}.`}
         </p>
       )}
       {hover ? (
@@ -339,10 +362,11 @@ function MapPanel() {
           <strong>{chosen.name}</strong>
           <span>{chosen.kind ?? "Known object"}{chosen.spectralType ? `, type ${chosen.spectralType}` : ""}</span>
           <span className="mono">{formatRa(chosen.ra)} {formatDec(chosen.dec)}</span>
+          {chosen.distance && <span>Distance: {formatDistance(chosen.distance)}, {distanceMethod(chosen.distance.method)}</span>}
           {chosen.refs != null && <span className="muted">Mentioned in {chosen.refs.toLocaleString("en-US")} papers</span>}
           <div className="row wrap">
             <button className="primary" onClick={() => actions.studyObject(chosen)}>Study in SPHEREx</button>
-            <a href={chosen.url} target="_blank" rel="noreferrer">More information</a>
+            <a href={chosen.url} target="_blank" rel="noreferrer">Full details</a>
             <button onClick={() => actions.selectObject(null)}>Close</button>
           </div>
         </div>

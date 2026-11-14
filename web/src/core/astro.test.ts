@@ -1,7 +1,7 @@
 // Tests for coordinate parsing, formatting, motion, and visit grouping.
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
-import { assignSeasons, formatDec, formatRa, mjdToDate, mjdToYear, offsetToSky, parseCoordinates, positionAt, skyOffset } from "./astro";
+import { assignSeasons, distanceMethod, formatAu, formatDec, formatDistance, formatRa, mjdToDate, mjdToYear, offsetToSky, parseCoordinates, positionAt, skyOffset } from "./astro";
 
 describe("parseCoordinates", () => {
   it("reads decimal degrees", () => {
@@ -122,5 +122,20 @@ describe("assignSeasons", () => {
     expect(seasons[12]).toBe(0);
     expect(new Set(seasons).size).toBeGreaterThanOrEqual(3);
     expect(seasons).toEqual([...seasons].sort((a, b) => a - b));
+  });
+});
+
+describe("distances", () => {
+  it("formats distances across every scale", () => {
+    expect(formatDistance({ parsecs: 1.8282, method: "parallax" })).toBe("5.96 light-years");
+    expect(formatDistance({ parsecs: 7790, method: "measured" })).toBe("25,400 light-years");
+    expect(formatDistance({ parsecs: 761000, method: "measured" })).toBe("2.48 million light-years");
+    expect(formatDistance({ parsecs: 6.8e8, method: "redshift", lightTravelYears: 2.0e9 })).toBe("about 2.22 billion light-years (its light left 2.00 billion years ago)");
+    expect(distanceMethod("parallax")).toBe("from its parallax");
+  });
+  it("formats solar system distances", () => {
+    expect(formatAu(2.61)).toBe("2.61 au (390 million km)");
+    expect(formatAu(29.9)).toBe("29.9 au (4.47 billion km)");
+    expect(formatAu(0.00257)).toBe("0.00257 au (384,467 km)");
   });
 });

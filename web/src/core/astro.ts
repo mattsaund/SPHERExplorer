@@ -227,3 +227,41 @@ export function summarizeVisits(mjds: number[], seasons: number[]): { season: nu
   }
   return visits;
 }
+
+const LIGHT_YEARS_PER_PARSEC = 3.26156;
+const KM_PER_AU = 149597870.7;
+
+function grouped(value: number): string {
+  return Math.round(value).toLocaleString("en-US");
+}
+
+/** A count of light-years in words a person can picture: "5.96", "25,400", "2.48 million", "2.2 billion". */
+function lightYears(value: number): string {
+  if (value >= 1e9) return `${(value / 1e9).toPrecision(3)} billion`;
+  if (value >= 1e6) return `${(value / 1e6).toPrecision(3)} million`;
+  if (value >= 1000) return grouped(Number(value.toPrecision(3)));
+  return value.toPrecision(3);
+}
+
+/** A distance in plain words, for example "5.96 light-years" or "2.48 million light-years". */
+export function formatDistance(distance: { parsecs: number; method: string; lightTravelYears?: number }): string {
+  const text = `${lightYears(distance.parsecs * LIGHT_YEARS_PER_PARSEC)} light-years`;
+  if (distance.method === "redshift" && distance.lightTravelYears) {
+    return `about ${text} (its light left ${lightYears(distance.lightTravelYears)} years ago)`;
+  }
+  return text;
+}
+
+/** How a distance was found, in a few words. */
+export function distanceMethod(method: string): string {
+  if (method === "parallax") return "from its parallax";
+  if (method === "redshift") return "from its redshift";
+  return "from published measurements";
+}
+
+/** A solar system distance: "2.61 au (390 million km)". One au is the distance from Earth to the Sun. */
+export function formatAu(au: number): string {
+  const km = au * KM_PER_AU;
+  const kmText = km >= 1e9 ? `${(km / 1e9).toPrecision(3)} billion km` : km >= 1e6 ? `${Math.round(km / 1e6)} million km` : `${grouped(km)} km`;
+  return `${au.toPrecision(3)} au (${kmText})`;
+}

@@ -100,11 +100,11 @@ Every level of judging scores each criterion from 1 to 5.
 
 ## Global Offers (optional)
 
-Page: https://www.spaceappschallenge.org/2026/global-offers/ . The page says they "are optional and are not required." Team rule: use one only where it is the best fit.
+Page: https://www.spaceappschallenge.org/2026/global-offers/ . The page says they "are optional and are not required." Team rule: use one only where it is the best fit. Chosen Nov 14: Google Cloud and the GoDaddy domain (see `docs/decisions.md`).
 
 | Offer | What you get | Catch |
 |---|---|---|
-| Free domain (GoDaddy Registry, registered through Porkbun at https://www.spaceapps.earth/) | One non-premium domain plus SSL for one year | Not free after the first year. Hosting details aren't described in the claim steps. |
+| Free domain (GoDaddy Registry, registered through Porkbun at https://www.spaceapps.earth/) | One non-premium domain, SSL, and website hosting for one year | Not free after the first year. The offer text (Nov 14) includes one year of hosting but doesn't say what kind, so it may not run a backend. |
 | Google Cloud | $300 credit for 90 days, including Firebase and the Maps API | Card for verification only. No automatic charge after the trial. |
 | Microsoft Azure | $200 credit for 30 days for new customers, plus free-tier services | Card, phone, and a Microsoft or GitHub account. Usage beyond free amounts is billed after the credit. |
 | GitHub Copilot Free | 2,000 code completions a month, limited chat and agent use | Counts as SI use. Disclose it. |

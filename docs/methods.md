@@ -132,7 +132,15 @@ Checked on known objects.
 
 - `distance.py` uses a parallax when it is at least five times its error, then a published distance from SIMBAD, then the redshift with Planck 2018 cosmology.
 
-## 13. The sky map's overlays and measure tool
+## 13. Blinking against an older survey
+
+- Blink swaps the SPHEREx image on screen with an older survey's picture of the same patch of sky, back and forth. A source that jumps has moved in the years between. A source in only one of the two has moved a long way, changed brightness, or shines at only one of the two wavelengths.
+- The older pictures are WISE at 4.6 and 3.4 microns (taken in 2010), 2MASS (1997 to 2001), and the Digitized Sky Survey (photographic plates, mostly from the 1980s and 1990s). "Best match" takes the one nearest in wavelength to the image on screen: WISE 4.6 for detectors 5 and 6, WISE 3.4 for detector 4, and 2MASS below 2.5 microns.
+- The older picture is drawn by a second Aladin Lite view from the survey's HiPS tiles at IRSA. It is given the image viewer's center and width of sky, with north up, so the two share one grid.
+- Checked on RW Aurigae against 2MASS: every bright star falls on the same screen pixel in both pictures, at the first zoom and after zooming and panning. Checked on WISE 0855 with detectors 5 and 6: the brown dwarf is at the marker in the SPHEREx sum and is not there in the WISE picture from 2010, when it was 127 arcsec to the east.
+- A single SPHEREx exposure is much shallower than these surveys, so many faint stars show only in the older picture. Summing by visit, or all visits, gives a fairer match.
+
+## 14. The sky map's overlays and measure tool
 
 - The two coverage overlays are IRSA's own coverage maps, the ones its SPHEREx Data Explorer shows: every part of the sky with spectral images in the archive, and the deep fields. They are files in the IVOA MOC format. The API relays them, because IRSA does not let browsers read them directly, and keeps each for a day.
 - The tile grid is the HEALPix grid that every all-sky map (HiPS) is cut into. Aladin Lite draws it.

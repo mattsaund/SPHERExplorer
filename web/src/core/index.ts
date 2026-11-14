@@ -2,6 +2,8 @@
 // A change to an exported name or type is a contract change. See docs/architecture.md.
 // Written with Claude Code (Anthropic) assistance.
 export type {
+  BlinkChoice,
+  BlinkState,
   ColorBands,
   ColorMap,
   DisplaySettings,
@@ -71,4 +73,6 @@ export { changeLabel, describeChange } from "./changes";
 export type { BandChange, ChangeKind, ChangeLevel, ChangePlace, ChangeReport, CheckedSource, FoundChange } from "./changes";
 export type { Suggestion } from "./suggest";
 export { describeFeature, spectrumFeatures } from "./features";
+export { BLINK_PARTNERS, blinkPartner } from "./blink";
+export type { BlinkPartner } from "./blink";
 export type { FeatureFinding, FeatureReport } from "./features";

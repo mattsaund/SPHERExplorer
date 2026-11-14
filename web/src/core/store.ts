@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { ApiError, getKnown, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, getSuggestions, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
+import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
@@ -12,7 +13,7 @@ import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
 import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
 import { buildLink, embedSnippet, parseLink } from "./url";
-import type { DisplaySettings, Filters, Frame, Hover, KnownCheck, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
+import type { BlinkChoice, BlinkState, DisplaySettings, Filters, Frame, Hover, KnownCheck, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -94,6 +95,8 @@ export interface AppState {
   spacecraftNow: SpacecraftNow | null;
   /** Where every telescope in Earth orbit is this second, by telescope id. Updated while the orbit view is on the page. */
   craftNow: Record<string, SpacecraftNow>;
+  /** Blinking the image against an older survey's picture, from actions.setBlink. */
+  blink: BlinkState;
   map: MapState;
   /** The sky position under the pointer on the map, or null when the pointer is elsewhere. */
   mapHover: SkyPosition | null;
@@ -173,6 +176,7 @@ export const useStore = create<AppState>(() => ({
   spacecraft: null,
   spacecraftNow: null,
   craftNow: {},
+  blink: { on: false, choice: "auto", older: false },
   map: {
     ready: false,
     failure: null,
@@ -289,7 +293,9 @@ function applyFrames(batch: WireFrame[], byKey: Map<string, number>): void {
  * A new study starts from this, and closing the study ends on it.
  */
 function emptyStudy(): Partial<AppState> {
+  stopBlink();
   return {
+    blink: { ...get().blink, on: false, older: false },
     framesState: "idle",
     frames: [],
     visits: [],
@@ -486,6 +492,14 @@ function tick(): void {
   if (!player.playing) return;
   if (sequence.length > 1) set({ player: { ...player, index: (player.index + 1) % sequence.length } });
   ticker = setTimeout(tick, 1000 / player.fps);
+}
+
+/** The timer that swaps the two pictures while blinking. */
+let blinker: ReturnType<typeof setInterval> | null = null;
+
+function stopBlink(): void {
+  if (blinker) clearInterval(blinker);
+  blinker = null;
 }
 
 function pause(): void {
@@ -840,6 +854,28 @@ export const actions = {
     // Putting the measure tool away takes its line off the map.
     if (!map.measuring) map.measured = null;
     set({ map });
+  },
+
+  /**
+   * Blink the image on screen against an older survey's picture of the same field: switch it
+   * on or off, or choose the survey. While it is on, state.blink.older flips at a steady beat.
+   * The film is paused, because two things changing at once can't be read.
+   */
+  setBlink(change: { on?: boolean; choice?: BlinkChoice }): void {
+    const target = get().target;
+    const blink = { ...get().blink, ...change };
+    // Blinking compares one fixed patch of sky, so it needs a target that stays put.
+    if (!target || target.moving) blink.on = false;
+    stopBlink();
+    if (blink.on) {
+      pause();
+      // Start on the older picture, so pressing the button shows a change at once.
+      blink.older = change.on === true ? true : blink.older;
+      blinker = setInterval(() => set({ blink: { ...get().blink, older: !get().blink.older } }), BLINK_MS);
+    } else {
+      blink.older = false;
+    }
+    set({ blink });
   },
 
   /** Used by the map to report the sky position under the pointer. */

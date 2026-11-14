@@ -4,6 +4,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
 import { offsetToSky, positionAt, skyOffset } from "./astro";
+import { BlinkLayer } from "./BlinkLayer";
 import { registerCapture } from "./capture";
 import { changeLabel } from "./changes";
 import { sceneFor, type Scene } from "./layers";
@@ -43,6 +44,13 @@ export function FrameView({ className }: { className?: string }) {
   const glRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  // The blink layer is a second sky view. It is made the first time blinking is switched on,
+  // and kept after that, so switching it on again costs nothing.
+  const blinkOn = useStore((s) => s.blink.on);
+  const [blinkUsed, setBlinkUsed] = useState(false);
+  useEffect(() => {
+    if (blinkOn) setBlinkUsed(true);
+  }, [blinkOn]);
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -531,7 +539,7 @@ export function FrameView({ className }: { className?: string }) {
     // Redraw on any change except those that do not touch the picture: the pointer readouts,
     // the search dropdown, the telescopes' live places, and the sky map moving about.
     // Of the map's state, only the picked place and the chosen object are drawn here.
-    const unseen = new Set(["hover", "mapHover", "suggestions", "craftNow", "spacecraftNow", "map", "mapGoal"]);
+    const unseen = new Set(["hover", "mapHover", "suggestions", "craftNow", "spacecraftNow", "map", "mapGoal", "blink"]);
     const unsubscribe = useStore.subscribe((state, before) => {
       const now = state as unknown as Record<string, unknown>;
       const then = before as unknown as Record<string, unknown>;
@@ -559,6 +567,8 @@ export function FrameView({ className }: { className?: string }) {
   return (
     <div ref={wrapRef} className={className} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", touchAction: "none", cursor: "crosshair" }}>
       <canvas ref={glRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+      {/* The older picture for blinking lies over the image and under the marks, so the marks stay put while the pictures swap. */}
+      {blinkUsed && <BlinkLayer />}
       <canvas ref={overlayRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
       {failure && <p role="alert" style={{ position: "absolute", inset: 0, margin: "auto", height: "fit-content", textAlign: "center", padding: 16 }}>{failure}</p>}
     </div>

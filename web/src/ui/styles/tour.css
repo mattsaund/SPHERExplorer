@@ -1,0 +1,42 @@
+/* The walkthrough: a shade over the page, a clear box around the part being shown, and a card
+   of words beside it. Austin's side owns this file.
+   Written with Claude Code (Anthropic) assistance. */
+
+/* Covers the page, so nothing under it is clicked by mistake while the tour runs. */
+.tour { position: fixed; inset: 0; z-index: 100; }
+
+/* The clear box. Its wide, flat shadow is the shade over everything else. */
+.tour-spot {
+  position: fixed;
+  border: 2px solid var(--color-accent);
+  border-radius: 8px;
+  box-shadow: 0 0 0 200vmax rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  transition: left 0.15s ease, top 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+/* With nothing to point at, the whole page is shaded and no outline shows. */
+.tour-spot.none { border-color: transparent; }
+
+.tour-card {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(380px, calc(100vw - 24px));
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+.tour-card:focus { outline: none; }
+.tour-card h2 { font-size: 1.15rem; }
+.tour-count { color: var(--color-text-muted); font-size: 0.85rem; }
+.tour-buttons { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+/* Skipping is always there, but quieter than moving on. */
+.tour-skip { margin-right: auto; padding: 0 var(--space-2); background: transparent; border-color: transparent; color: var(--color-text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot { transition: none; }
+}

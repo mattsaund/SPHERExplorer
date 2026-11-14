@@ -12,6 +12,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 |---|---|---|
 | Start | Have the app load its settings and open a shared link | `actions.init` |
 | Search | Type a name, J2000 coordinates, or a planet, asteroid, or comet | `actions.search` |
+| Tour | Walk through the page step by step with a real example, on a first visit or from Help | `TEST_TARGETS`, `actions.goTo` |
 | Search suggestions | Pick from a dropdown: recent searches and NASA's targets at first, then matching names and typed coordinates | `actions.suggest`, `suggestions` |
 | Test targets | Open any of NASA's five test targets in one click | `TEST_TARGETS`, `actions.goTo` |
 | Status | See search and download progress as a count and a ring, and whether a very large field was sampled | `targetState`, `framesState`, `loaded`, `failed`, `leftOut` |
@@ -33,6 +34,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Look | Pick a color table, invert, and smooth pixels | `COLOR_MAPS`, `invert`, `smooth` |
 | Overlays | Show bad pixels, the target marker, known objects, Gaia stars, and found changes | `showFlags`, `showMarker`, `showObjects`, `showGaia`, `showChanges` |
 | Follow | Keep a moving target centered in sums | `actions.setFollow` |
+| Blink | Swap the image with an older survey's picture of the same field, back and forth, to see what moved in the years between | `actions.setBlink`, `blink`, `BLINK_PARTNERS`, `blinkPartner` |
 | Reset zoom | Return to the whole field | `actions.resetView` |
 | Readout | Read position, value, wavelength, and flags under the pointer | `hover` |
 | Details | See the target's name, kind, and distance, and open its full database entry | `distance`, `formatDistance`, `url` |

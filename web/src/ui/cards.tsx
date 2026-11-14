@@ -3,7 +3,7 @@
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
-import { actions, compass, distanceMethod, formatDate, formatDec, formatDistance, formatRa, useStore, type SkyObject } from "../core";
+import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
 import { copyText } from "./copy";
 
 /** Points down. Turns up while the thing it belongs to is open (see app.css). */
@@ -254,5 +254,42 @@ export function ObjectsCard() {
         </ul>
       )}
     </section>
+  );
+}
+
+/**
+ * The Blink control, low in the middle of the images. Blinking swaps the SPHEREx image with
+ * an older survey's picture of the same patch of sky, back and forth, so anything that moved
+ * in the years between jumps. The words beside the button say which picture is showing.
+ */
+export function BlinkControl() {
+  const blink = useStore((s) => s.blink);
+  const hasTarget = useStore((s) => s.target !== null);
+  const moving = useStore((s) => !!s.target?.moving);
+  const item = useStore((s) => s.sequence[s.player.index]);
+  const partner = useStore((s) => blinkPartner(s));
+  if (!hasTarget) return null;
+  let title = "Swap this image with an older picture of the same sky, back and forth. Best with By visit or Deepest";
+  if (moving) title = "Blinking compares one fixed patch of sky, so it is not offered for planets, asteroids, and comets";
+  else if (!item) title = "Waiting for the first image";
+  return (
+    <div className="stage-label blink" role="group" aria-label="Blink">
+      <button className={blink.on ? "on" : ""} aria-pressed={blink.on} disabled={moving || !item} onClick={() => actions.setBlink({ on: !blink.on })} title={title}>
+        {blink.on ? "Stop blinking" : "Blink"}
+      </button>
+      <label className="inline">
+        <span className="muted">with</span>
+        <select value={blink.choice} onChange={(event) => actions.setBlink({ choice: event.target.value as BlinkChoice })} aria-label="The older picture to blink with">
+          <option value="auto">Best match: {partner.name}</option>
+          {BLINK_PARTNERS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}, {entry.years}</option>)}
+        </select>
+      </label>
+      {/* A fixed width, so the box does not change size as the two captions swap. */}
+      {blink.on && (
+        <span className="blink-now" aria-live="off">
+          {blink.older ? `${partner.name}, ${partner.years}` : `SPHEREx, ${item ? formatDate(item.mjd) : ""}`}
+        </span>
+      )}
+    </div>
   );
 }

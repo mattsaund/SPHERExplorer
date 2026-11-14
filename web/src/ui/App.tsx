@@ -22,11 +22,12 @@ import {
   useStore,
   type SequenceMode,
 } from "../core";
-import { AreaCard, Chevron, CopyButton, ObjectCard, ObjectsCard, SpotCard, coordinates, useAreaShown } from "./cards";
+import { AreaCard, BlinkControl, Chevron, CopyButton, ObjectCard, ObjectsCard, SpotCard, coordinates, useAreaShown } from "./cards";
 import { Embed } from "./Embed";
 import { SearchBox } from "./SearchBox";
 import { Examples, Settings } from "./settings";
 import { TOOLS } from "./tools";
+import { Tour, tourIsDue, type TourScreen } from "./Tour";
 import "./styles/app.css";
 
 /** What fills the stage. "both" puts the map and the images side by side, on screens wide enough. */
@@ -495,6 +496,8 @@ export function App() {
   const viewNow = useRef(view);
   viewNow.current = view;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // The walkthrough offers itself once, on a first visit to the plain page. Help brings it back.
+  const [tour, setTour] = useState(() => !useStore.getState().embed && tourIsDue());
   const [tool, setTool] = useState(TOOLS[0].id);
   const [dockOpen, setDockOpen] = useState(false);
   const [dockTall, setDockTall] = useState(false);
@@ -556,6 +559,9 @@ export function App() {
     }
   }
 
+  // The tour asks for the screen its step is about. A wide page shows both once there is a target.
+  const tourScreen = (screen: TourScreen) => setView(window.innerWidth >= WIDE && useStore.getState().target !== null ? "both" : screen);
+
   // A page opened with embed=1 sits inside another site, so it gets the compact layout.
   if (embed) return <Embed />;
 
@@ -567,6 +573,7 @@ export function App() {
         <ViewSwitch view={view} onChange={setView} />
         <div className="toggles">
           <DrawerToggle open={settingsOpen} onClick={() => setSettingsOpen((open) => !open)}>Settings</DrawerToggle>
+          <button onClick={() => { setSettingsOpen(false); setTour(true); }} title="A one-minute tour of the page">Help</button>
         </div>
       </header>
 
@@ -588,6 +595,7 @@ export function App() {
           <ObjectsCard />
           <DetailsCard />
         </div>
+        {view !== "map" && <BlinkControl />}
         {/* With both views up, the map's card sits over the map and the image side's over the images. */}
         {view === "both" && (
           <div className="overlay beside-map"><MapCards showImages={showImages} onClose={() => setView("map")} /></div>
@@ -611,6 +619,7 @@ export function App() {
         showMap={showMap}
         showImages={showImages}
       />
+      {tour && <Tour onScreen={tourScreen} onClose={() => setTour(false)} />}
     </div>
   );
 }

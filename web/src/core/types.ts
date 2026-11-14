@@ -386,6 +386,17 @@ export interface MapState {
   measured: Measurement | null;
 }
 
+/** Which older survey the image is blinked against. "auto" takes the one nearest in wavelength to the image on screen. */
+export type BlinkChoice = "auto" | "wise-w2" | "wise-w1" | "2mass" | "dss";
+
+/** Blinking the image on screen against an older survey's picture of the same patch of sky. */
+export interface BlinkState {
+  on: boolean;
+  choice: BlinkChoice;
+  /** True at the moments the older picture is on screen. False while the SPHEREx image is. */
+  older: boolean;
+}
+
 /** A line measured between two points on the sky map. */
 export interface Measurement {
   from: SkyPosition;

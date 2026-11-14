@@ -4,6 +4,8 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | A Blink button in the image study, to compare with an older picture of the same sky | Matt | Claude listed it as an option after NASA named WiseView as a model. Matt chose it. Partners: WISE (2010), 2MASS (1997 to 2001), and the Digitized Sky Survey |
+| 2026-11-14 | A popup walkthrough tutorial | Matt | Opens on a first visit and from Help. It loads a real example so every step has something to show |
 | 2026-11-14 | The blue circle of an object stays in the image study when that object is selected as the target | Matt | It used to be dropped under the yellow target marker. Names that would print over each other now show once |
 | 2026-11-14 | The selected area box on the sky map has the same color as the other boxes | Matt | Every box over the map and the images now shares one color |
 | 2026-11-14 | The objects box always starts collapsed | Matt | It opens by itself only when an object's label is clicked in the image |

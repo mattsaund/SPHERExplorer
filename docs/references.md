@@ -91,7 +91,7 @@ Add the license and version when a library goes into the build.
 | Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
 | satellite.js | MIT | | Not yet |
-| gifenc | MIT | | Not yet |
+| gifenc 1.0.3 | MIT | Matt DesLauriers | Yes (animation export) |
 | Mediabunny | MPL-2.0 | | Not yet |
 | sampjs | CC0 | | Not yet |
 | NEOSSat tutorial (CSA) | MIT, Crown copyright 2023 | | Reference only |

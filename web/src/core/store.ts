@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { ApiError, getMeta, getMissions, getObjects, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { COLOR_PRESETS } from "./colorBands";
+import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
 import { buildLink, parseLink } from "./url";
@@ -67,6 +68,8 @@ export interface AppState {
   spectrum: SpectrumSettings;
   /** True when the page was opened with embed=1. The UI should use a compact layout. */
   embed: boolean;
+  /** Progress of an animation being saved, from 0 to 1, or null when none is running. */
+  exporting: number | null;
   map: MapState;
   /** A request to move the map. The map acts when `token` changes. */
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
@@ -122,6 +125,7 @@ export const useStore = create<AppState>(() => ({
   hover: null,
   spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, families: [], redshift: 0 },
   embed: false,
+  exporting: null,
   map: {
     ready: false,
     failure: null,
@@ -616,6 +620,28 @@ export const actions = {
   /** Used by the map to report its state. */
   mapReport(change: Partial<MapState>): void {
     set({ map: { ...get().map, ...change } });
+  },
+
+  /** Save the picture on screen as a PNG file. */
+  async saveImage(): Promise<void> {
+    await exportImage(get());
+  },
+
+  /** Save the whole sequence as an animated GIF. Progress shows in state.exporting. */
+  async saveAnimation(): Promise<void> {
+    if (get().exporting !== null) return;
+    pause();
+    set({ exporting: 0 });
+    try {
+      await exportAnimation(get(), (done) => set({ exporting: done }));
+    } finally {
+      set({ exporting: null });
+    }
+  },
+
+  /** Save the spectrum as a CSV table, one row per image. */
+  saveSpectrum(): void {
+    exportSpectrum(get());
   },
 
   /** Used by the frame view to publish what is under the pointer. */

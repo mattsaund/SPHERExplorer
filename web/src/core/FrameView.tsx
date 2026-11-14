@@ -4,11 +4,12 @@
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
 import { offsetToSky, positionAt, skyOffset } from "./astro";
+import { registerCapture } from "./capture";
 import { sceneFor, type Scene } from "./layers";
 import { getPixels, imageOf } from "./pixels";
 import { FrameRenderer } from "./render/renderer";
 import { actions, useStore, type AppState } from "./store";
-import type { SkyObject } from "./types";
+import type { SequenceItem, SkyObject } from "./types";
 
 /** How many known objects get a label in the frame view. */
 const OBJECT_LABELS = 25;
@@ -67,13 +68,18 @@ export function FrameView({ className }: { className?: string }) {
 
     function draw() {
       raf = 0;
+      paint(useStore.getState().player.index);
+    }
+
+    /** Draw one step of the sequence: the image, then the overlay. */
+    function paint(index: number) {
       const state = useStore.getState();
       if (state.session !== session) {
         // A new target. Old textures belong to other frames.
         renderer.clear();
         session = state.session;
       }
-      const item = state.sequence[state.player.index];
+      const item = state.sequence[index];
       scene = item ? sceneFor(item, state) : null;
       const scale = scaleOf(state);
       const flag = cssColor(wrap, "--frame-flag", "#e5484d");
@@ -93,10 +99,39 @@ export function FrameView({ className }: { className?: string }) {
         emptyColor: empty.rgb,
         mode: scene?.color ? "rgb" : scene?.minus ? "difference" : "single",
       }, scene?.color?.[0] ?? scene?.minus ?? null, scene?.color?.[1] ?? null);
-      drawOverlay(state, scale);
+      drawOverlay(state, scale, item);
     }
 
-    function drawOverlay(state: AppState, scale: number) {
+    /** A copy of one step for saving: image, overlay, and a caption strip underneath. */
+    function renderStep(index: number): HTMLCanvasElement | null {
+      const state = useStore.getState();
+      const item = state.sequence[index];
+      if (!item) return null;
+      paint(index);
+      const strip = 30;
+      const ratio = canvas.width / (wrap.clientWidth || 1);
+      const out = document.createElement("canvas");
+      out.width = canvas.width;
+      out.height = canvas.height + Math.round(strip * ratio);
+      const pen = out.getContext("2d")!;
+      pen.fillStyle = "#000000";
+      pen.fillRect(0, 0, out.width, out.height);
+      // The WebGL canvas must be copied in the same task it was drawn in.
+      pen.drawImage(canvas, 0, 0);
+      pen.drawImage(overlay, 0, 0);
+      pen.fillStyle = "#ffffff";
+      pen.font = `${Math.round(13 * ratio)}px ${getComputedStyle(wrap).fontFamily || "sans-serif"}`;
+      pen.textBaseline = "middle";
+      const name = state.target?.name ?? "";
+      pen.fillText(`${name ? name + ". " : ""}${item.label}`, 10 * ratio, canvas.height + (strip * ratio) / 2);
+      pen.textAlign = "right";
+      pen.fillText("NASA SPHEREx. SPHERExplorer", out.width - 10 * ratio, canvas.height + (strip * ratio) / 2);
+      // Put the live view back on screen.
+      schedule();
+      return out;
+    }
+
+    function drawOverlay(state: AppState, scale: number, item: SequenceItem | undefined) {
       const ratio = overlay.width / (wrap.clientWidth || 1);
       const ctx = overlay.getContext("2d")!;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -127,7 +162,6 @@ export function FrameView({ className }: { className?: string }) {
 
       // Known objects, moved to where they were at the time of the image on screen.
       labels = [];
-      const item = state.sequence[state.player.index];
       if (state.display.showObjects && state.target && item) {
         ctx.font = `12px ${font}`;
         ctx.textBaseline = "middle";
@@ -146,6 +180,10 @@ export function FrameView({ className }: { className?: string }) {
           const x = w / 2 - (east - state.view.east) / scale;
           const y = h / 2 - (north - state.view.north) / scale;
           if (x < -20 || y < -20 || x > w + 20 || y > h + 20) continue;
+          // The target already has its own marker. A second ring would hide a faint source.
+          const markX = w / 2 - (scene.marker[0] - state.view.east) / scale;
+          const markY = h / 2 - (scene.marker[1] - state.view.north) / scale;
+          if (state.display.showMarker && Math.hypot(x - markX, y - markY) < 6) continue;
           ctx.strokeStyle = label;
           ctx.fillStyle = label;
           ctx.beginPath();
@@ -331,6 +369,7 @@ export function FrameView({ className }: { className?: string }) {
     const observer = new ResizeObserver(resize);
     observer.observe(wrap);
     resize();
+    registerCapture({ renderStep });
     // Redraw on any change except the pointer readout, which does not affect the picture.
     const unsubscribe = useStore.subscribe((state, before) => {
       if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects && state.subtract === before.subtract && state.missions === before.missions) return;
@@ -339,6 +378,7 @@ export function FrameView({ className }: { className?: string }) {
 
     return () => {
       cancelAnimationFrame(raf);
+      registerCapture(null);
       observer.disconnect();
       unsubscribe();
       wrap.removeEventListener("pointerdown", onDown);

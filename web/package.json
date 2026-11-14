@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "aladin-lite": "^3.9.2-beta",
+    "gifenc": "^1.0.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "zustand": "^5.1.0"

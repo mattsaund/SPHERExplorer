@@ -103,6 +103,7 @@ function PlayerControls() {
   const fps = useStore((s) => s.player.fps);
   const item = useStore((s) => s.sequence[s.player.index]);
   const mode = useStore((s) => s.mode);
+  const exporting = useStore((s) => s.exporting);
 
   return (
     <div className="player">
@@ -130,6 +131,14 @@ function PlayerControls() {
           Speed
           <input type="range" min={1} max={20} step={1} value={fps} onChange={(event) => actions.setSpeed(Number(event.target.value))} />
         </label>
+      </div>
+      <div className="row wrap">
+        <button onClick={() => void actions.saveImage()} disabled={!count}>Save picture</button>
+        <button onClick={() => void actions.saveAnimation()} disabled={count < 2 || exporting !== null}>
+          {exporting !== null ? `Saving animation ${Math.round(exporting * 100)}%` : "Save animation"}
+        </button>
+        <button onClick={() => actions.saveSpectrum()} disabled={!count}>Save spectrum table</button>
+        <button onClick={() => void navigator.clipboard?.writeText(actions.shareLink())} disabled={!count}>Copy link</button>
       </div>
       <div className="row" role="radiogroup" aria-label="What to play">
         {MODES.map((option) => (

@@ -11,6 +11,8 @@
   --color-text-muted: #a3acb5;
   --color-accent: #4c9be8;
   --color-danger: #e5645a;
+  /* Marks and lists of found changes. */
+  --color-change: #ff9f43;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -20,4 +22,6 @@
 
   --radius: 6px;
   --control-height: 40px;
+  /* Width of the tools panel. */
+  --dock-width: 340px;
 }

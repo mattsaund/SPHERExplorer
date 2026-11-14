@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Matt's Claude takes over the UI redesign while Austin's computer is down. Nothing from Austin's branch had reached GitHub | Matt | Full screen with a top bar and a bottom bar, as decided earlier. Austin's side reviews it when back |
 | 2026-11-14 | The search box gets a dropdown of suggestions | Matt | Recent searches and NASA's targets first, then matching names, coordinates, asteroids, and comets |
 | 2026-11-14 | The study area stays capped at 60 arcminutes for now | Matt asked. Claude explained the limits | Wavelength drift, geometry, and data size all grow past 1 degree. The sky map covers wider views |
 | 2026-11-14 | Cover NASA's embed consideration: coordinates in the URL query the tool, so other sites and projects can embed it | Matt | `docs/embedding.md`. Compact layout with `embed=1`, and a "Copy embed code" button |

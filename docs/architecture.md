@@ -50,10 +50,28 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 
 - State. `useStore(selector)` reads state. The fields are documented on `AppState` in `core/store.ts`.
 - Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
-- Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, and `Timeline` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
+- Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, `Timeline`, and `OrbitView` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
 - Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
-- The starter UI in `ui/App.tsx` uses every one of these. It is the working example.
+- The UI under `web/src/ui/` uses every one of these. It is the working example.
 - Types. Everything exported from `core/types.ts`.
+
+## The page layout
+
+One full screen, no page scrolling. `ui/App.tsx` puts five parts in a column.
+
+| Part | File | Holds |
+|---|---|---|
+| Top bar | `ui/shell/TopBar.tsx` | Name, search box with suggestions, the switch between sky map, images, and side by side, the tools button, share |
+| Stage | `ui/shell/Stage.tsx` | The sky map and the image viewer. Both stay mounted while hidden. Cards for clicked objects and spots float over it, with the pointer readout |
+| Tools panel | `ui/shell/Dock.tsx` | Folding groups: about the target, what to play, color and change, brightness, marks, the map's settings, save and share |
+| Tray | `ui/shell/Tray.tsx` | Tabs above the bottom bar: spectrum, what changed, brightness over time, motion, timeline, other telescopes, spacecraft. A tab opens the tray. The same tab closes it |
+| Bottom bar | `ui/shell/BottomBar.tsx` | Play, step, scrub, sequence type, speed, and what the app is doing |
+
+- `ui/layout.ts` holds the page's own state: what fills the stage, and which panels are open.
+- `ui/Embed.tsx` is the compact layout used when the address holds `embed=1`.
+- `ui/SearchBox.tsx`, `ui/ChangesPanel.tsx`, and `ui/FeaturesList.tsx` are self-contained pieces any layout can place.
+- Under 1000 pixels wide the tools panel slides over the stage. Under 640 the bars stack into short rows.
+- Space plays and pauses. The left and right arrows step.
 
 Rules for both sides.
 

@@ -5,8 +5,11 @@
 
 import asyncio
 import math
+import os
+import shutil
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 import httpx
 import numpy as np
@@ -114,6 +117,24 @@ async def _download() -> bool:
         return False
 
 
+def _seed() -> bool:
+    """Start from the copy of the index that ships with the container, if there is one."""
+    source = Path(config.INDEX_SEED) if config.INDEX_SEED else None
+    if not source or not source.is_file():
+        return False
+    try:
+        INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+        temp = INDEX_PATH.with_name("exposures.seed.npz")
+        shutil.copyfile(source, temp)
+        # Keep the seed's own age, so an old seed is renewed in the background right away.
+        stamp = source.stat().st_mtime
+        os.utime(temp, (stamp, stamp))
+        temp.replace(INDEX_PATH)
+        return True
+    except OSError:
+        return False
+
+
 async def get_index() -> ExposureIndex | None:
     """The loaded index, or None when there is none. Picks up a rebuilt file within a minute."""
     global _index, _checked, _refreshing
@@ -121,7 +142,7 @@ async def get_index() -> ExposureIndex | None:
     if now - _checked < 60 and (_index is not None or _checked):
         return _index
     _checked = now
-    if not INDEX_PATH.exists() and not await _download():
+    if not INDEX_PATH.exists() and not _seed() and not await _download():
         return _index
     try:
         modified = INDEX_PATH.stat().st_mtime

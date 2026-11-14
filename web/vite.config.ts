@@ -21,11 +21,31 @@ function reloadOnEngineChange(): Plugin {
   };
 }
 
+/**
+ * The sky map's engine (Aladin Lite) is the largest file of the site by far, and the page
+ * asks for it only once its own script has run. This adds a preload line to the page, so the
+ * browser fetches the two side by side instead of one after the other.
+ */
+function preloadSkyMap(): Plugin {
+  return {
+    name: "spherexplorer-preload-sky-map",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler(html, context) {
+        const chunk = Object.values(context.bundle ?? {}).find((entry) => entry.type === "chunk" && entry.name === "aladin");
+        if (!chunk) return html;
+        return { html, tags: [{ tag: "link", attrs: { rel: "modulepreload", href: `/${chunk.fileName}` }, injectTo: "head" }] };
+      },
+    },
+  };
+}
+
 // The dev server forwards /api to the Python API so the browser sees one origin.
 const apiTarget = process.env.API_TARGET ?? "http://127.0.0.1:8000";
 
 export default defineConfig({
-  plugins: [react(), reloadOnEngineChange()],
+  plugins: [react(), reloadOnEngineChange(), preloadSkyMap()],
   server: {
     port: 5173,
     proxy: { "/api": { target: apiTarget, changeOrigin: true } },

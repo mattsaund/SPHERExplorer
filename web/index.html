@@ -7,6 +7,8 @@
     <meta name="description" content="Explore NASA SPHEREx images of the sky and how they change over time." />
     <meta name="generator" content="Built with Claude Code (Anthropic) assistance" />
     <title>SPHERExplorer</title>
+    <!-- The sky map's tiles come from IRSA. Opening the connection early saves a round trip on the first tile. -->
+    <link rel="preconnect" href="https://irsa.ipac.caltech.edu" crossorigin />
   </head>
   <body>
     <div id="root"></div>

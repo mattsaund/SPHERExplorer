@@ -70,3 +70,23 @@ def test_release_rank_and_keys():
     assert ranks == ["qr3", "qr4", "dr1", "dr2"]
     match = index_build.FILE.search("dr1/level2/2025W19_1B/l2b-v27-2026-197/6/level2_2025W19_1B_0116_1D6_spx_l2b-v27-2026-197.fits")
     assert match["obsid"] == "2025W19_1B_0116_1" and match["det"] == "6" and match["ver"] == "l2b-v27-2026-197"
+
+
+def test_a_new_instance_starts_from_the_index_shipped_with_it(tmp_path, monkeypatch):
+    """With a seed file, no download is needed, and the seed's age is kept."""
+    import os
+
+    from spherex_api import config, exposures
+
+    seed = tmp_path / "seed.npz"
+    seed.write_bytes(b"index bytes")
+    os.utime(seed, (1_000_000, 1_000_000))
+    target = tmp_path / "cache" / "index" / "exposures.npz"
+    monkeypatch.setattr(config, "INDEX_SEED", str(seed))
+    monkeypatch.setattr(exposures, "INDEX_PATH", target)
+    assert exposures._seed() is True
+    assert target.read_bytes() == b"index bytes"
+    assert target.stat().st_mtime == 1_000_000
+    monkeypatch.setattr(config, "INDEX_SEED", str(tmp_path / "missing.npz"))
+    target.unlink()
+    assert exposures._seed() is False and not target.exists()

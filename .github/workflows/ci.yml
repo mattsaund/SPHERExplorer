@@ -8,6 +8,10 @@ on:
     branches: [main]
   pull_request:
 
+# The checks only read the code. They never write to the repository.
+permissions:
+  contents: read
+
 jobs:
   text:
     name: Writing rules and UI coverage

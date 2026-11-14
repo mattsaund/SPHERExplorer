@@ -8,3 +8,16 @@
 **/.pytest_cache
 docs
 *.md
+
+# Nothing private or local ever goes into the build, even if it sits in the folder.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/service-account*.json
+**/*credentials*.json
+**/.claude
+CLAUDE.local.md
+**/.vscode
+**/.idea
+**/*.log

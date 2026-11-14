@@ -8,14 +8,13 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, Response, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, fitsout, instrument, missions, net, partners, resolve, sia, skybot, solarsystem, spacecraft, suggest
+from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, fitsout, instrument, missions, net, partners, resolve, sia, site, skybot, solarsystem, spacecraft, suggest
 
 SWEEP_SECONDS = 600
 
@@ -56,9 +55,48 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+class SafeHeaders:
+    """
+    Adds a few protective headers to every answer. Written as plain ASGI, not as an
+    @app.middleware function, so that streamed answers pass straight through.
+    There is no X-Frame-Options on purpose: other sites are meant to embed this one.
+    """
+
+    EXTRA = (
+        # Browsers must not guess a file's type from its content.
+        (b"x-content-type-options", b"nosniff"),
+        # Other sites learn which site a visitor came from, not which page.
+        (b"referrer-policy", b"strict-origin-when-cross-origin"),
+        # Once seen over HTTPS, always use HTTPS. Browsers ignore this over plain HTTP.
+        (b"strict-transport-security", b"max-age=31536000"),
+        # The page uses none of these device features, so no script may ask for them.
+        (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
+    )
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.inner(scope, receive, send)
+            return
+
+        async def add(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                present = {name.lower() for name, _ in headers}
+                headers += [(name, value) for name, value in self.EXTRA if name not in present]
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self.inner(scope, receive, add)
+
+
+app.add_middleware(SafeHeaders)
 # The data is public and the API holds no secrets, so any site may embed it.
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"], allow_headers=["*"])
-app.add_middleware(GZipMiddleware, minimum_size=1024)
+# Level 5 is nearly as small as the default 9 and several times cheaper. The site's own files arrive already compressed.
+app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 # Only Level 2 image files inside the SPHEREx bucket may be read.
 KEY_PATTERN = re.compile(r"^[a-z0-9_]+/level2/[A-Za-z0-9_\-./]+\.fits$")
@@ -374,15 +412,12 @@ async def fits_archive(body: BatchRequest):
 
 _static = Path(config.STATIC_DIR) if config.STATIC_DIR else None
 if _static and (_static / "index.html").is_file():
-    app.mount("/assets", StaticFiles(directory=_static / "assets"), name="assets")
 
     @app.get("/{path:path}", include_in_schema=False)
-    async def site(path: str):
+    async def serve_site(path: str, request: Request):
         """Serve a file of the built site, or the app shell for any other address."""
         if path.startswith("api/"):
             raise HTTPException(404, "No such API route")
-        candidate = (_static / path).resolve()
-        if path and candidate.is_file() and _static.resolve() in candidate.parents:
-            return FileResponse(candidate)
-        # Hashed assets are cached for good. The shell is always fetched fresh.
-        return FileResponse(_static / "index.html", headers={"Cache-Control": "no-cache"})
+        coding = request.headers.get("accept-encoding", "")
+        # Any address that is not a file is a view of the app, so it gets the shell.
+        return site.respond(_static, path, coding) or site.respond(_static, "index.html", coding)

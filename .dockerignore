@@ -1,0 +1,10 @@
+# Keep the build context small. Written with Claude Code (Anthropic) assistance.
+.git
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+**/.cache
+**/.pytest_cache
+docs
+*.md

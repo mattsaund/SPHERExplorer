@@ -115,6 +115,7 @@ Details in `docs/research/`.
 |---|---|
 | `docs/concept.md` | The team's concept and Matt's original notes (human-written) |
 | `docs/architecture.md` | Technical plan, stack, ownership, the frontend contract, and how to run it |
+| `docs/deploy.md` | How to put the site online (one container on Google Cloud Run) |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |

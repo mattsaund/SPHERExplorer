@@ -6,19 +6,32 @@ import re
 import zlib
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, resolve, sia
 
 
+async def _warm_up() -> None:
+    """Load the exposure index and Astropy's machinery before the first visitor needs them."""
+    try:
+        await exposures.get_index()
+        await resolve.warm()
+    except Exception:  # noqa: BLE001 (a slow start beats a failed one)
+        pass
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    warm = asyncio.ensure_future(_warm_up())
     yield
+    warm.cancel()
     await net.close()
 
 
@@ -207,3 +220,21 @@ async def many_cutouts(body: BatchRequest):
 
     headers = {"Content-Encoding": "gzip", "Cache-Control": "no-store", "X-Accel-Buffering": "no"}
     return StreamingResponse(stream(), media_type="application/octet-stream", headers=headers)
+
+
+# ---- The web app itself, when a built copy is present ------------------------------------------
+
+_static = Path(config.STATIC_DIR) if config.STATIC_DIR else None
+if _static and (_static / "index.html").is_file():
+    app.mount("/assets", StaticFiles(directory=_static / "assets"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    async def site(path: str):
+        """Serve a file of the built site, or the app shell for any other address."""
+        if path.startswith("api/"):
+            raise HTTPException(404, "No such API route")
+        candidate = (_static / path).resolve()
+        if path and candidate.is_file() and _static.resolve() in candidate.parents:
+            return FileResponse(candidate)
+        # Hashed assets are cached for good. The shell is always fetched fresh.
+        return FileResponse(_static / "index.html", headers={"Cache-Control": "no-cache"})

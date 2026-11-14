@@ -32,3 +32,7 @@ USER_AGENT = os.environ.get("SPX_USER_AGENT", "spherex-viewer/0.1")
 # SPHEREx detector geometry.
 DETECTOR_SIZE = 2040
 PIXEL_SCALE = 6.15  # arcsec per pixel, nominal
+
+# Folder holding the built web app (web/dist). When it exists, the API serves the site too,
+# so one container runs everything. Leave unset in development, where Vite serves the site.
+STATIC_DIR = os.environ.get("SPX_STATIC_DIR", "")

@@ -1,6 +1,6 @@
 // The frame viewer: a WebGL canvas for the image and a 2D canvas on top for the marker,
 // compass, and scale bar. It fills its parent and carries no chrome of its own.
-// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-flag, --frame-empty.
+// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-gaia, --frame-flag, --frame-empty.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
 import { offsetToSky, positionAt, skyOffset } from "./astro";
@@ -91,8 +91,8 @@ export function FrameView({ className }: { className?: string }) {
         flagMask: state.meta?.badMask ?? 0,
         flagColor: flag.rgb,
         emptyColor: empty.rgb,
-        mode: scene?.color ? "rgb" : "single",
-      }, scene?.color?.[0] ?? null, scene?.color?.[1] ?? null);
+        mode: scene?.color ? "rgb" : scene?.minus ? "difference" : "single",
+      }, scene?.color?.[0] ?? scene?.minus ?? null, scene?.color?.[1] ?? null);
       drawOverlay(state, scale);
     }
 
@@ -154,6 +154,28 @@ export function FrameView({ className }: { className?: string }) {
           ctx.fillText(object.name, x + 13, y);
           labels.push({ x, y, object });
         }
+      }
+
+      // Gaia stars as small crosses, each where its own motion puts it on the date of the image.
+      if (state.display.showGaia && state.target && item && state.missions) {
+        const gaia = cssColor(wrap, "--frame-gaia", "#7dffa0").css;
+        const following = scene.stack !== undefined && state.follow;
+        const track = following ? skyOffset(positionAt(state.target, item.mjd), state.target) : [0, 0];
+        ctx.strokeStyle = gaia;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (const star of state.missions.gaia) {
+          const place = positionAt({ ra: star.ra, dec: star.dec, epoch: star.epoch, pmRa: star.pmRa ?? 0, pmDec: star.pmDec ?? 0 }, item.mjd);
+          const [east, north] = skyOffset(place, state.target);
+          const x = w / 2 - (east - track[0] - state.view.east) / scale;
+          const y = h / 2 - (north - track[1] - state.view.north) / scale;
+          if (x < 0 || y < 0 || x > w || y > h) continue;
+          ctx.moveTo(x - 5, y);
+          ctx.lineTo(x + 5, y);
+          ctx.moveTo(x, y - 5);
+          ctx.lineTo(x, y + 5);
+        }
+        ctx.stroke();
       }
 
       // Scale bar, bottom left.
@@ -311,7 +333,7 @@ export function FrameView({ className }: { className?: string }) {
     resize();
     // Redraw on any change except the pointer readout, which does not affect the picture.
     const unsubscribe = useStore.subscribe((state, before) => {
-      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects) return;
+      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects && state.subtract === before.subtract && state.missions === before.missions) return;
       schedule();
     });
 

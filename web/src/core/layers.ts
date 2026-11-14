@@ -17,7 +17,12 @@ export interface Scene {
   stack?: Stack;
   /** Green and blue layers when the scene is in full color. `layer` is then the red one. */
   color?: [Layer, Layer];
+  /** A reference image to subtract from `layer`, when the user asked to see only changes. */
+  minus?: Layer;
 }
+
+/** Exposures within this many channels of each other count as the same wavelength. */
+const MATCH_CHANNELS = 1;
 
 /**
  * Extra weight for red, green, and blue in full color. Each range is first scaled by its own
@@ -39,7 +44,50 @@ function trackOffset(frame: Frame, state: AppState): [number, number] {
   return state.target ? skyOffset(frame.track, state.target) : [0, 0];
 }
 
+/** The scene for the current step, with a reference to subtract when that is switched on. */
 export function sceneFor(item: SequenceItem, state: AppState): Scene | null {
+  const scene = plainScene(item, state);
+  if (!scene || state.subtract === "none" || state.display.color) return scene;
+  const reference = referenceFor(item, state);
+  if (!reference) return scene;
+  // Put both images on one brightness scale: the noise of their difference.
+  const noiseA = scene.stack?.rms ?? state.frames[item.frameIds[0]].rms ?? 1;
+  const noiseB = reference.stack?.rms ?? 1;
+  const gain = state.display.normalize ? 1 / Math.hypot(noiseA, noiseB) : 1;
+  return { ...scene, layer: { ...scene.layer, gain }, minus: { ...reference.layer, gain } };
+}
+
+/** The image to subtract for a step, or null when there is none (for example the first step minus itself). */
+function referenceFor(item: SequenceItem, state: AppState): Scene | null {
+  const { sequence, subtract, frames } = state;
+  const index = sequence.indexOf(item);
+  let members: number[] = [];
+  let label = "";
+  if (subtract === "first" && index > 0) {
+    members = sequence[0].frameIds;
+    label = sequence[0].key;
+  } else if (subtract === "previous" && index > 0) {
+    members = sequence[index - 1].frameIds;
+    label = sequence[index - 1].key;
+  } else if (subtract === "others") {
+    const own = new Set(item.frameIds);
+    if (item.frameIds.length === 1) {
+      // A single exposure: compare with other exposures at a matching wavelength only.
+      const frame = frames[item.frameIds[0]];
+      members = frames
+        .filter((f) => f.status === "ready" && !own.has(f.id) && Math.abs(f.channel - frame.channel) <= MATCH_CHANNELS)
+        .map((f) => f.id);
+    } else {
+      members = sequence.flatMap((other) => (other === item ? [] : other.frameIds));
+    }
+    label = `others-of-${item.key}`;
+  }
+  if (!members.length) return null;
+  // The reference never follows the target. It is the fixed sky that the changes stand out against.
+  return sumOf({ key: `ref:${label}:${members.length}`, label: "", frameIds: members, mjd: item.mjd, wavelength: item.wavelength }, { ...state, follow: false }, null);
+}
+
+function plainScene(item: SequenceItem, state: AppState): Scene | null {
   const { frames, display, session } = state;
 
   if (item.frameIds.length === 1) {

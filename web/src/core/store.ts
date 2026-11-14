@@ -1,13 +1,13 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, getObjects, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
+import { ApiError, getMeta, getMissions, getObjects, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { COLOR_PRESETS } from "./colorBands";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
 import { buildLink, parseLink } from "./url";
-import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Target, Visit } from "./types";
+import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -44,6 +44,8 @@ export interface AppState {
    * Old coordinates of a nearby star are often where it used to be, so the UI can offer to follow it.
    */
   movers: SkyObject[];
+  /** What Gaia, 2MASS, and WISE recorded in the field. Null until it arrives. */
+  missions: MissionData | null;
   /** Progress of the pixel download. */
   framesState: LoadState;
   /** Frames whose pixels have arrived, and frames that failed. */
@@ -58,6 +60,8 @@ export interface AppState {
   view: View;
   /** Keep a moving target centered when frames are summed. */
   follow: boolean;
+  /** What to subtract from the image on screen, to show only what changed. */
+  subtract: Subtract;
   /** What is under the pointer in the frame view. */
   hover: Hover | null;
   spectrum: SpectrumSettings;
@@ -88,6 +92,7 @@ const DEFAULT_DISPLAY: DisplaySettings = {
   showFlags: false,
   showMarker: true,
   showObjects: true,
+  showGaia: false,
 };
 
 export const useStore = create<AppState>(() => ({
@@ -102,6 +107,7 @@ export const useStore = create<AppState>(() => ({
   visits: [],
   fieldObjects: [],
   movers: [],
+  missions: null,
   framesState: "idle",
   loaded: 0,
   failed: 0,
@@ -112,8 +118,9 @@ export const useStore = create<AppState>(() => ({
   display: DEFAULT_DISPLAY,
   view: { east: 0, north: 0, zoom: 1 },
   follow: true,
+  subtract: "none",
   hover: null,
-  spectrum: { log: false, perVisit: true, showPoints: true, families: [], redshift: 0 },
+  spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, families: [], redshift: 0 },
   embed: false,
   map: {
     ready: false,
@@ -231,6 +238,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     visits: [],
     fieldObjects: [],
     movers: [],
+    missions: null,
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -257,6 +265,15 @@ async function load(target: Target, fieldSize: number): Promise<void> {
         ? objects.filter((object) => Math.hypot(object.pmRa ?? 0, object.pmDec ?? 0) >= FAST_MOTION).sort((a, b) => Math.hypot(b.pmRa ?? 0, b.pmDec ?? 0) - Math.hypot(a.pmRa ?? 0, a.pmDec ?? 0))
         : [];
       set({ fieldObjects: inField, movers });
+    },
+    () => {},
+  );
+
+  // Other missions. The cone is widened by how far the target has moved since 2MASS looked in 1999.
+  const drift = (Math.hypot(target.pmRa ?? 0, target.pmDec ?? 0) / 1000) * 28;
+  getMissions(target.ra, target.dec, Math.min(1800, fieldSize * 0.75 + drift), signal).then(
+    (missions) => {
+      if (mine === generation) set({ missions });
     },
     () => {},
   );
@@ -350,6 +367,9 @@ function pause(): void {
 
 /** True once init has read the page address. */
 let started = false;
+
+/** Display settings to restore when subtraction is switched off. */
+let beforeSubtract: { follow: boolean; lo: number; hi: number; color: boolean; stretch: DisplaySettings["stretch"] } | null = null;
 
 /** Every state change goes through here so the UI never touches the engine internals. */
 export const actions = {
@@ -511,6 +531,25 @@ export const actions = {
 
   setFollow(follow: boolean): void {
     set({ follow });
+  },
+
+  /**
+   * Choose what to subtract from each image. Subtraction shows what moved or changed brightness.
+   * Turning it on holds the sky still (follow off) and centers the brightness scale on zero,
+   * so unchanged sky is mid-gray, brighter is white, and fainter is black. Turning it off puts both back.
+   */
+  setSubtract(subtract: Subtract): void {
+    const state = get();
+    if (subtract !== "none" && state.subtract === "none") {
+      beforeSubtract = { follow: state.follow, lo: state.display.lo, hi: state.display.hi, color: state.display.color, stretch: state.display.stretch };
+      // A straight-line scale keeps zero exactly in the middle of the gray range.
+      set({ subtract, follow: false, display: { ...state.display, lo: -12, hi: 12, color: false, stretch: "linear" } });
+    } else if (subtract === "none" && state.subtract !== "none" && beforeSubtract) {
+      set({ subtract, follow: beforeSubtract.follow, display: { ...state.display, lo: beforeSubtract.lo, hi: beforeSubtract.hi, color: beforeSubtract.color, stretch: beforeSubtract.stretch } });
+      beforeSubtract = null;
+    } else {
+      set({ subtract });
+    }
   },
 
   setSpectrum(change: Partial<SpectrumSettings>): void {

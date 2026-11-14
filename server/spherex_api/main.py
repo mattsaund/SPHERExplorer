@@ -13,7 +13,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, net, resolve, sia
+from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, resolve, sia
 
 
 @asynccontextmanager
@@ -108,6 +108,16 @@ async def objects(
     except net.UpstreamError as error:
         raise HTTPException(502, str(error)) from error
     return {"source": "SIMBAD", "count": len(found), "objects": found}
+
+
+@app.get("/api/missions")
+async def other_missions(
+    ra: float = Query(ge=0, lt=360),
+    dec: float = Query(ge=-90, le=90),
+    radius: float = Query(180, gt=0, le=1800, description="Arcseconds"),
+):
+    """Gaia DR3 sources and 2MASS and WISE brightness near a position."""
+    return await missions.nearby(ra, dec, radius)
 
 
 @app.get("/api/hips/spherex-color/{recipe}/properties")

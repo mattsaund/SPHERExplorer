@@ -9,10 +9,12 @@ Every external resource goes here with its license and required credit. Set "In 
 | SPHEREx DR1 Spectral Images | NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA | Public, no restrictions | DOI 10.26131/IRSA678 | Yes |
 | SPHEREx DR1 Spectral All-Sky Cube | Same | Same | DOI 10.26131/IRSA679 | Yes (map base layer) |
 | SPHEREx QR3 Spectral Images | Same | Same | DOI 10.26131/IRSA662 | Yes |
-| Gaia DR3 | ESA Gaia, DPAC (via MAST, ESA, or VizieR) | Gaia credit required | Gaia Collaboration 2016, 2023 | Not yet |
+| Gaia DR3 | ESA Gaia, DPAC, served by MAST (VizieR mirror as backup) | Gaia credit required | Gaia Collaboration 2016, 2023 | Yes (star positions and motions) |
 | NEOSSat astronomy data | Canadian Space Agency (CSA), CADC | Open Government Licence - Canada | Credit line below | Not yet |
 | SIMBAD | CDS, Strasbourg (or CfA and IDIA mirrors) | Credit required | Wenger et al. 2000 | Yes (name lookup) |
-| VizieR | CDS, Strasbourg (or mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Not yet |
+| VizieR | CDS, Strasbourg (CfA and IDIA mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Yes (2MASS and AllWISE catalogs) |
+| 2MASS Point Source Catalog | UMass, IPAC/Caltech, NASA, NSF (VizieR II/246) | Public | Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003 | Yes (J, H, Ks brightness) |
+| AllWISE Source Catalog | NASA WISE, JPL, IPAC (VizieR II/328) | Public | Wright et al. 2010. Cutri et al. 2013. Flux zero points from Jarrett et al. 2011 | Yes (W1, W2 brightness) |
 | UltracoolSheet | Best et al. | CC-BY-4.0 | DOI 10.5281/zenodo.15802304 | Not yet |
 
 | Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck | Each survey team, HiPS built by CDS, ESA, and IPAC | Public | Layer credits in `web/src/core/skyLayers.ts`. List at https://irsa.ipac.caltech.edu/data/hips/list | Yes (map layers) |
@@ -33,7 +35,15 @@ Gaia:
 
 > This work has made use of data from the European Space Agency (ESA) mission Gaia (https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis Consortium (DPAC, https://www.cosmos.esa.int/web/gaia/dpac/consortium). Funding for the DPAC has been provided by national institutions, in particular the institutions participating in the Gaia Multilateral Agreement.
 
-SIMBAD and VizieR, if used:
+2MASS:
+
+> This publication makes use of data products from the Two Micron All Sky Survey, which is a joint project of the University of Massachusetts and the Infrared Processing and Analysis Center/California Institute of Technology, funded by the National Aeronautics and Space Administration and the National Science Foundation.
+
+WISE:
+
+> This publication makes use of data products from the Wide-field Infrared Survey Explorer, which is a joint project of the University of California, Los Angeles, and the Jet Propulsion Laboratory/California Institute of Technology, funded by the National Aeronautics and Space Administration.
+
+SIMBAD and VizieR:
 
 > This research has made use of the SIMBAD database, CDS, Strasbourg Astronomical Observatory, France.
 
@@ -88,7 +98,7 @@ Add the license and version when a library goes into the build.
 | IRSA SIA and the AWS S3 bucket `nasa-irsa-spherex` | Public | IRSA acknowledgment | Yes (search and pixels) |
 | IRSA TAP and cutout service | Public | IRSA acknowledgment | Not used. The API reads S3 directly |
 | Sesame name resolver (CDS), through the CfA and IDIA mirrors | Credit required | SIMBAD and VizieR acknowledgments | Yes (name lookup) |
-| MAST (Gaia DR3) | Public | MAST | Not yet |
+| MAST catalog API (Gaia DR3) | Public | MAST, STScI | Yes |
 | IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
 | JPL Horizons and SBDB | Public | JPL Solar System Dynamics | Not yet |
 | CelesTrak | Public, rate limited | CelesTrak | Not yet |

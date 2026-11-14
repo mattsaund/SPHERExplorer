@@ -9,6 +9,7 @@ import { LINE_FAMILIES } from "./lines";
 import { fitCanvas, linearTicks, logTicks, quantile, readTheme } from "./plot";
 import { binSpectrum, formatFlux, spectrumOf, type SpectrumBin, type SpectrumPoint } from "./spectrum";
 import { actions, useStore, type AppState } from "./store";
+import { surveyPoints } from "./surveys";
 import type { Frame } from "./types";
 
 const WL_MIN = 0.7;
@@ -212,6 +213,28 @@ export function SpectrumPlot({ className }: { className?: string }) {
         }
       }
 
+      // The same target as 2MASS and WISE saw it: one square per band, with a bar for the band's width.
+      if (settings.showSurveys) {
+        const points = surveyPoints(state.target, state.missions);
+        ctx.font = `11px ${theme.font}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        for (const point of points) {
+          const x = xOf(point.wavelength);
+          const y = yOf(point.flux);
+          ctx.strokeStyle = theme.ink;
+          ctx.fillStyle = theme.ink;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(xOf(point.wavelength - point.width / 2), y);
+          ctx.lineTo(xOf(point.wavelength + point.width / 2), y);
+          ctx.stroke();
+          ctx.strokeRect(x - 4.5, y - 4.5, 9, 9);
+          ctx.fillText(`${point.survey} ${point.band}`, x, y - 8);
+        }
+        ctx.font = `12px ${theme.font}`;
+      }
+
       // The wavelength of the image on screen.
       const item = state.sequence[state.player.index];
       if (item && Number.isFinite(item.wavelength) && item.frameIds.length === 1) {
@@ -310,7 +333,7 @@ export function SpectrumPlot({ className }: { className?: string }) {
     const observer = new ResizeObserver(schedule);
     observer.observe(canvas);
     const unsubscribe = useStore.subscribe((state: AppState, before: AppState) => {
-      if (state.frames !== before.frames || state.spectrum !== before.spectrum || state.player.index !== before.player.index || state.sequence !== before.sequence || state.meta !== before.meta || state.framesState !== before.framesState) schedule();
+      if (state.frames !== before.frames || state.spectrum !== before.spectrum || state.player.index !== before.player.index || state.sequence !== before.sequence || state.meta !== before.meta || state.framesState !== before.framesState || state.missions !== before.missions) schedule();
     });
     schedule();
 

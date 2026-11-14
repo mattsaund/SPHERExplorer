@@ -22,6 +22,7 @@ import {
   type ColorMap,
   type SequenceMode,
   type Stretch,
+  type Subtract,
 } from "../core";
 import "./styles/app.css";
 
@@ -165,6 +166,7 @@ function DisplayControls() {
   const display = useStore((s) => s.display);
   const fieldSize = useStore((s) => s.fieldSize);
   const follow = useStore((s) => s.follow);
+  const subtract = useStore((s) => s.subtract);
   return (
     <fieldset>
       <legend>Display</legend>
@@ -188,6 +190,16 @@ function DisplayControls() {
           <p className="muted">{display.bands.about}</p>
         </>
       )}
+      <label>
+        Show only changes
+        <select value={subtract} onChange={(event) => actions.setSubtract(event.target.value as Subtract)}>
+          <option value="none">Off</option>
+          <option value="others">Minus all other images</option>
+          <option value="first">Minus the first</option>
+          <option value="previous">Minus the one before</option>
+        </select>
+      </label>
+      {subtract !== "none" && <p className="muted">Unchanged sky is gray. White is brighter than before, black is fainter. A moving object shows as a white and black pair.</p>}
       <label>
         Brightness curve
         <select value={display.stretch} onChange={(event) => actions.setDisplay({ stretch: event.target.value as Stretch })}>
@@ -214,6 +226,7 @@ function DisplayControls() {
       <label className="check"><input type="checkbox" checked={display.showFlags} onChange={(e) => actions.setDisplay({ showFlags: e.target.checked })} /> Show bad pixels</label>
       <label className="check"><input type="checkbox" checked={display.showMarker} onChange={(e) => actions.setDisplay({ showMarker: e.target.checked })} /> Mark the target</label>
       <label className="check"><input type="checkbox" checked={display.showObjects} onChange={(e) => actions.setDisplay({ showObjects: e.target.checked })} /> Label known objects</label>
+      <label className="check"><input type="checkbox" checked={display.showGaia} onChange={(e) => actions.setDisplay({ showGaia: e.target.checked })} /> Mark Gaia stars</label>
       <label className="check"><input type="checkbox" checked={follow} onChange={(e) => actions.setFollow(e.target.checked)} /> Follow the target when summing</label>
       <button onClick={() => actions.resetView()}>Reset zoom</button>
     </fieldset>
@@ -349,6 +362,7 @@ function SpectrumPanel() {
         <label className="check"><input type="checkbox" checked={settings.perVisit} onChange={(e) => actions.setSpectrum({ perVisit: e.target.checked })} /> Compare visits</label>
         <label className="check"><input type="checkbox" checked={settings.showPoints} onChange={(e) => actions.setSpectrum({ showPoints: e.target.checked })} /> Every measurement</label>
         <label className="check"><input type="checkbox" checked={settings.log} onChange={(e) => actions.setSpectrum({ log: e.target.checked })} /> Log scale</label>
+        <label className="check"><input type="checkbox" checked={settings.showSurveys} onChange={(e) => actions.setSpectrum({ showSurveys: e.target.checked })} /> 2MASS and WISE</label>
         <label>
           Redshift {settings.redshift.toFixed(2)}
           <input type="range" min={0} max={8} step={0.01} value={settings.redshift} onChange={(e) => actions.setSpectrum({ redshift: Number(e.target.value) })} />

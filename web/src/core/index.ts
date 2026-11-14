@@ -9,10 +9,12 @@ export type {
   FlagBit,
   Frame,
   FrameStatus,
+  GaiaSource,
   Hover,
   LoadState,
   MapState,
   Meta,
+  MissionData,
   Photometry,
   Player,
   SequenceItem,
@@ -21,6 +23,10 @@ export type {
   SkyPosition,
   SpectrumSettings,
   Stretch,
+  Subtract,
+  SurveyBand,
+  SurveyPoint,
+  SurveySource,
   Target,
   Visit,
 } from "./types";
@@ -42,3 +48,4 @@ export { PROJECTIONS, SKY_LAYERS } from "./skyLayers";
 export type { ProjectionId, SkyLayer } from "./skyLayers";
 export { COLOR_PRESETS } from "./colorBands";
 export type { LinkState } from "./url";
+export { surveyPoints } from "./surveys";

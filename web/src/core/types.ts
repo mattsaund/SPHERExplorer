@@ -216,6 +216,8 @@ export interface DisplaySettings {
   showMarker: boolean;
   /** Label known objects in the field. */
   showObjects: boolean;
+  /** Mark Gaia stars at their position for the date of each image. */
+  showGaia: boolean;
 }
 
 /** Which frames take part. */
@@ -254,6 +256,8 @@ export interface SpectrumSettings {
   perVisit: boolean;
   /** Show every single measurement behind the averages. */
   showPoints: boolean;
+  /** Show the target's 2MASS and WISE brightness next to the SPHEREx spectrum. */
+  showSurveys: boolean;
   /** Ids of the feature families to mark, from LINE_FAMILIES. */
   families: string[];
   /** Redshift applied to the feature marks. 0 for nearby objects. */
@@ -311,4 +315,73 @@ export interface MapState {
   selected: SkyObject | null;
   /** A spot of empty sky the user clicked, if any. */
   picked: SkyPosition | null;
+}
+
+/**
+ * What to subtract from the image on screen, to show only what changed.
+ * - "none": show the image as it is.
+ * - "first": subtract the first step of the sequence.
+ * - "previous": subtract the step before this one.
+ * - "others": subtract the sum of every other step. For single exposures, only exposures
+ *   at a matching wavelength go into that sum, because every exposure has its own wavelength.
+ */
+export type Subtract = "none" | "first" | "previous" | "others";
+
+/** A star from Gaia DR3. The position is at `epoch` (2016.0) and moves with pmRa and pmDec. */
+export interface GaiaSource extends SkyPosition {
+  id: string;
+  epoch: number;
+  pmRa: number | null;
+  pmDec: number | null;
+  parallax: number | null;
+  /** Gaia G, BP, and RP magnitudes. */
+  g: number | null;
+  bp: number | null;
+  rp: number | null;
+}
+
+/** A source from a survey that measured brightness in broad bands (2MASS or WISE). */
+export interface SurveySource extends SkyPosition {
+  id: string;
+  /** Julian year the survey saw the source at this position. */
+  epoch: number;
+  /** Brightness per band name: flux and error in microjansky, and the catalog magnitude. */
+  bands: Record<string, { flux: number; err: number | null; mag: number | null }>;
+}
+
+/** Facts about a survey band. */
+export interface SurveyBand {
+  /** Flux of a zero-magnitude star in jansky. */
+  zero: number;
+  /** Center and width in microns. */
+  wavelength: number;
+  width: number;
+  /** "2MASS" or "WISE". */
+  survey: string;
+}
+
+/** What other missions recorded near the target. */
+export interface MissionData {
+  bands: Record<string, SurveyBand>;
+  gaia: GaiaSource[];
+  twomass: SurveySource[];
+  wise: SurveySource[];
+  /** Sources that could not be reached this time. */
+  errors: string[];
+}
+
+/** The target's brightness in one band of another survey, for comparison with the SPHEREx spectrum. */
+export interface SurveyPoint {
+  /** Band name, for example "Ks" or "W2". */
+  band: string;
+  survey: string;
+  /** Catalog name of the matched source. */
+  source: string;
+  wavelength: number;
+  width: number;
+  /** Microjansky. */
+  flux: number;
+  err: number | null;
+  /** Julian year of the measurement. */
+  epoch: number;
 }

@@ -173,7 +173,7 @@ def _finish(found: dict, asked: str) -> dict:
     """Move a J2000 catalog position to the reference epoch and shape the answer."""
     ra, dec, pm_ra, pm_dec = propagate(found["ra"], found["dec"], found["pmRa"], found["pmDec"])
     return {
-        "name": found["name"] or asked.strip(),
+        "name": _tidy(found["name"]) if found["name"] else asked.strip(),
         "ra": ra,
         "dec": dec,
         "epoch": REFERENCE_EPOCH,
@@ -187,6 +187,15 @@ def _finish(found: dict, asked: str) -> dict:
         "raJ2000": found["ra"],
         "decJ2000": found["dec"],
     }
+
+
+def _tidy(name: str) -> str:
+    """Drop SIMBAD's padding and prefixes ("* eps Ind B", "NAME Barnard's star", "M  31")."""
+    name = re.sub(r"\s+", " ", name).strip()
+    for prefix in ("NAME ", "* ", "V* ", "EM* ", "** "):
+        if name.startswith(prefix):
+            return name[len(prefix):]
+    return name
 
 
 def built_in(name: str) -> dict | None:
@@ -209,9 +218,11 @@ async def resolve(name: str) -> dict | None:
         _memory[token] = stored
         return stored
 
-    answer = None
+    # The NASA test targets use vetted positions. SIMBAD lists some fast movers (WISE 0855 among
+    # them) at the epoch they were observed, not at J2000, so its position can't be carried forward blindly.
+    answer = built_in(name)
     reached = False
-    for base in SESAME:
+    for base in SESAME if answer is None else ():
         try:
             found = await _ask(base, name)
             reached = True
@@ -220,8 +231,6 @@ async def resolve(name: str) -> dict | None:
         if found:
             answer = _finish(found, name)
         break  # a mirror answered, found or not
-    if answer is None:
-        answer = built_in(name)
     if answer is not None:
         _memory[token] = answer
         cache.save_json("resolve", token, answer)

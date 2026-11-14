@@ -1,11 +1,12 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
-import { assignSeasons, parseCoordinates, positionAt, summarizeVisits } from "./astro";
+import { ApiError, getMeta, getObjects, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
+import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { COLOR_PRESETS } from "./colorBands";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
+import { buildLink, parseLink } from "./url";
 import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
@@ -36,6 +37,13 @@ export interface AppState {
   frames: Frame[];
   /** The visits the images fall into. */
   visits: Visit[];
+  /** Known objects inside the studied field, best known first. */
+  fieldObjects: SkyObject[];
+  /**
+   * Fast-moving known objects near a position that was typed as plain coordinates.
+   * Old coordinates of a nearby star are often where it used to be, so the UI can offer to follow it.
+   */
+  movers: SkyObject[];
   /** Progress of the pixel download. */
   framesState: LoadState;
   /** Frames whose pixels have arrived, and frames that failed. */
@@ -53,10 +61,15 @@ export interface AppState {
   /** What is under the pointer in the frame view. */
   hover: Hover | null;
   spectrum: SpectrumSettings;
+  /** True when the page was opened with embed=1. The UI should use a compact layout. */
+  embed: boolean;
   map: MapState;
   /** A request to move the map. The map acts when `token` changes. */
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
 }
+
+/** Proper motion, in mas per year, above which a nearby object is offered as "did you mean". */
+const FAST_MOTION = 150;
 
 /** The all-sky cube has no image in these two channels, which sit on the dichroic edge. */
 const BLANK_CHANNELS = [50, 51];
@@ -74,6 +87,7 @@ const DEFAULT_DISPLAY: DisplaySettings = {
   normalize: true,
   showFlags: false,
   showMarker: true,
+  showObjects: true,
 };
 
 export const useStore = create<AppState>(() => ({
@@ -86,6 +100,8 @@ export const useStore = create<AppState>(() => ({
   fieldSize: 300,
   frames: [],
   visits: [],
+  fieldObjects: [],
+  movers: [],
   framesState: "idle",
   loaded: 0,
   failed: 0,
@@ -98,6 +114,7 @@ export const useStore = create<AppState>(() => ({
   follow: true,
   hover: null,
   spectrum: { log: false, perVisit: true, showPoints: true, families: [], redshift: 0 },
+  embed: false,
   map: {
     ready: false,
     failure: null,
@@ -212,6 +229,8 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     framesState: "idle",
     frames: [],
     visits: [],
+    fieldObjects: [],
+    movers: [],
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -221,6 +240,26 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     player: { ...get().player, index: 0, playing: false },
     view: { east: 0, north: 0, zoom: 1 },
   });
+
+  // Known objects in and around the field. Not essential, so a failure here is silent.
+  const reach = Math.max(fieldSize / 3600, 0.1);
+  getObjects(target.ra, target.dec, reach, 150, signal).then(
+    (objects) => {
+      if (mine !== generation) return;
+      const half = fieldSize / 2;
+      const inField = objects.filter((object) => {
+        const [east, north] = skyOffset(object, target);
+        return Math.abs(east) <= half && Math.abs(north) <= half;
+      });
+      // Only a typed position needs the hint. A named target already carries its own motion.
+      const typed = target.pmRa === undefined && target.pmDec === undefined;
+      const movers = typed
+        ? objects.filter((object) => Math.hypot(object.pmRa ?? 0, object.pmDec ?? 0) >= FAST_MOTION).sort((a, b) => Math.hypot(b.pmRa ?? 0, b.pmDec ?? 0) - Math.hypot(a.pmRa ?? 0, a.pmDec ?? 0))
+        : [];
+      set({ fieldObjects: inField, movers });
+    },
+    () => {},
+  );
 
   try {
     await ensureMeta();
@@ -309,11 +348,43 @@ function pause(): void {
 
 // ---- Actions -------------------------------------------------------------------------------
 
+/** True once init has read the page address. */
+let started = false;
+
 /** Every state change goes through here so the UI never touches the engine internals. */
 export const actions = {
-  /** Load the instrument facts. Safe to call more than once. */
+  /** Start the engine: load the instrument facts and open whatever the page address asks for. Safe to call more than once. */
   init(): void {
     ensureMeta().catch(() => set({ error: "Can't reach the SPHERExplorer server. Check your connection and try again." }));
+    if (started || typeof window === "undefined") return;
+    started = true;
+    const link = parseLink(window.location.search);
+    const state = get();
+    set({
+      embed: link.embed ?? false,
+      fieldSize: link.fieldSize ?? state.fieldSize,
+      mode: link.mode ?? state.mode,
+      filters: link.detectors ? { ...state.filters, detectors: link.detectors } : state.filters,
+      display: link.color ? { ...state.display, color: true, bands: COLOR_PRESETS.find((p) => p.id === link.color) ?? state.display.bands } : state.display,
+      map: { ...state.map, layer: link.layer ?? state.map.layer, channel: link.channel ?? state.map.channel, projection: link.projection ?? state.map.projection },
+    });
+    if (link.target) void actions.search(link.target);
+    else if (link.ra !== undefined && link.dec !== undefined) actions.goTo({ ra: link.ra, dec: link.dec, epoch: 2026.0 });
+    // Keep the address in step with the view, without adding browser history entries.
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    useStore.subscribe((next, before) => {
+      if (next.target === before.target && next.fieldSize === before.fieldSize && next.mode === before.mode && next.display === before.display && next.filters === before.filters && next.map.layer === before.map.layer && next.map.channel === before.map.channel && next.map.projection === before.map.projection) return;
+      if (pending) clearTimeout(pending);
+      pending = setTimeout(() => {
+        const address = window.location.pathname + buildLink(get()) + window.location.hash;
+        window.history.replaceState(null, "", address);
+      }, 300);
+    });
+  },
+
+  /** A full link that reopens the current view. */
+  shareLink(): string {
+    return window.location.origin + window.location.pathname + buildLink(get());
   },
 
   /** Study a target: search for its images, then download them. The map moves there too. */

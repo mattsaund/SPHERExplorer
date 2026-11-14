@@ -9,7 +9,7 @@ import re
 import time
 
 from . import net
-from .resolve import REFERENCE_EPOCH, kind_of
+from .resolve import REFERENCE_EPOCH, built_in, kind_of
 
 # SIMBAD TAP endpoints, fastest first.
 SIMBAD_TAP = (
@@ -22,6 +22,8 @@ SIMBAD_PAGE = "https://simbad.cfa.harvard.edu/simbad/sim-id?Ident="
 
 CACHE_SECONDS = 6 * 3600
 MAX_RADIUS = 90.0  # the cone function of SIMBAD's database stops at 90 degrees
+WIDE_RADIUS = 3.0  # cones this wide always hold many objects, so SIMBAD ranks them quickly
+FETCH_ALL = 2000   # rows fetched unranked from a narrow cone before deciding it is crowded
 
 COLUMNS = 'b.main_id, b.ra, b.dec, b.otype, b.pmra, b.pmdec, b.plx_value, b.rvz_redshift, b.sp_type, b.nbref, f."V", f."K"'
 
@@ -40,7 +42,13 @@ def clean_name(main_id: str) -> str:
 def _shape(row: list) -> dict:
     main_id, ra, dec, code, pm_ra, pm_dec, parallax, redshift, sp_type, refs, v_mag, k_mag = row
     years = REFERENCE_EPOCH - 2000.0
-    if pm_ra is not None and pm_dec is not None:
+    vetted = built_in(main_id)
+    if vetted:
+        # A NASA test target. Use its vetted position at the reference epoch.
+        ra_now, dec_now = vetted["ra"], vetted["dec"]
+        pm_ra, pm_dec = vetted.get("pmRa", pm_ra), vetted.get("pmDec", pm_dec)
+        parallax = vetted.get("parallax", parallax)
+    elif pm_ra is not None and pm_dec is not None:
         # Carry fast-moving stars from their J2000 catalog position to today's sky.
         dec_now = dec + pm_dec * years / 3.6e6
         ra_now = ra + pm_ra * years / 3.6e6 / max(math.cos(math.radians(dec)), 1e-6)
@@ -98,16 +106,22 @@ async def simbad_cone(ra: float, dec: float, radius: float, limit: int = 200) ->
         return hit[1]
 
     source = "basic AS b LEFT JOIN allfluxes AS f ON f.oidref = b.oid"
+    cone = f"CONTAINS(POINT('ICRS', b.ra, b.dec), CIRCLE('ICRS', {ra:.6f}, {dec:.6f}, {radius:.6f})) = 1"
+    ranked = f"SELECT TOP {limit} {COLUMNS} FROM {source} WHERE {cone} ORDER BY nbref DESC"
     if radius >= MAX_RADIUS:
         # The whole sky: no cone needed.
-        adql = f"SELECT TOP {limit} {COLUMNS} FROM {source} WHERE b.ra IS NOT NULL ORDER BY nbref DESC"
+        rows = await _tap(f"SELECT TOP {limit} {COLUMNS} FROM {source} WHERE b.ra IS NOT NULL ORDER BY nbref DESC")
+    elif radius >= WIDE_RADIUS:
+        rows = await _tap(ranked)
     else:
-        adql = (
-            f"SELECT TOP {limit} {COLUMNS} FROM {source} "
-            f"WHERE CONTAINS(POINT('ICRS', b.ra, b.dec), CIRCLE('ICRS', {ra:.6f}, {dec:.6f}, {radius:.6f})) = 1 "
-            "ORDER BY nbref DESC"
-        )
-    objects = [_shape(row) for row in await _tap(adql) if row[1] is not None and row[2] is not None]
+        # SIMBAD ranks quickly only when the cone is crowded. In a sparse field the ranked query
+        # takes 10 to 20 seconds, while fetching everything and ranking here takes a fraction of one.
+        rows = await _tap(f"SELECT TOP {FETCH_ALL} {COLUMNS} FROM {source} WHERE {cone}")
+        if len(rows) >= FETCH_ALL:
+            rows = await _tap(ranked)  # crowded after all, so let SIMBAD pick the best known
+        else:
+            rows = sorted(rows, key=lambda row: -(row[9] or 0))[:limit]
+    objects = [_shape(row) for row in rows if row[1] is not None and row[2] is not None]
     _cache[token] = (now, objects)
     if len(_cache) > 800:
         for old in sorted(_cache, key=lambda k: _cache[k][0])[:200]:

@@ -39,6 +39,13 @@ def test_propagation_reaches_the_2026_position():
     assert resolve.propagate(10.0, 20.0, None, None) == (10.0, 20.0, None, None)
 
 
+def test_names_are_tidied():
+    found = resolve.parse_sesame(SESAME_ANSWER)
+    assert resolve._finish(found, "eps ind b")["name"] == "eps Ind B"
+    assert resolve._tidy("NAME Barnard's star") == "Barnard's star"
+    assert resolve._tidy("M  31") == "M 31"
+
+
 def test_built_in_targets_and_names():
     assert resolve.built_in("Barnard's Star")["name"] == "Barnard's Star"
     assert resolve.built_in("  wise 0855-0714 ")["ra"] == 133.759765

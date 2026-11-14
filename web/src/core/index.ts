@@ -41,3 +41,4 @@ export { SkyMap } from "./SkyMap";
 export { PROJECTIONS, SKY_LAYERS } from "./skyLayers";
 export type { ProjectionId, SkyLayer } from "./skyLayers";
 export { COLOR_PRESETS } from "./colorBands";
+export type { LinkState } from "./url";

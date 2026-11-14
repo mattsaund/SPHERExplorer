@@ -214,6 +214,8 @@ export interface DisplaySettings {
   showFlags: boolean;
   /** Mark the target's expected position. */
   showMarker: boolean;
+  /** Label known objects in the field. */
+  showObjects: boolean;
 }
 
 /** Which frames take part. */

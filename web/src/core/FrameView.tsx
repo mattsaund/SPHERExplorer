@@ -1,13 +1,17 @@
 // The frame viewer: a WebGL canvas for the image and a 2D canvas on top for the marker,
 // compass, and scale bar. It fills its parent and carries no chrome of its own.
-// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-flag, --frame-empty.
+// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-flag, --frame-empty.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
-import { offsetToSky } from "./astro";
+import { offsetToSky, positionAt, skyOffset } from "./astro";
 import { sceneFor, type Scene } from "./layers";
 import { getPixels, imageOf } from "./pixels";
 import { FrameRenderer } from "./render/renderer";
 import { actions, useStore, type AppState } from "./store";
+import type { SkyObject } from "./types";
+
+/** How many known objects get a label in the frame view. */
+const OBJECT_LABELS = 25;
 
 /** Parse a CSS color into [r, g, b] in 0 to 1 by letting the browser resolve it. */
 function cssColor(element: HTMLElement, name: string, fallback: string): { css: string; rgb: [number, number, number] } {
@@ -52,6 +56,8 @@ export function FrameView({ className }: { className?: string }) {
     let raf = 0;
     let scene: Scene | null = null;
     let session = -1;
+    // Screen positions of the object labels drawn last, for clicks.
+    let labels: { x: number; y: number; object: SkyObject }[] = [];
     const schedule = () => {
       raf ||= requestAnimationFrame(draw);
     };
@@ -99,6 +105,7 @@ export function FrameView({ className }: { className?: string }) {
       ctx.clearRect(0, 0, w, h);
       if (!scene) return;
       const ink = cssColor(wrap, "--frame-ink", "rgba(255,255,255,0.92)").css;
+      const label = cssColor(wrap, "--frame-label", "#9be8ff").css;
       const marker = cssColor(wrap, "--frame-marker", "#ffd24a").css;
       const font = getComputedStyle(wrap).fontFamily || "sans-serif";
 
@@ -116,6 +123,37 @@ export function FrameView({ className }: { className?: string }) {
           ctx.lineTo(x + dx * (gap + length), y + dy * (gap + length));
         }
         ctx.stroke();
+      }
+
+      // Known objects, moved to where they were at the time of the image on screen.
+      labels = [];
+      const item = state.sequence[state.player.index];
+      if (state.display.showObjects && state.target && item) {
+        ctx.font = `12px ${font}`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.lineWidth = 1.5;
+        const following = scene.stack !== undefined && state.follow;
+        for (const object of state.fieldObjects.slice(0, OBJECT_LABELS)) {
+          const place = positionAt({ ra: object.ra, dec: object.dec, epoch: object.epoch, pmRa: object.pmRa ?? 0, pmDec: object.pmDec ?? 0 }, item.mjd);
+          let [east, north] = skyOffset(place, state.target);
+          // A sum that follows the target is drawn in the target's own frame.
+          if (following) {
+            const track = skyOffset(positionAt(state.target, item.mjd), state.target);
+            east -= track[0];
+            north -= track[1];
+          }
+          const x = w / 2 - (east - state.view.east) / scale;
+          const y = h / 2 - (north - state.view.north) / scale;
+          if (x < -20 || y < -20 || x > w + 20 || y > h + 20) continue;
+          ctx.strokeStyle = label;
+          ctx.fillStyle = label;
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillText(object.name, x + 13, y);
+          labels.push({ x, y, object });
+        }
       }
 
       // Scale bar, bottom left.
@@ -203,9 +241,11 @@ export function FrameView({ className }: { className?: string }) {
     // Pointer handling: drag to pan, pinch or wheel to zoom, double click to reset.
     const pointers = new Map<number, { x: number; y: number }>();
     let pinch = 0;
+    let pressed: { x: number; y: number } | null = null;
     function onDown(event: PointerEvent) {
       wrap.setPointerCapture(event.pointerId);
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      pressed = { x: event.clientX, y: event.clientY };
       pinch = 0;
     }
     function onMove(event: PointerEvent) {
@@ -231,8 +271,17 @@ export function FrameView({ className }: { className?: string }) {
       }
     }
     function onUp(event: PointerEvent) {
+      const start = pressed;
+      pressed = null;
       pointers.delete(event.pointerId);
       pinch = 0;
+      // A press and release in one place is a click. See whether it landed on an object label.
+      if (!start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return;
+      const box = wrap.getBoundingClientRect();
+      const x = event.clientX - box.left;
+      const y = event.clientY - box.top;
+      const hit = labels.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= 14);
+      if (hit) actions.selectObject(hit.object);
     }
     function onWheel(event: WheelEvent) {
       event.preventDefault();
@@ -262,7 +311,7 @@ export function FrameView({ className }: { className?: string }) {
     resize();
     // Redraw on any change except the pointer readout, which does not affect the picture.
     const unsubscribe = useStore.subscribe((state, before) => {
-      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view) return;
+      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects) return;
       schedule();
     });
 

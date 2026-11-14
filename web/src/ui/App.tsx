@@ -213,6 +213,7 @@ function DisplayControls() {
       <label className="check"><input type="checkbox" checked={display.smooth} onChange={(e) => actions.setDisplay({ smooth: e.target.checked })} /> Smooth pixels</label>
       <label className="check"><input type="checkbox" checked={display.showFlags} onChange={(e) => actions.setDisplay({ showFlags: e.target.checked })} /> Show bad pixels</label>
       <label className="check"><input type="checkbox" checked={display.showMarker} onChange={(e) => actions.setDisplay({ showMarker: e.target.checked })} /> Mark the target</label>
+      <label className="check"><input type="checkbox" checked={display.showObjects} onChange={(e) => actions.setDisplay({ showObjects: e.target.checked })} /> Label known objects</label>
       <label className="check"><input type="checkbox" checked={follow} onChange={(e) => actions.setFollow(e.target.checked)} /> Follow the target when summing</label>
       <button onClick={() => actions.resetView()}>Reset zoom</button>
     </fieldset>
@@ -227,11 +228,29 @@ function Readout() {
     return item && item.frameIds.length === 1 ? s.frames[item.frameIds[0]] : null;
   });
   const flags = useStore((s) => s.meta?.flags);
+  const movers = useStore((s) => s.movers);
+  const chosen = useStore((s) => s.map.selected);
   const names = hover && flags ? flags.filter((f) => hover.bits & (1 << f.bit)).map((f) => f.name) : [];
   return (
     <fieldset>
       <legend>Details</legend>
       {target && <p><strong>{target.name ?? "Custom position"}</strong>{target.kind ? `. ${target.kind}` : ""}</p>}
+      {movers.slice(0, 2).map((mover) => (
+        <p key={mover.id} className="hint">
+          {mover.name}{mover.kind ? ` (${mover.kind.toLowerCase()})` : ""} moves quickly across the sky and is near these coordinates. It may have moved since they were measured.{" "}
+          <button onClick={() => actions.studyObject(mover)}>Follow {mover.name}</button>
+        </p>
+      ))}
+      {chosen && (
+        <div className="card">
+          <strong>{chosen.name}</strong>
+          <span>{chosen.kind ?? "Known object"}{chosen.spectralType ? `, type ${chosen.spectralType}` : ""}</span>
+          <div className="row wrap">
+            <button onClick={() => actions.studyObject(chosen)}>Study in SPHEREx</button>
+            <a href={chosen.url} target="_blank" rel="noreferrer">More information</a>
+          </div>
+        </div>
+      )}
       {frame && (
         <p>
           {formatDate(frame.mjd)}. Detector {frame.detector}. {formatWavelength(frame.wavelength)}.

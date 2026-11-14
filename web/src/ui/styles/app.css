@@ -18,7 +18,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--sp
 
 .stage { display: flex; flex-direction: column; gap: var(--space-3); }
 .frame { aspect-ratio: 1; max-height: 72vh; width: 100%; background: #000; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden;
-  --frame-ink: rgba(255, 255, 255, 0.92); --frame-marker: #ffd24a; --frame-flag: #e5484d; --frame-empty: #5b2a86; }
+  --frame-ink: rgba(255, 255, 255, 0.92); --frame-marker: #ffd24a; --frame-label: #9be8ff; --frame-flag: #e5484d; --frame-empty: #5b2a86; }
 
 .player, fieldset { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-3); }
 .player { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -50,3 +50,4 @@ button:disabled { opacity: 0.5; cursor: default; }
   --map-label: #9be8ff; --map-marker: #ff6b6b; --map-field: #ffd24a; }
 .card { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--color-accent); border-radius: var(--radius); }
 a { color: var(--color-accent); }
+.hint { border-left: 3px solid var(--color-accent); padding-left: var(--space-2); }

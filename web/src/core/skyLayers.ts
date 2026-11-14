@@ -16,6 +16,8 @@ export interface SkyLayer {
   url: string;
   /** True for a cube with one image per SPHEREx channel. */
   cube?: boolean;
+  /** For a full-color view of the SPHEREx cube: the channels shown as red, green, and blue. Built by our server. */
+  color?: [number, number, number];
 }
 
 const IRSA = "https://irsa.ipac.caltech.edu/data/hips/";
@@ -25,6 +27,11 @@ export const SKY_LAYERS: SkyLayer[] = [
     id: "spherex", name: "SPHEREx all-sky", mission: "NASA SPHEREx", light: "Near infrared, 102 colors",
     about: "The whole sky in 102 infrared colors from SPHEREx's first year. Slide through the colors.",
     url: IRSA + "SPHEREx/spherex_allsky_cube", cube: true,
+  },
+  {
+    id: "spherex-color", name: "SPHEREx full color", mission: "NASA SPHEREx", light: "Near infrared, three colors",
+    about: "Three SPHEREx colors at once: 1.25 microns as blue, 2.2 as green, and 4.6 as red. Stars are blue. Dust and cool gas glow red.",
+    url: IRSA + "SPHEREx/spherex_allsky_cube", color: [90, 47, 22],
   },
   {
     id: "2mass", name: "2MASS color", mission: "2MASS", light: "Near infrared",

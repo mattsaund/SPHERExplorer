@@ -13,7 +13,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, catalogs, config, cutout, exposures, instrument, net, resolve, sia
+from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, net, resolve, sia
 
 
 @asynccontextmanager
@@ -108,6 +108,28 @@ async def objects(
     except net.UpstreamError as error:
         raise HTTPException(502, str(error)) from error
     return {"source": "SIMBAD", "count": len(found), "objects": found}
+
+
+@app.get("/api/hips/spherex-color/{recipe}/properties")
+async def color_properties(recipe: str):
+    """HiPS properties of the full-color SPHEREx sky for one choice of three channels."""
+    try:
+        text = colorhips.properties(recipe)
+    except ValueError as error:
+        raise HTTPException(404, str(error)) from error
+    return Response(text, media_type="text/plain", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/api/hips/spherex-color/{recipe}/Norder{order}/Dir{folder}/Npix{npix}.png")
+async def color_tile(recipe: str, order: int, folder: int, npix: int):
+    """One tile of the full-color SPHEREx sky. Built from three IRSA tiles the first time."""
+    try:
+        data = await colorhips.tile(recipe, order, npix)
+    except ValueError as error:
+        raise HTTPException(404, str(error)) from error
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
+    return Response(data, media_type="image/png", headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @app.get("/api/cutout")

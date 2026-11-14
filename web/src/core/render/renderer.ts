@@ -8,6 +8,8 @@ import type { ColorMap, Stretch } from "../types";
 /** Values at or above this mark empty pixels (saturated or missing). The server clips real data below it. */
 const EMPTY_HALF = 0x7bff; // largest finite float16, 65504
 const EMPTY_FLOAT = 65504;
+/** Marks pixels of a summed image that no frame covers. Drawn as outside the image. */
+const UNCOVERED_FLOAT = -65504;
 
 const VERTEX = `#version 300 es
 // One triangle that covers the whole canvas.
@@ -41,7 +43,15 @@ uniform vec2 uShiftB;
 uniform float uBgB;
 uniform float uGainB;
 
-uniform int uMode;          // 0 first layer only, 1 first minus second, 2 blend
+uniform sampler2D uImgC;    // third layer, for full color
+uniform vec2 uSizeC;
+uniform vec2 uCenC;
+uniform vec4 uInvC;
+uniform vec2 uShiftC;
+uniform float uBgC;
+uniform float uGainC;
+
+uniform int uMode;          // 0 first layer only, 1 first minus second, 2 blend, 3 red-green-blue
 uniform float uMix;         // blend amount for mode 2
 uniform int uStretch;       // 0 linear, 1 square root, 2 log, 3 asinh
 uniform float uLo;
@@ -65,7 +75,9 @@ const float EMPTY = 60000.0;
 vec2 texel(sampler2D img, vec2 size, ivec2 q) {
   if (q.x < 0 || q.y < 0 || q.x >= int(size.x) || q.y >= int(size.y)) return vec2(0.0, -1.0);
   float v = texelFetch(img, q, 0).r;
-  return v > EMPTY ? vec2(0.0, 0.0) : vec2(v, 1.0);
+  if (v > EMPTY) return vec2(0.0, 0.0);
+  if (v < -EMPTY) return vec2(0.0, -1.0);
+  return vec2(v, 1.0);
 }
 
 vec2 sampleLayer(sampler2D img, vec2 size, vec2 p) {
@@ -91,6 +103,13 @@ vec2 toPixel(vec2 sky, vec2 cen, vec4 inv, vec2 shift) {
   return cen + vec2(inv.x * s.x + inv.y * s.y, inv.z * s.x + inv.w * s.y);
 }
 
+float curve(float t) {
+  if (uStretch == 1) return sqrt(t);
+  if (uStretch == 2) return log(1.0 + 1000.0 * t) / log(1001.0);
+  if (uStretch == 3) return asinh(10.0 * t) / asinh(10.0);
+  return t;
+}
+
 void main() {
   // Sky offset of this fragment. East is to the left, north is up.
   vec2 fromCenter = gl_FragCoord.xy - uCanvas * 0.5;
@@ -98,6 +117,29 @@ void main() {
 
   vec2 pa = toPixel(sky, uCenA, uInvA, uShiftA);
   vec2 a = sampleLayer(uImgA, uSizeA, pa);
+
+  if (uMode == 3) {
+    // Full color: the three layers are red, green, and blue.
+    vec2 g = sampleLayer(uImgB, uSizeB, toPixel(sky, uCenB, uInvB, uShiftB));
+    vec2 b = sampleLayer(uImgC, uSizeC, toPixel(sky, uCenC, uInvC, uShiftC));
+    if (a.y < -0.5 && g.y < -0.5 && b.y < -0.5) { outColor = uOutsideColor; return; }
+    // A saturated pixel in any color is a very bright source. Show it white, as a photograph would.
+    if (abs(a.y) < 0.5 || abs(g.y) < 0.5 || abs(b.y) < 0.5) { outColor = vec4(uInvert ? vec3(0.0) : vec3(1.0), 1.0); return; }
+    vec3 raw = vec3(
+      a.y > 0.5 ? (a.x - uBgA) * uGainA : 0.0,
+      g.y > 0.5 ? (g.x - uBgB) * uGainB : 0.0,
+      b.y > 0.5 ? (b.x - uBgC) * uGainC : 0.0);
+    vec3 x = max(raw - uLo, 0.0) / max(uHi - uLo, 1e-12);
+    // Stretch the brightness and keep the ratio between the colors, so hue survives the stretch.
+    float level = (x.r + x.g + x.b) / 3.0;
+    vec3 rgb = level > 0.0 ? x * (curve(clamp(level, 0.0, 1.0)) / level) : vec3(0.0);
+    float top = max(rgb.r, max(rgb.g, rgb.b));
+    if (top > 1.0) rgb /= top;
+    // Very bright sources fade to white instead of staying one flat color.
+    rgb = mix(rgb, vec3(1.0), smoothstep(0.8, 3.0, level));
+    outColor = vec4(uInvert ? 1.0 - rgb : rgb, 1.0);
+    return;
+  }
   if (a.y < -0.5) { outColor = uOutsideColor; return; }
   if (a.y < 0.5) { outColor = vec4(uEmptyColor, 1.0); return; }
   float value = (a.x - uBgA) * uGainA;
@@ -113,10 +155,7 @@ void main() {
     }
   }
 
-  float t = clamp((value - uLo) / max(uHi - uLo, 1e-12), 0.0, 1.0);
-  if (uStretch == 1) t = sqrt(t);
-  else if (uStretch == 2) t = log(1.0 + 1000.0 * t) / log(1001.0);
-  else if (uStretch == 3) t = asinh(10.0 * t) / asinh(10.0);
+  float t = curve(clamp((value - uLo) / max(uHi - uLo, 1e-12), 0.0, 1.0));
   if (uInvert) t = 1.0 - t;
   vec3 color = texture(uLut, vec2(t, 0.5)).rgb;
 
@@ -160,8 +199,8 @@ export interface DrawOptions {
   smooth: boolean;
   showFlags: boolean;
   flagMask: number;
-  /** How the second layer combines: none, first minus second, or a blend. */
-  mode?: "single" | "difference" | "blend";
+  /** How the layers combine: one alone, first minus second, a blend, or three as red, green, blue. */
+  mode?: "single" | "difference" | "blend" | "rgb";
   mix?: number;
   /** Colors as [r, g, b] in 0 to 1. */
   flagColor?: [number, number, number];
@@ -243,7 +282,11 @@ export class FrameRenderer {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, layer.nx, layer.ny, 0, gl.RED, gl.HALF_FLOAT, bits);
       } else {
         const values = new Float32Array(layer.data);
-        for (let i = 0; i < values.length; i++) if (!(Math.abs(values[i]) < 60000)) values[i] = EMPTY_FLOAT;
+        for (let i = 0; i < values.length; i++) {
+          const v = values[i];
+          if (v !== v) values[i] = UNCOVERED_FLOAT;
+          else if (!(Math.abs(v) < 60000)) values[i] = EMPTY_FLOAT;
+        }
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, layer.nx, layer.ny, 0, gl.RED, gl.FLOAT, values);
       }
       this.nearest();
@@ -283,7 +326,7 @@ export class FrameRenderer {
     this.textures.clear();
   }
 
-  private bindLayer(suffix: "A" | "B", unit: number, layer: Layer, texture: Texture): void {
+  private bindLayer(suffix: "A" | "B" | "C", unit: number, layer: Layer, texture: Texture): void {
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, texture.image);
@@ -298,8 +341,8 @@ export class FrameRenderer {
     gl.uniform1f(this.uniform(`uGain${suffix}`), layer.gain);
   }
 
-  /** Draw one layer, or two combined. Pass null to clear the canvas. */
-  draw(first: Layer | null, options: DrawOptions, second: Layer | null = null): void {
+  /** Draw one layer, or two or three combined. Pass null to clear the canvas. */
+  draw(first: Layer | null, options: DrawOptions, second: Layer | null = null, third: Layer | null = null): void {
     const gl = this.gl;
     const { width, height } = this.canvas;
     gl.viewport(0, 0, width, height);
@@ -316,11 +359,12 @@ export class FrameRenderer {
     const showFlags = options.showFlags && !!first.flags;
     const textureA = this.texture(first, showFlags);
     this.bindLayer("A", 0, first, textureA);
-    const other = second ?? first;
-    this.bindLayer("B", 1, other, second ? this.texture(second, false) : textureA);
+    this.bindLayer("B", 1, second ?? first, second ? this.texture(second, false) : textureA);
+    this.bindLayer("C", 4, third ?? first, third ? this.texture(third, false) : textureA);
 
     const mode = second ? (options.mode ?? "single") : "single";
-    gl.uniform1i(this.uniform("uMode"), mode === "difference" ? 1 : mode === "blend" ? 2 : 0);
+    const code = mode === "difference" ? 1 : mode === "blend" ? 2 : mode === "rgb" && third ? 3 : 0;
+    gl.uniform1i(this.uniform("uMode"), code);
     gl.uniform1f(this.uniform("uMix"), options.mix ?? 0.5);
     gl.uniform1i(this.uniform("uStretch"), STRETCH_CODE[options.stretch]);
     gl.uniform1f(this.uniform("uLo"), options.lo);

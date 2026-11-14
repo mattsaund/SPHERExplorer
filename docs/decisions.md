@@ -4,6 +4,8 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Add full color: three-band color images and a color SPHEREx sky | Matt | Asked for during the build |
+| 2026-11-14 | Share a live preview on the local network for Austin's workstation | Matt | `npm run dev:lan` |
 | 2026-11-14 | Concept and feature list set. See `docs/concept.md` | Matt and Austin | Full use of SPHEREx for every field of space science |
 | 2026-11-14 | Matt's Claude leads the build and reviews and merges pull requests from Austin's side | Matt | |
 | 2026-11-14 | Docs use the term SI only and carry no date stamps from before kickoff | Matt | Space Apps SI wording |

@@ -68,6 +68,7 @@ Add the license and version when a library goes into the build.
 | NumPy 2 | BSD-3-Clause | Harris et al. 2020 | Yes (API) |
 | FastAPI, Starlette, Uvicorn | MIT, BSD-3-Clause | | Yes (API) |
 | HTTPX | BSD-3-Clause | | Yes (API) |
+| Pillow 13 | MIT-CMU | | Yes (API, color sky tiles) |
 | pytest, pytest-asyncio | MIT, Apache-2.0 | | Yes (tests) |
 | uv | MIT or Apache-2.0 | Astral | Yes (tooling) |
 | React 19, React DOM | MIT | | Yes (web) |

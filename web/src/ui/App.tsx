@@ -4,6 +4,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   COLOR_MAPS,
+  COLOR_PRESETS,
   FrameView,
   LINE_FAMILIES,
   PROJECTIONS,
@@ -27,7 +28,8 @@ import "./styles/app.css";
 const MODES: { value: SequenceMode; label: string; hint: string }[] = [
   { value: "exposures", label: "Every image", hint: "Each exposure in time order" },
   { value: "visits", label: "By visit", hint: "One summed image per visit. Best for spotting motion" },
-  { value: "channels", label: "By color", hint: "One summed image per wavelength channel" },
+  { value: "channels", label: "By wavelength", hint: "One summed image per wavelength channel" },
+  { value: "deep", label: "Deepest", hint: "Every image summed into one" },
 ];
 const STRETCHES: Stretch[] = ["linear", "sqrt", "log", "asinh"];
 const FIELD_SIZES = [120, 300, 600, 1200];
@@ -174,6 +176,18 @@ function DisplayControls() {
           ))}
         </select>
       </label>
+      <label className="check"><input type="checkbox" checked={display.color} onChange={(e) => actions.setDisplay({ color: e.target.checked })} /> Full color</label>
+      {display.color && (
+        <>
+          <label>
+            Color recipe
+            <select value={display.bands.id} onChange={(event) => actions.setDisplay({ bands: COLOR_PRESETS.find((preset) => preset.id === event.target.value) })}>
+              {COLOR_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
+            </select>
+          </label>
+          <p className="muted">{display.bands.about}</p>
+        </>
+      )}
       <label>
         Brightness curve
         <select value={display.stretch} onChange={(event) => actions.setDisplay({ stretch: event.target.value as Stretch })}>

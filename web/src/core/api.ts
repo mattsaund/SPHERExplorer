@@ -5,6 +5,11 @@ import type { Meta, Photometry, SkyObject, Target } from "./types";
 /** Base path of the API. Same origin by default. Set VITE_API_BASE to point elsewhere. */
 const BASE: string = import.meta.env.VITE_API_BASE ?? "/api";
 
+/** Absolute address of an API path, for libraries that need a full URL. */
+export function apiUrl(path: string): string {
+  return new URL(BASE + path, window.location.href).href;
+}
+
 /** An error with a message fit to show a person. */
 export class ApiError extends Error {}
 

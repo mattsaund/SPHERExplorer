@@ -43,7 +43,10 @@ export interface Stack {
   cx: number;
   cy: number;
   m: [number, number, number, number];
-  /** Background-subtracted mean in MJy/sr. NaN where no frame contributed. */
+  /**
+   * Background-subtracted mean in MJy/sr. NaN where no frame covers the pixel.
+   * Infinity where frames cover it but every sample was saturated or flagged.
+   */
   image: Float32Array;
   /** Noise level of the result in MJy/sr, measured from the result itself. */
   rms: number;
@@ -82,6 +85,8 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
   // The median and the clipped mean need every sample: one row per member.
   const samples = options.method === "mean" ? null : new Float32Array(total * members.length).fill(NaN);
   const weights = members.map((member) => (member.rms > 0 ? 1 / (member.rms * member.rms) : 0));
+  // Counts frames that cover each output pixel, whether or not the sample was usable.
+  const covered = new Uint16Array(total);
 
   members.forEach((member, index) => {
     const [a, b, c, d] = member.m;
@@ -100,10 +105,11 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
         const py = Math.round(member.cy + ic * east + id * north);
         if (px < 0 || py < 0 || px >= nx || py >= ny) continue;
         const at = py * nx + px;
+        const out = j * n + i;
+        covered[out]++;
         const value = image[at];
         if (value !== value) continue; // NaN: saturated or missing
         if (flags && flags[at] & options.badMask) continue;
-        const out = j * n + i;
         if (samples) samples[index * total + out] = value - member.bg;
         else {
           sum[out] += w * (value - member.bg);
@@ -129,7 +135,7 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
         }
       }
       if (!count) {
-        image[out] = NaN;
+        image[out] = covered[out] ? Infinity : NaN;
         continue;
       }
       scratch.set(values.subarray(0, count));
@@ -152,7 +158,7 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
       image[out] = bottom > 0 ? top / bottom : middle;
     }
   } else {
-    for (let out = 0; out < total; out++) image[out] = weight[out] > 0 ? sum[out] / weight[out] : NaN;
+    for (let out = 0; out < total; out++) image[out] = weight[out] > 0 ? sum[out] / weight[out] : covered[out] ? Infinity : NaN;
   }
 
   return {

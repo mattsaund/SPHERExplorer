@@ -156,7 +156,9 @@ export type SequenceMode =
   /** One summed image per visit. Best for motion. */
   | "visits"
   /** One summed image per spectral channel. A sweep through wavelength. */
-  | "channels";
+  | "channels"
+  /** Everything summed into a single deep image. */
+  | "deep";
 
 /** One step of the playable sequence: a single frame or a sum of frames. */
 export interface SequenceItem {
@@ -177,8 +179,27 @@ export type Stretch = "linear" | "sqrt" | "log" | "asinh";
 /** Color tables for images. */
 export type ColorMap = "gray" | "viridis" | "magma" | "inferno" | "plasma" | "cividis";
 
+/** Three wavelength ranges, in microns, that make the red, green, and blue of a color image. */
+export interface ColorBands {
+  id: string;
+  /** Short name for menus. */
+  name: string;
+  /** One sentence on what the colors show. */
+  about: string;
+  red: [number, number];
+  green: [number, number];
+  blue: [number, number];
+}
+
 /** How images are drawn. */
 export interface DisplaySettings {
+  /**
+   * Full color. Summed images are built three times, from three wavelength ranges, and shown
+   * as red, green, and blue. Single exposures hold one wavelength, so they stay in one color.
+   */
+  color: boolean;
+  /** The wavelength ranges used for full color. */
+  bands: ColorBands;
   stretch: Stretch;
   /** Black and white points. In noise units when normalize is on, else MJy/sr above background. */
   lo: number;

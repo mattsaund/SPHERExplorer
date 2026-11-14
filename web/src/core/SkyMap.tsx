@@ -4,8 +4,8 @@
 // Colors come from CSS variables: --map-label, --map-marker, --map-field.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef } from "react";
-import { getObjects } from "./api";
-import { SKY_LAYERS } from "./skyLayers";
+import { apiUrl, getObjects } from "./api";
+import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject } from "./types";
 
@@ -38,25 +38,33 @@ export function SkyMap({ className }: { className?: string }) {
     let unlabeled: any = null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let marks: any = null;
+    // Bumped on every layer change so late callbacks for an old layer do nothing.
+    let generation = 0;
     let settle: ReturnType<typeof setTimeout> | null = null;
     let request: AbortController | null = null;
     let lastObjectClick = 0;
     let applied: Partial<AppState["map"]> & { goal?: number; target?: unknown; fieldSize?: number } = {};
 
-    /** Put a layer on the map and select its channel when it is the SPHEREx cube. */
-    function showLayer(id: string) {
-      const spec = SKY_LAYERS.find((entry) => entry.id === id) ?? SKY_LAYERS[0];
-      layer = A.HiPS(spec.url, { name: spec.name });
-      aladin.setBaseImageLayer(layer);
-      if (spec.cube) channelWhenReady(layer);
+    /** Address of a layer's tile set. The color view of the cube is built by our own server. */
+    function layerUrl(spec: SkyLayer): string {
+      return spec.color ? apiUrl(`/hips/spherex-color/${spec.color.join("-")}`) : spec.url;
     }
 
-    /** A cube accepts a channel only after its properties have loaded. Wait for that, then apply. */
+    /** Put a layer on the map. The SPHEREx cube also gets its channel. */
+    function showLayer(id: string) {
+      const spec = SKY_LAYERS.find((entry) => entry.id === id) ?? SKY_LAYERS[0];
+      generation++;
+      layer = A.HiPS(layerUrl(spec), { name: spec.name });
+      aladin.setBaseImageLayer(layer);
+      if (spec.cube) whenReady(layer, generation, (cube) => setChannel(cube, useStore.getState().map.channel));
+    }
+
+    /** A cube accepts settings only after its properties have loaded. Wait for that, then apply. */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function channelWhenReady(waiting: any, tries = 40) {
-      if (disposed || waiting !== layer) return;
-      if (waiting.added && waiting.cubeDepth) setChannel(useStore.getState().map.channel);
-      else if (tries > 0) setTimeout(() => channelWhenReady(waiting, tries - 1), 250);
+    function whenReady(cube: any, made: number, apply: (cube: any) => void, tries = 60) {
+      if (disposed || made !== generation) return;
+      if (cube.added && cube.cubeDepth) apply(cube);
+      else if (tries > 0) setTimeout(() => whenReady(cube, made, apply, tries - 1), 250);
     }
 
     /**
@@ -64,12 +72,13 @@ export function SkyMap({ className }: { className?: string }) {
      * frames evenly in frequency between the cube's limits. Aiming at the middle of frame k's
      * slot selects tile k, which is channel k in ascending wavelength.
      */
-    function setChannel(channel: number) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function setChannel(cube: any, channel: number) {
       try {
-        const depth = layer?.cubeDepth || 102;
-        const low = LIGHT_SPEED / (layer?.emMax || 5.009e-6);
-        const high = LIGHT_SPEED / (layer?.emMin || 7.43e-7);
-        layer?.setFrequency?.({ value: low + ((channel + 0.5) / depth) * (high - low), unit: "Hz" });
+        const depth = cube.cubeDepth || 102;
+        const low = LIGHT_SPEED / (cube.emMax || 5.009e-6);
+        const high = LIGHT_SPEED / (cube.emMin || 7.43e-7);
+        cube.setFrequency({ value: low + ((channel + 0.5) / depth) * (high - low), unit: "Hz" });
       } catch {
         // The cube is still loading its properties. The next change will apply.
       }
@@ -142,7 +151,8 @@ export function SkyMap({ className }: { className?: string }) {
         applied.layer = map.layer;
         applied.channel = map.channel;
       } else if (applied.channel !== map.channel) {
-        setChannel(map.channel);
+        const spec = SKY_LAYERS.find((entry) => entry.id === map.layer);
+        if (spec?.cube && layer) setChannel(layer, map.channel);
         applied.channel = map.channel;
       }
       if (applied.grid !== map.grid) {
@@ -196,7 +206,7 @@ export function SkyMap({ className }: { className?: string }) {
       const state = useStore.getState();
       const start = SKY_LAYERS.find((entry) => entry.id === state.map.layer) ?? SKY_LAYERS[0];
       aladin = A.aladin(host, {
-        survey: start.url,
+        survey: layerUrl(start),
         projection: state.map.projection,
         cooFrame: "ICRSd",
         fov: state.mapGoal.fov ?? state.map.fov,
@@ -223,8 +233,10 @@ export function SkyMap({ className }: { className?: string }) {
         showSelectionModeControl: false,
       });
       layer = aladin.getBaseImageLayer();
+      // A handle for debugging in development builds only.
+      if (import.meta.env.DEV) (window as unknown as { spxMap?: unknown }).spxMap = aladin;
       applied = { projection: state.map.projection, layer: state.map.layer, grid: state.map.grid, goal: state.mapGoal.token };
-      if (start.cube) channelWhenReady(layer);
+      if (start.cube) whenReady(layer, generation, (cube) => setChannel(cube, useStore.getState().map.channel));
 
       const labelColor = cssVariable(host, "--map-label", "#9be8ff");
       const font = getComputedStyle(host).fontFamily || "sans-serif";

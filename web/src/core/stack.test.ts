@@ -68,6 +68,16 @@ describe("stackFrames", () => {
     expect(kept.image[kept.cy * kept.nx + kept.cx]).toBeCloseTo(45, 5);
   });
 
+  it("marks uncovered pixels NaN and covered-but-unusable pixels Infinity", () => {
+    const saturated = member([6, 0, 0, 6], 0, 0, NaN);
+    const stack = stackFrames([saturated], options);
+    expect(stack.image[stack.cy * stack.nx + stack.cx]).toBe(Infinity);
+    // A frame only 41 pixels wide cannot cover the corner of a much larger field.
+    const wide = stackFrames([member([6, 0, 0, 6], 0, 0, 5)], { ...options, size: 600 });
+    expect(wide.image[0]).toBeNaN();
+    expect(Number.isFinite(wide.rms) || Number.isNaN(wide.rms)).toBe(true);
+  });
+
   it("median rejects a one-frame artifact", () => {
     const frames = [0, 0, 0, 0].map(() => member([6, 0, 0, 6], 0, 0, 5));
     frames.push(member([6, 0, 0, 6], 0, 0, 500));

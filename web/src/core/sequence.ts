@@ -51,6 +51,9 @@ export function buildSequence(frames: Frame[], mode: SequenceMode, filters: Filt
       return `${label} (${members.length} images)`;
     });
   }
+  if (mode === "deep") {
+    return group(usable, "d", () => 0, (members) => `All visits (${members.length} images)`);
+  }
   if (mode === "channels") {
     return group(usable, "c", (f) => f.channel, (members) => `${formatWavelength(mean(members.map((f) => f.wavelength)))} (${members.length} images)`);
   }

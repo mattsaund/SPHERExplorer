@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { ApiError, getMeta, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, summarizeVisits } from "./astro";
+import { COLOR_PRESETS } from "./colorBands";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
 import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Target, Visit } from "./types";
@@ -62,6 +63,8 @@ const BLANK_CHANNELS = [50, 51];
 
 const DEFAULT_FILTERS: Filters = { detectors: [true, true, true, true, true, true], wlMin: 0.7, wlMax: 5.1 };
 const DEFAULT_DISPLAY: DisplaySettings = {
+  color: false,
+  bands: COLOR_PRESETS[0],
   stretch: "asinh",
   lo: -3,
   hi: 60,
@@ -405,6 +408,8 @@ export const actions = {
 
   setDisplay(change: Partial<DisplaySettings>): void {
     set({ display: { ...get().display, ...change } });
+    // Color needs summed images. A single exposure holds only one wavelength.
+    if (change.color && get().mode === "exposures") actions.setMode("visits");
   },
 
   /** Pick black and white points from the pixels of the current step. */

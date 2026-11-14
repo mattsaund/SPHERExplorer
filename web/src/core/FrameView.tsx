@@ -85,7 +85,8 @@ export function FrameView({ className }: { className?: string }) {
         flagMask: state.meta?.badMask ?? 0,
         flagColor: flag.rgb,
         emptyColor: empty.rgb,
-      });
+        mode: scene?.color ? "rgb" : "single",
+      }, scene?.color?.[0] ?? null, scene?.color?.[1] ?? null);
       drawOverlay(state, scale);
     }
 

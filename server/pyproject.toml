@@ -10,6 +10,7 @@ dependencies = [
     "httpx[http2]>=0.27",
     "numpy>=2.0",
     "astropy>=7.0",
+    "pillow>=13.0.0",
 ]
 
 [dependency-groups]

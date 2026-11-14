@@ -2,6 +2,7 @@
 // A change to an exported name or type is a contract change. See docs/architecture.md.
 // Written with Claude Code (Anthropic) assistance.
 export type {
+  ColorBands,
   ColorMap,
   DisplaySettings,
   Filters,
@@ -39,3 +40,4 @@ export { abMagnitude, binSpectrum, formatFlux, spectrumOf } from "./spectrum";
 export { SkyMap } from "./SkyMap";
 export { PROJECTIONS, SKY_LAYERS } from "./skyLayers";
 export type { ProjectionId, SkyLayer } from "./skyLayers";
+export { COLOR_PRESETS } from "./colorBands";

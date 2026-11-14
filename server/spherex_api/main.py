@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem, spacecraft
+from . import __version__, cache, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem, spacecraft, suggest
 
 SWEEP_SECONDS = 600
 
@@ -117,6 +117,11 @@ async def search(
 @app.get("/api/resolve")
 async def resolve_name(name: str = Query(min_length=1, max_length=120)):
     """Look up an object by name. Positions come back at epoch 2026.0 with motion."""
+    # "asteroid Ceres" or "comet 67P" says outright that this is a solar system body.
+    if solarsystem.PREFIX.match(name.strip()):
+        body = await solarsystem.lookup(name)
+        if body is not None:
+            return {**body, "moving": True}
     found = await resolve.resolve(name)
     if found is None:
         # Not a star or galaxy. It may be a planet, an asteroid, or a comet.
@@ -125,6 +130,12 @@ async def resolve_name(name: str = Query(min_length=1, max_length=120)):
             return {**body, "moving": True}
         raise HTTPException(404, f'No object named "{name.strip()}" was found. Check the spelling, or enter coordinates.')
     return found
+
+
+@app.get("/api/suggest")
+async def suggestions(q: str = Query(min_length=3, max_length=60, description="What the person has typed so far")):
+    """Names that fit what has been typed: the text itself when it is a known name, then asteroids and comets."""
+    return {"suggestions": await suggest.remote(q)}
 
 
 @app.get("/api/moving")

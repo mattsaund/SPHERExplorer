@@ -1,7 +1,7 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
+import { ApiError, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, getSuggestions, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { COLOR_PRESETS } from "./colorBands";
@@ -9,6 +9,7 @@ import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
+import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
 import { buildLink, embedSnippet, parseLink } from "./url";
 import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
@@ -80,6 +81,8 @@ export interface AppState {
   changes: ChangeReport | null;
   /** Progress of a search for changes, from 0 to 1, or null when none is running. */
   finding: number | null;
+  /** Rows for the search box dropdown, for the text last passed to actions.suggest. */
+  suggestions: Suggestion[];
   /** Orbital elements and archive facts for the spacecraft view. Null until loaded. */
   spacecraft: SpacecraftInfo | null;
   /** Where the spacecraft is this second. Updated while the orbit view is on the page. */
@@ -155,6 +158,7 @@ export const useStore = create<AppState>(() => ({
   motion: null,
   changes: null,
   finding: null,
+  suggestions: [],
   spacecraft: null,
   spacecraftNow: null,
   map: {
@@ -458,6 +462,16 @@ function pause(): void {
 /** True once init has read the page address. */
 let started = false;
 
+/** Searches run before, newest first. Read from the browser the first time they are needed. */
+let recent: Recent[] | null = null;
+/** The pending lookup of suggestions on the server, and the way to cancel it. */
+let suggestTimer: ReturnType<typeof setTimeout> | null = null;
+let suggestAbort: AbortController | null = null;
+/** How long typing must pause before the server is asked, in milliseconds. */
+const SUGGEST_PAUSE = 250;
+/** Suggestions from the server for texts already asked, so retyping costs nothing. */
+const suggestCache = new Map<string, Suggestion[]>();
+
 /** True once the spacecraft facts have been asked for. */
 let spacecraftRequested = false;
 
@@ -532,8 +546,10 @@ export const actions = {
   async search(text: string): Promise<boolean> {
     const query = text.trim();
     if (!query) return false;
+    recent ??= loadRecent();
     const position = parseCoordinates(query);
     if (position) {
+      recent = rememberSearch(recent, { label: query, query });
       actions.goTo({ ...position, epoch: 2026.0 });
       return true;
     }
@@ -546,11 +562,43 @@ export const actions = {
       } else {
         actions.goTo(found as Target);
       }
+      recent = rememberSearch(recent, { label: found.name ?? query, query });
       return true;
     } catch (error) {
       set({ targetState: "failed", error: error instanceof ApiError ? error.message : "The name lookup failed. Try coordinates instead." });
       return false;
     }
+  },
+
+  /**
+   * Fill state.suggestions for what a person has typed in the search box. Matches from the
+   * built-in list, recent searches, and typed coordinates appear at once. Asteroids, comets,
+   * and a check of the typed name follow from the server after a short pause in typing.
+   * Call it with an empty string to get recent searches and NASA's test targets.
+   */
+  suggest(text: string): void {
+    recent ??= loadRecent();
+    const local = localSuggestions(text, recent);
+    const typed = text.trim();
+    const key = typed.toLowerCase();
+    if (suggestTimer) clearTimeout(suggestTimer);
+    suggestAbort?.abort();
+    suggestTimer = null;
+    const known = suggestCache.get(key);
+    set({ suggestions: known ? mergeSuggestions(local, known) : local });
+    // Coordinates need no lookup, and the server wants at least three characters.
+    if (known || typed.length < 3 || parseCoordinates(typed)) return;
+    suggestTimer = setTimeout(() => {
+      suggestAbort = new AbortController();
+      getSuggestions(typed, suggestAbort.signal).then(
+        (remote) => {
+          suggestCache.set(key, remote);
+          if (suggestCache.size > 200) suggestCache.delete(suggestCache.keys().next().value!);
+          set({ suggestions: mergeSuggestions(local, remote) });
+        },
+        () => {}, // a failed or canceled lookup leaves the local rows in place
+      );
+    }, SUGGEST_PAUSE);
   },
 
   /**

@@ -1,0 +1,13 @@
+/* The search box dropdown. Austin's side owns this file.
+   Written with Claude Code (Anthropic) assistance. */
+.search-field { position: relative; flex: 1; min-width: 220px; display: flex; }
+.search-field input { width: 100%; }
+
+.search-list { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50; margin: 0; padding: var(--space-1) 0; list-style: none;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  max-height: min(60vh, 420px); overflow-y: auto; }
+.search-list li { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-2) var(--space-3); cursor: pointer; }
+.search-list li.on { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-surface)); }
+.search-name { font-weight: 600; white-space: nowrap; }
+.search-detail { flex: 1; min-width: 0; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-tag { color: var(--color-text-muted); font-size: 0.8rem; white-space: nowrap; }

@@ -12,6 +12,7 @@ The working example of every row is the starter UI in `web/src/ui/App.tsx`.
 |---|---|---|
 | Start | Have the app load its settings and open a shared link | `actions.init` |
 | Search | Type a name, J2000 coordinates, or a planet, asteroid, or comet | `actions.search` |
+| Search suggestions | Pick from a dropdown: recent searches and NASA's targets at first, then matching names and typed coordinates | `actions.suggest`, `suggestions` |
 | Test targets | Open any of NASA's five test targets in one click | `TEST_TARGETS`, `actions.goTo` |
 | Status | See search and download progress | `targetState`, `framesState`, `loaded`, `failed` |
 | Messages | Read notices and errors, and try again | `notice`, `error`, `actions.reload` |

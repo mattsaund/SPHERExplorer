@@ -10,7 +10,7 @@ Built by team Turing Complete (Matt and Austin) for the [NASA Space Apps Challen
 
 Type a name or coordinates. SPHERExplorer finds every SPHEREx image of that spot and plays them like a short film.
 
-- **Search.** Object names, J2000 RA and Dec in any common form, or a planet, asteroid, or comet.
+- **Search.** Object names, J2000 RA and Dec in any common form, or a planet, asteroid, or comet. A dropdown suggests matches as you type.
 - **Watch.** Step through every exposure, one summed image per visit, one per wavelength, or the deepest sum of all.
 - **See change.** Follow a moving star or comet, subtract one visit from another, measure how fast a source moves, and track brightness over time.
 - **Find change.** One button checks every source in the field and reports what moved, brightened, or faded between visits. It finds all five of NASA's test targets on its own, including stars too bright for the detector.

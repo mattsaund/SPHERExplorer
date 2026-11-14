@@ -1,7 +1,7 @@
 // Starter app shell. It wires every engine feature to plain controls so the tool works end to end.
 // Austin's side owns everything under ui/ and is free to rebuild it.
 // Written with Claude Code (Anthropic) assistance.
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import {
   COLOR_MAPS,
   COLOR_PRESETS,
@@ -33,6 +33,7 @@ import {
 } from "../core";
 import { ChangesPanel } from "./ChangesPanel";
 import { Embed } from "./Embed";
+import { SearchBox } from "./SearchBox";
 import "./styles/app.css";
 
 const MODES: { value: SequenceMode; label: string; hint: string }[] = [
@@ -43,37 +44,6 @@ const MODES: { value: SequenceMode; label: string; hint: string }[] = [
 ];
 const STRETCHES: Stretch[] = ["linear", "sqrt", "log", "asinh"];
 const FIELD_SIZES = [120, 300, 600, 1200];
-
-function SearchBar() {
-  const [text, setText] = useState("");
-  const [problem, setProblem] = useState<string | null>(null);
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!text.trim()) {
-      setProblem('Enter a name such as "Vega", or J2000 coordinates such as "133.76 -7.24" or "08h55m10.8s -07d14m42s".');
-      return;
-    }
-    setProblem(null);
-    void actions.search(text);
-  }
-
-  return (
-    <form className="search" onSubmit={submit} role="search">
-      <label htmlFor="search-input">Find</label>
-      <input
-        id="search-input"
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        placeholder="Object name, or RA and Dec (J2000), for example Vega or 08h55m10.8s -07d14m42s"
-        autoComplete="off"
-        spellCheck={false}
-      />
-      <button type="submit">Go</button>
-      {problem && <p className="problem" role="alert">{problem}</p>}
-    </form>
-  );
-}
 
 function Status() {
   const targetState = useStore((s) => s.targetState);
@@ -571,7 +541,7 @@ export function App() {
     <div className="app">
       <header>
         <h1>SPHERExplorer</h1>
-        <SearchBar />
+        <SearchBox />
       </header>
       <nav aria-label="Test targets">
         {TEST_TARGETS.map((t) => (

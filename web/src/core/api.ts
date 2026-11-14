@@ -1,5 +1,6 @@
 // Talks to the SPHERExplorer API: metadata, search, and the binary frame stream.
 // Written with Claude Code (Anthropic) assistance.
+import type { Suggestion } from "./suggest";
 import type { Meta, MissionData, PartnerData, Photometry, SkyObject, SpacecraftInfo, Target } from "./types";
 
 /** Base path of the API. Same origin by default. Set VITE_API_BASE to point elsewhere. */
@@ -38,6 +39,12 @@ export type Resolved = Target | { moving: true; name: string; kind: string; comm
 /** Look up an object by name. Rejects with a plain-language ApiError when it is not found. */
 export function resolveName(name: string, signal?: AbortSignal): Promise<Resolved> {
   return getJson<Resolved>(`/resolve?name=${encodeURIComponent(name.trim())}`, signal);
+}
+
+/** Search box rows that need a lookup: the typed text when it is a known name, then asteroids and comets. */
+export async function getSuggestions(text: string, signal?: AbortSignal): Promise<Suggestion[]> {
+  const body = await getJson<{ suggestions: Suggestion[] }>(`/suggest?q=${encodeURIComponent(text.trim())}`, signal);
+  return body.suggestions;
 }
 
 /** Every image that caught a solar system body, with the body's position in each. */

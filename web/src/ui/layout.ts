@@ -7,7 +7,7 @@ import { create } from "zustand";
 export type StageMode = "map" | "images" | "both";
 
 /** The tabs of the tray, the wide panel above the bottom bar. */
-export type TrayTab = "timeline" | "spectrum" | "brightness" | "changes" | "motion" | "telescopes" | "spacecraft";
+export type TrayTab = "timeline" | "spectrum" | "brightness" | "changes" | "motion" | "telescopes" | "spacecraft" | "about";
 
 export interface LayoutState {
   stage: StageMode;

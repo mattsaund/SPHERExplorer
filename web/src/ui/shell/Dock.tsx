@@ -17,6 +17,7 @@ import {
 } from "../../core";
 import { copyText, layout, useLayout } from "../layout";
 import { MODES } from "./BottomBar";
+import { Cards } from "./Stage";
 
 const STRETCHES: { value: Stretch; label: string }[] = [
   { value: "asinh", label: "Balanced (asinh)" },
@@ -248,6 +249,7 @@ export function Dock() {
         <h2>Tools</h2>
         <button onClick={() => layout.closeDock()} aria-label="Close the tools panel">Close</button>
       </div>
+      <Cards />
       <About />
       {stage !== "map" && hasTarget && (
         <>

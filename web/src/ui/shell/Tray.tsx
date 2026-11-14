@@ -3,6 +3,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
+  DATA_CREDIT,
   LINE_FAMILIES,
   LightCurvePlot,
   OrbitView,
@@ -25,6 +26,7 @@ const TABS: { id: TrayTab; label: string; hint: string; needsTarget: boolean }[]
   { id: "timeline", label: "Timeline", hint: "When SPHEREx looked, and at which wavelength", needsTarget: true },
   { id: "telescopes", label: "Other telescopes", hint: "The same field seen by Canada's NEOSSat", needsTarget: true },
   { id: "spacecraft", label: "Spacecraft", hint: "Where SPHEREx is right now", needsTarget: false },
+  { id: "about", label: "About", hint: "Who made this, where the data comes from, and how to cite it", needsTarget: false },
 ];
 
 function SpectrumTab() {
@@ -179,6 +181,45 @@ function SpacecraftTab() {
   );
 }
 
+const REPO = "https://github.com/mattsaund/SPHERExplorer";
+
+/** Who made this, whose data it shows, and what it is not. */
+function AboutTab() {
+  const archive = useStore((s) => s.meta?.index);
+  return (
+    <section className="tab about" aria-label="About">
+      <p>
+        <strong>SPHERExplorer</strong> shows every public SPHEREx image of any place in the sky as a short film, with tools to see what moved, what changed
+        brightness, and what the light is made of. Built by team Turing Complete (Matt and Austin) for the NASA Space Apps Challenge 2026, challenge
+        "Planet X and SPHEREx".
+      </p>
+      <p>
+        <strong>Not a NASA product.</strong> This is an independent team project. It is not an official NASA product and is not endorsed by NASA.
+      </p>
+      <p>
+        <strong>Data.</strong> {DATA_CREDIT}. This tool makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of
+        Reionization and Ices Explorer (SPHEREx), a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, funded by the
+        National Aeronautics and Space Administration. It also uses the NASA/IPAC Infrared Science Archive.
+        {archive && ` ${archive.exposures.toLocaleString("en-US")} exposures are indexed, from releases ${archive.releases.join(" and ").toUpperCase()}.`}
+      </p>
+      <p>
+        <strong>Other sources.</strong> Object names and facts from SIMBAD (CDS, Strasbourg). Star positions from Gaia DR3 (ESA). Brightness from 2MASS and
+        AllWISE through VizieR. Planets, asteroids, and comets from JPL Horizons and the Small-Body Database. Visible-light images from NEOSSat (Canadian
+        Space Agency). Spacecraft position from CelesTrak. Sky map by Aladin Lite (CDS), with survey tiles served by IRSA.
+      </p>
+      <p>
+        <strong>Made with SI.</strong> The team set the idea and the features. The code, tests, and documentation were written with Claude Code
+        (Anthropic), a Super Intelligence (SI) tool, and are labeled as such.
+      </p>
+      <p>
+        <a href={REPO} target="_blank" rel="noreferrer">Source code, methods, and every reference</a> (Apache License 2.0).{" "}
+        <a href={`${REPO}/blob/main/docs/methods.md`} target="_blank" rel="noreferrer">How each result is computed and checked</a>.{" "}
+        <a href={`${REPO}/blob/main/docs/embedding.md`} target="_blank" rel="noreferrer">Link to it or embed it in your page</a>.
+      </p>
+    </section>
+  );
+}
+
 function Content({ tab }: { tab: TrayTab }) {
   if (tab === "spectrum") return <SpectrumTab />;
   if (tab === "changes") return <div className="tab"><ChangesPanel /></div>;
@@ -200,6 +241,7 @@ function Content({ tab }: { tab: TrayTab }) {
     );
   }
   if (tab === "telescopes") return <TelescopesTab />;
+  if (tab === "about") return <AboutTab />;
   return <SpacecraftTab />;
 }
 

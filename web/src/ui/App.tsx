@@ -36,12 +36,13 @@ export function App() {
   const embed = useStore((s) => s.embed);
   const toast = useLayout((s) => s.toast);
 
-  // Choosing a place brings its images forward, and opens the spectrum the first time.
+  // Choosing a place brings its images forward, beside the map, and opens the spectrum the first time.
   useEffect(() => {
     let first = true;
     return useStore.subscribe((state, before) => {
       if (state.target === before.target || !state.target) return;
-      if (useLayout.getState().stage === "map") layout.setStage("images");
+      // With room for both, the map and the images share the stage, so a search shows in each.
+      if (useLayout.getState().stage === "map") layout.setStage(window.innerWidth >= 1200 ? "both" : "images");
       // On a small screen the charts would crowd out the images, so they wait to be asked for.
       if (first && useLayout.getState().tray === null && window.innerWidth >= 900 && window.innerHeight >= 720) layout.openTray("spectrum");
       first = false;

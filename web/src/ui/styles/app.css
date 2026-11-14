@@ -50,7 +50,11 @@
 .card.hint { border-left: 3px solid var(--color-accent); }
 .card.problem { color: var(--color-danger); }
 .welcome { position: absolute; left: var(--space-4); top: var(--space-4); width: min(440px, calc(100% - 2 * var(--space-4))); gap: var(--space-2); z-index: 4; }
-.cards { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 5; width: min(360px, calc(100% - 2 * var(--space-3))); max-height: calc(100% - 2 * var(--space-3)); overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.cards { display: flex; flex-direction: column; gap: var(--space-2); }
+/* Floating over the stage, when the tools panel is closed. */
+.stage > .cards { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 5; width: min(360px, calc(100% - 2 * var(--space-3))); max-height: calc(100% - 2 * var(--space-3)); overflow-y: auto; }
+/* At the top of the tools panel, a card stands out from the folding groups. */
+.dock .card { border-color: var(--color-accent); background: var(--color-bg); }
 .readout { position: absolute; left: var(--space-3); top: var(--space-3); z-index: 3; max-width: calc(100% - 2 * var(--space-3)); display: flex; flex-direction: column; gap: 2px; padding: var(--space-1) var(--space-2); border-radius: var(--radius); background: rgba(15, 18, 21, 0.84); font-size: 0.85rem; pointer-events: none; }
 .readout .mono { white-space: pre-wrap; }
 
@@ -85,6 +89,7 @@
 .tab.split > .side { width: 400px; flex: none; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); padding-right: var(--space-1); }
 .side label { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .side label.check { justify-content: flex-start; }
+.tab.about { max-width: 980px; }
 .orbit { border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; --orbit-land: #3d5a45; --orbit-sea: #0e2233; --orbit-track: #ffd24a; --orbit-craft: #ffffff; }
 .panel { display: flex; flex-direction: column; gap: var(--space-2); }
 .panel h2 { margin: 0; font-size: 1.05rem; }

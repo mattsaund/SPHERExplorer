@@ -86,5 +86,6 @@ The working example of every row is the UI under `web/src/ui/`. `docs/architectu
 | Save animation | Save the sequence as a GIF, with progress | `actions.saveAnimation`, `exporting` |
 | Save spectrum | Save the spectrum table | `actions.saveSpectrum` |
 | Share | Copy a link that reopens the view | `actions.shareLink` |
+| About and credits | Read who made it, where the data comes from, that it is not a NASA product, and that SI was used | `DATA_CREDIT`, `index` |
 | Embed code | Copy HTML that shows the view inside another web page | `actions.embedCode` |
 | Embedded view | Get a compact viewer when the address holds `embed=1` | `embed`, `Embed` |

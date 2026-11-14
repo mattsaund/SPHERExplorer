@@ -67,8 +67,11 @@ function Readout() {
   );
 }
 
-/** Cards for what was just clicked: a known object, a spot of sky, or a fast mover nearby. */
-function Cards() {
+/**
+ * Cards for what was just clicked: a known object, a spot of sky, or a fast mover nearby.
+ * They sit at the top of the tools panel when it is open, and float over the stage when it is not.
+ */
+export function Cards() {
   const chosen = useStore((s) => s.map.selected);
   const picked = useStore((s) => s.map.picked);
   const target = useStore((s) => s.target);
@@ -76,7 +79,7 @@ function Cards() {
   const fieldSize = useStore((s) => s.fieldSize);
   const failure = useStore((s) => s.map.failure);
   const stage = useLayout((s) => s.stage);
-  if (!chosen && !picked && !movers.length && !failure) return null;
+  if (!chosen && !picked && !movers.length && !(failure && stage !== "images")) return null;
   return (
     <div className="cards">
       {failure && stage !== "images" && <p className="card problem" role="alert">{failure}</p>}
@@ -132,6 +135,7 @@ function Cards() {
 
 export function Stage() {
   const stage = useLayout((s) => s.stage);
+  const dock = useLayout((s) => s.dock);
   const hasTarget = useStore((s) => s.target !== null);
   return (
     <div className={`stage stage-${stage}`}>
@@ -149,7 +153,7 @@ export function Stage() {
         </div>
         {hasTarget && <Readout />}
       </section>
-      <Cards />
+      {!dock && <Cards />}
     </div>
   );
 }

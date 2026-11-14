@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Team name: Turing Complete | Matt and Austin | Goes in the demo intro and on the project page |
 | 2026-11-14 | Public GitHub repo with an Apache-2.0 license | Matt asked for a public repo. Claude set Apache-2.0, the Space Apps default. | Team can change the license |
 | 2026-11-14 | Project name SPHERExplorer | Matt | Repo created at kickoff |
 | 2026-11-14 | Label every SI use and reference every source. Matt's global no-attribution rule is off for this repo | Matt | Space Apps SI rules |

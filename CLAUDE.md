@@ -1,7 +1,7 @@
 # SPHERExplorer
 
 Team repo for the NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
-Team: Matt and Austin. Two Claude Code accounts work in this repo at the same time.
+Team: Turing Complete (Matt and Austin). Two Claude Code accounts work in this repo at the same time.
 
 Read this file first. Details live in `docs/`.
 

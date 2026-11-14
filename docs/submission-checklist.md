@@ -27,7 +27,7 @@ Deadline: click "Submit for Judging" before Sun Nov 15, 11:59 pm, local time of 
 - [ ] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging.
 - [ ] English, or English subtitles if the video is in another language. Slides must be in English.
 - [ ] Hosted on YouTube, Google Drive, GitHub, OneDrive, or Dropbox with a public link. Test it in a private window.
-- [ ] Suggested video timing: 0:00 names and team, 0:02 the challenge, 0:05 title and tagline, 0:10 how it works plus the NASA and partner data, 0:20 to 0:30 the future.
+- [ ] Suggested video timing: 0:00 names and team (Turing Complete), 0:02 the challenge, 0:05 title and tagline, 0:10 how it works plus the NASA and partner data, 0:20 to 0:30 the future.
 - [ ] Slides show the team name, member names, the challenge, an image of the project, the user experience, and how NASA and partner data make it possible.
 - [ ] SI-generated images or video carry a visible watermark. No NASA branding in SI-generated content.
 

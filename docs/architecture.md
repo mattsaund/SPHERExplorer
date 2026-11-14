@@ -52,7 +52,7 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 - Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
 - Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, and `Timeline` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
 - Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
-- The starter UI in `ui/App.tsx` uses every one of these. It is the working example.
+- The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
 - Types. Everything exported from `core/types.ts`.
 
 Rules for both sides.

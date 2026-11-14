@@ -361,8 +361,10 @@ export interface MapState {
   /** Known objects in view, best known first. */
   objects: SkyObject[];
   objectsState: LoadState;
-  /** The object the user clicked, if any. */
+  /** The object the user chose, if any. */
   selected: SkyObject | null;
+  /** Where that object was chosen: on the sky map, or on the image side (its labels and its list). */
+  selectedIn: "map" | "images";
   /** A place the user chose by clicking the map or an image, if any. The map draws it as the selected area. */
   picked: SkyPosition | null;
   /** Where that place was chosen: on the sky map or in the images. */

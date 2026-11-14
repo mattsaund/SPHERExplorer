@@ -38,7 +38,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Details | See the target's name, kind, and distance, and open its full database entry | `distance`, `formatDistance`, `url` |
 | Per-image facts | See date, detector, wavelength, and brightness of the image on screen | `phot`, `formatFlux` |
 | Solar system distances | See a body's distance from Earth and the Sun at each image | `earthDistance`, `sunDistance`, `formatAu` |
-| Objects list | See every object in the field in one card, open one for its facts, study it, or open its details | `fieldObjects`, `actions.selectObject`, `actions.studyObject` |
+| Objects list | See every object in the field in one card, hide them all or open one for its facts, take their marks off the image, study one, or open its details | `fieldObjects`, `actions.selectObject`, `selectedIn`, `actions.studyObject` |
 | Picked spot | Take the spectrum of a clicked spot, study it, or copy its coordinates | `actions.probe`, `actions.pick`, `pickedIn` |
 | Known bodies | Ask which known asteroids, comets, and planets were in the field when the image on screen was taken, and follow one | `actions.identify`, `known` |
 

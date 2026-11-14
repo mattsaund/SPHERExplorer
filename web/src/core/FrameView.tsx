@@ -485,7 +485,7 @@ export function FrameView({ className }: { className?: string }) {
       const y = event.clientY - box.top;
       const hit = labels.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= 14);
       if (hit) {
-        actions.selectObject(hit.object);
+        actions.selectObject(hit.object, "images");
         return;
       }
       // A click on plain sky picks that spot, so the UI can offer to study it.

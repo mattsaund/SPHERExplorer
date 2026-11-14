@@ -211,8 +211,26 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 .object-facts { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-1) var(--space-2) var(--space-2) calc(var(--space-2) + 20px); font-size: 0.9rem; }
 .object-none { padding: var(--space-1) var(--space-2); color: var(--color-text-muted); font-size: 0.9rem; }
 .object-facts button, .object-facts .button { min-height: 30px; padding: 0 var(--space-3); }
-/* A short mark on an object worth noticing, such as a fast mover. */
-.tag { flex: none; margin-left: var(--space-2); padding: 0 6px; border: 1px solid var(--color-change); border-radius: 999px; color: var(--color-change); font-size: 0.75rem; font-weight: 400; white-space: nowrap; }
+/* The heading of the list is one wide switch that hides or shows every object. */
+.objects-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 32px;
+  padding: 0 0 0 var(--space-2);
+  text-align: left;
+  font-size: inherit;
+  background: transparent;
+  border-color: transparent;
+}
+.objects-head[aria-expanded="true"] { background: transparent; border-color: transparent; color: inherit; }
+.objects-head .chevron { flex: none; }
+/* The word at the end reads as a small button, like the one on the details card. */
+.objects-word { margin-left: auto; padding: 3px var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.85rem; }
+.objects-head:hover { border-color: transparent; }
+.objects-head:hover .objects-word { border-color: var(--color-accent); }
+.objects-mark { min-height: 28px; padding-left: var(--space-2); font-size: 0.9rem; }
 
 /* The details card can be clicked: its link and its fold button. The rest lets the pointer through to the image. */
 .stage-label.details { display: flex; flex-direction: column; gap: 2px; }

@@ -177,11 +177,15 @@ function SolarBodies() {
 }
 
 /**
- * Every object in the field being studied, in one card on the image side. Each row opens to
- * show that object's facts and closes again. Fast movers come first and are marked, because
- * they are why typed coordinates can miss their object. The last row asks which asteroids,
- * comets, and planets were in the field when the image on screen was taken.
- * A click on a labeled object in the image opens its row here.
+ * Every object in the field being studied, in one card on the image side.
+ * Everything in it can be hidden. The heading folds the whole list away. Each row opens to
+ * show that object's facts and closes again. A checkbox takes the objects' marks off the image.
+ * Fast movers come first, because they are why typed coordinates can miss their object. The
+ * last row asks which asteroids, comets, and planets were in the field when the image on
+ * screen was taken. A click on a labeled object in the image opens its row here.
+ *
+ * The page keeps this card mounted while the sky map alone is showing, so what was hidden
+ * stays hidden when the view changes.
  */
 export function ObjectsCard() {
   const hasTarget = useStore((s) => s.target !== null);
@@ -189,49 +193,59 @@ export function ObjectsCard() {
   const inField = useStore((s) => s.fieldObjects);
   const movers = useStore((s) => s.movers);
   const chosen = useStore((s) => s.map.selected);
+  const marked = useStore((s) => s.display.showObjects);
   const [open, setOpen] = useState(false);
   const [solar, setSolar] = useState(false);
   const openRow = useRef<HTMLLIElement>(null);
 
   const fast = new Set(movers.map((object) => object.id));
-  // A fast mover is looked for a little beyond the field, so some lie just outside it.
-  const inside = new Set(inField.map((object) => object.id));
   const listed = [...movers, ...inField.filter((object) => !fast.has(object.id))];
   const chosenHere = chosen !== null && listed.some((object) => object.id === chosen.id);
+  const chosenId = chosenHere ? chosen.id : null;
+  // An object chosen on the sky map gets the map's own card, so it does not open this list.
+  const clickedHere = useStore((s) => s.map.selectedIn === "images");
 
-  // The list opens by itself in the two cases that call for it: a fast mover near the
-  // coordinates, and an object chosen by a click in the image.
+  // The list opens by itself only when something new calls for it: a search that finds a
+  // fast mover near the coordinates, or an object newly chosen by a click in the image.
+  // Once the person hides it, it stays hidden until one of those happens again.
   useEffect(() => {
-    if (movers.length > 0 || chosenHere) setOpen(true);
-  }, [movers, chosenHere]);
+    if (movers.length > 0) setOpen(true);
+  }, [movers]);
   useEffect(() => {
-    if (open && chosenHere) openRow.current?.scrollIntoView({ block: "nearest" });
-  }, [open, chosenHere, chosen]);
+    if (chosenId !== null && clickedHere) setOpen(true);
+  }, [chosenId, clickedHere]);
+  useEffect(() => {
+    if (open && chosenId !== null) openRow.current?.scrollIntoView({ block: "nearest" });
+  }, [open, chosenId]);
 
   if (!hasTarget) return null;
   return (
     <section className={open ? "stage-label objects open" : "stage-label objects"} aria-label="Objects in this field">
-      <div className="details-head">
-        <p>
-          <strong>Objects<span className="not-narrow"> in this field</span></strong>
-          {fixed && <span className="muted"> ({listed.length})</span>}
-          {movers.length > 0 && <span className="tag">{movers.length === 1 ? "1 fast mover" : `${movers.length} fast movers`}</span>}
-        </p>
-        <button aria-expanded={open} onClick={() => setOpen((now) => !now)} title={open ? "Fold the list away" : "Show the list"}>
-          {open ? "Hide" : "Show"}
-        </button>
-      </div>
+      {/* The whole heading is one switch: it hides or shows every object in the list. */}
+      <button className="objects-head" aria-expanded={open} onClick={() => setOpen((now) => !now)} title={open ? "Hide all the objects" : "Show all the objects"}>
+        <Chevron />
+        <strong>Objects<span className="not-narrow"> in this field</span></strong>
+        {fixed && <span className="muted">({listed.length})</span>}
+        <span className="objects-word">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && fixed && (
+        <label className="check objects-mark" title="The rings and names drawn on the image">
+          <input type="checkbox" checked={marked} onChange={(event) => actions.setDisplay({ showObjects: event.target.checked })} /> Mark them on the image
+        </label>
+      )}
       {open && (
         <ul className="object-list">
           {listed.map((object) => {
             const shown = chosen?.id === object.id;
+            // A fast mover is said in plain words, unless its kind already says so.
+            const quick = fast.has(object.id) && !/fast|high proper/i.test(object.kind ?? "");
+            const note = [object.kind, quick ? "moves fast" : null].filter(Boolean).join(", ");
             return (
               <li key={object.id} ref={shown ? openRow : undefined}>
-                <button className="object-row" aria-expanded={shown} onClick={() => actions.selectObject(shown ? null : object)}>
+                <button className="object-row" aria-expanded={shown} onClick={() => actions.selectObject(shown ? null : object, "images")} title={shown ? "Hide its facts" : "Show its facts"}>
                   <Chevron />
                   <span className="object-name">{object.name}</span>
-                  {object.kind && <span className="object-kind">{object.kind}</span>}
-                  {fast.has(object.id) && <span className="tag">{inside.has(object.id) ? "Fast mover" : "Fast mover nearby"}</span>}
+                  {note && <span className="object-kind">{note}</span>}
                 </button>
                 {shown && <ObjectFacts object={object} fast={fast.has(object.id)} />}
               </li>

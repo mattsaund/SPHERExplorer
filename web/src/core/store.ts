@@ -186,6 +186,7 @@ export const useStore = create<AppState>(() => ({
     objects: [],
     objectsState: "idle",
     selected: null,
+    selectedIn: "map",
     picked: null,
     pickedIn: "map",
     fieldShown: false,
@@ -838,9 +839,13 @@ export const actions = {
     set({ mapGoal: { ra: position.ra, dec: position.dec, fov: fov ?? null, token: get().mapGoal.token + 1 } });
   },
 
-  /** Choose a known object on the map, or pass null to clear the choice. */
-  selectObject(object: SkyObject | null): void {
-    set({ map: { ...get().map, selected: object, picked: null } });
+  /**
+   * Choose a known object, or pass null to clear the choice.
+   * `from` says where it was chosen, so each side of the UI shows a card only for its own clicks.
+   */
+  selectObject(object: SkyObject | null, from: "map" | "images" = "map"): void {
+    const map = get().map;
+    set({ map: { ...map, selected: object, selectedIn: object ? from : map.selectedIn, picked: null } });
   },
 
   /**

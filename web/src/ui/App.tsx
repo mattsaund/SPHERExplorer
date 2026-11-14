@@ -195,18 +195,14 @@ function MapPlace() {
 }
 
 /**
- * The card for the sky map: a chosen object, or else the selected area.
- * With both views up, an object that is in the images' list opens there instead, and a spot
- * picked in the images is the image side's to show.
+ * The card for the sky map: an object chosen on the map, or else the selected area.
+ * An object chosen on the image side is shown there, in the list of objects. With both views
+ * up, a spot picked in the images is also the image side's to show.
  */
 function MapCards({ both, showImages }: { both: boolean; showImages: () => void }) {
-  const chosen = useStore((s) => s.map.selected);
-  const listed = useStore((s) => {
-    const id = s.map.selected?.id;
-    return id !== undefined && (s.fieldObjects.some((object) => object.id === id) || s.movers.some((object) => object.id === id));
-  });
+  const chosen = useStore((s) => (s.map.selectedIn === "map" ? s.map.selected : null));
   const fromImages = useStore((s) => s.map.picked !== null && s.map.pickedIn === "images");
-  if (chosen && !(both && listed)) return <ObjectCard object={chosen} onStudy={showImages} />;
+  if (chosen) return <ObjectCard object={chosen} onStudy={showImages} />;
   if (both && fromImages) return null;
   return <AreaCard />;
 }
@@ -539,13 +535,13 @@ export function App() {
         <div className={view === "map" ? "view images off" : "view images"}>{hasTarget ? <FrameView /> : <EmptyImages />}</div>
         {view !== "images" && <MapLabel />}
         {view !== "images" && <MapPlace />}
-        {/* The image side's own column: what the target is, then every object in its field. */}
-        {view !== "map" && (
-          <div className="image-cards">
-            <DetailsCard />
-            <ObjectsCard />
-          </div>
-        )}
+        {/* The image side's own column: what the target is, then every object in its field.
+            It stays mounted while the map alone is showing, so a card the person folded away
+            is still folded when the images come back. */}
+        <div className="image-cards" hidden={view === "map"}>
+          <DetailsCard />
+          <ObjectsCard />
+        </div>
         {/* With both views up, the map's card sits over the map and the image side's over the images. */}
         {view === "both" && (
           <div className="overlay beside-map"><MapCards both showImages={showImages} /></div>

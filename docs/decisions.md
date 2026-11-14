@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | In the objects card, all the objects can be hidden, and so can the facts of each one. The orange "fast mover" pill goes | Matt | The heading folds the whole list. A checkbox takes the marks off the image. What is hidden stays hidden when the view changes. A fast mover is said in plain words beside its kind |
 | 2026-11-14 | Austin's Claude moves to the hosting side. Matt's Claude stays the lead, checks every push, and checks compliance with the hackathon rules | Matt | Roles updated in `CLAUDE.md` |
 | 2026-11-14 | One card on the image side lists every object in the field. Each row opens and closes. It replaces the "Known asteroid or comet?" button and the fast-mover pop-ups | Matt | Fast movers come first. The last row asks which asteroids, comets, and planets were in the image on screen |
 | 2026-11-14 | The selected area card says "Selected area", then the coordinates and size, then three buttons: Select, Copy Coordinates, Close. Everything is one yellow square. It appears with a search and goes away on Close | Matt | "Select" loads the area without changing the view |

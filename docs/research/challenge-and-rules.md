@@ -1,12 +1,12 @@
 # Challenge, rules, and judging
 
-Sources: the challenge page, the 2026 Project Submission Guide, the 2026 Judging and Awards Guide, the Participant FAQ, Space Apps Connect (GitHub Discussions), and the Global Offers page. Read Nov 12 to 13, 2026.
+Sources: the challenge page, the 2026 Project Submission Guide, the 2026 Judging and Awards Guide, the Participant FAQ, Space Apps Connect (GitHub Discussions), and the Global Offers page.
 
 ## Challenge
 
 - Page: https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/
 - The objectives and optional considerations are listed in `CLAUDE.md`.
-- Resources tab, published Nov 13:
+- Resources tab:
 
 | Resource | Source | Note from the tab |
 |---|---|---|
@@ -42,7 +42,7 @@ Required fields: project name, high-level summary, demo link, final project link
 
 ## SI policy
 
-- AI is called "Super Intelligence (SI)" in 2026, per a Sept 29, 2026 U.S. Executive Order.
+- Space Apps 2026 uses the term "Super Intelligence (SI)", following a 2026 U.S. Executive Order.
 - SI tools are permitted "as a tool to accelerate innovation and creativity". But "SI should not be used to (come up with your idea of how to solve the challenge)."
 - "Generated content may not use, contain, or modify any NASA branding or design elements (such as the NASA logos, flags, or mission identifiers)."
 - Labeling rules:
@@ -93,8 +93,8 @@ Every level of judging scores each criterion from 1 to 5.
 ## Pre-event rule, for the record
 
 - FAQ: "Teams are not allowed to begin working on the challenges prior to the hackathon."
-- GO Team, Nov 4 (Space Apps Connect discussion 1777): allowed before the event were "select a challenge to work on, review the resources, research the topic, and form your team". Also "Working ahead of the hackathon can lead to disqualification."
-- GO Team, Nov 9 (discussion 1872): "I would hold off on discussing features or sketching out UI".
+- GO Team (Space Apps Connect discussion 1777): allowed before the event were "select a challenge to work on, review the resources, research the topic, and form your team". Also "Working ahead of the hackathon can lead to disqualification."
+- GO Team (discussion 1872): "I would hold off on discussing features or sketching out UI".
 - Previous work and open-source libraries are allowed if credited and not built specifically for Space Apps (Collaborator answer, discussion 1924).
 - The research in `docs/research/` was gathered before the event under the "research the topic" allowance. No project code was written before Nov 14, 9:00 am.
 
@@ -119,7 +119,7 @@ Page: https://www.spaceappschallenge.org/2026/global-offers/ . The page says the
 
 ## Prior art and originality
 
-Snapshot from the night of Nov 13. Compare by name and description only. Don't read other teams' code.
+Snapshot of public repo names and descriptions. Compare by name and description only. Don't read other teams' code.
 
 - GitHub had 196 repos mentioning SPHEREx created since June 2026. Nearly all recent ones are Space Apps 2026 entries. 744 teams are registered for this challenge.
 - Common themes in their descriptions:
@@ -150,5 +150,5 @@ Snapshot from the night of Nov 13. Compare by name and description only. Don't r
   - Check VizieR for proper motion above about 100 mas/yr.
   - Don't trust AllWISE proper motions ("systematically high").
 - Science team vetting: confirm motion by eye, photometric type L0 or later, motion above 3 sigma (CatWISE2020, Gaia DR3, or unTimely), then spectroscopy.
-- Related projects: Cool Neighbors (2023), Binaries (June 2026), and "The Rogue Worlds Project ... with SPHEREx" (AMNH, selected by NASA Oct 28, 2026, no public tool yet).
+- Related projects: Cool Neighbors (2023), Binaries (June 2026), and "The Rogue Worlds Project ... with SPHEREx" (AMNH, selected by NASA in 2026, no public tool yet).
 - 299 Backyard Worlds discoveries already have SPHEREx spectra (https://zenodo.org/records/20603369). Gagné et al. 2026 extracted SPHEREx spectra for 6,003 ultracool dwarfs, 947 of them new.

@@ -1,7 +1,5 @@
 # Partner data and other resources from the challenge page
 
-Checked Nov 13, 2026.
-
 ## CSA NEOSSat (Space Agency Partner data)
 
 - Canada's Near-Earth Object Surveillance Satellite. Launched Feb 25, 2013, into an orbit about 780 km up with a 100-minute period.
@@ -26,7 +24,7 @@ Checked Nov 13, 2026.
 
 ### Coverage near the test targets
 
-Images within 0.5 degrees, CADC TAP, Nov 13.
+Images within 0.5 degrees, from CADC TAP.
 
 | Target | Images | Dates | After SPHEREx began (May 2025) |
 |---|---|---|---|

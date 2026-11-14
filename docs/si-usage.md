@@ -1,6 +1,6 @@
 # SI usage log
 
-Space Apps calls AI "Super Intelligence (SI)". We use SI tools and label their output. This log feeds the README and the submission's SI answer.
+Space Apps 2026 uses the term "Super Intelligence (SI)" for tools such as Claude Code. We use SI tools and label their output. This log feeds the README and the submission's SI answer.
 
 ## Tools
 
@@ -15,9 +15,12 @@ Space Apps calls AI "Super Intelligence (SI)". We use SI tools and label their o
 - SI-generated images or video carry a visible watermark.
 - Notable uses are logged below.
 
+## Background research
+
+Claude gathered the notes in `docs/research/`: SPHEREx data access, test target facts, libraries and services, and Space Apps rules and resources. Matt chose the questions and reviewed the findings. The research came before kickoff, under the Space Apps rule that lets teams research the topic. No project code was written before the event started.
+
 ## Log
 
 | Date | Who | What Claude did | Human role |
 |---|---|---|---|
-| 2026-11-12 to 13 | Matt | Research before the event, as the rules allow: SPHEREx data access, test target facts, libraries and services, Space Apps rules and resources. No project code. | Matt chose the questions and reviewed the findings |
 | 2026-11-14 | Matt | Set up this repo: CLAUDE.md, README, docs, license, .gitignore, and the writing-rule hook. Moved the research into `docs/research/`. | Matt requested the setup and the public repo |

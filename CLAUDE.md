@@ -28,6 +28,7 @@ Space Apps requires SI-generated code and data to be acknowledged "in descriptiv
 - Every source file Claude creates starts with a short header comment: what the file does, plus "Written with Claude Code (Anthropic) assistance."
 - SI-generated images or video carry a visible watermark. SI-generated audio is acknowledged in text and metadata.
 - Log notable SI use in `docs/si-usage.md`.
+- Say SI (Super Intelligence), the Space Apps term. Don't use other names for it in docs, UI copy, comments, or commit messages.
 
 ## Rule 3: reference everything
 
@@ -84,14 +85,14 @@ Judges score Impact, Creativity, Validity, Relevance, and Presentation from 1 to
 
 Details in `docs/research/`.
 
-- Query `spherex_dr1`, `spherex_dr1_deep`, `spherex_qr3`, and `spherex_qr3_deep`. QR2 stopped returning results from search on Nov 13. DR1 and QR3 form one uniformly processed set.
+- Query `spherex_dr1`, `spherex_dr1_deep`, `spherex_qr3`, and `spherex_qr3_deep`. QR2 no longer returns results from search. DR1 and QR3 form one uniformly processed set.
 - Each exposure of a fixed sky position lands at a different wavelength (linear variable filters). Compare like wavelengths when looking for change.
 - High proper motion targets have moved. Barnard's Star is 270" from its J2000 position, Eps Ind B 122", and WISE 0855 is 127" west of NASA's coordinate. Propagate positions to each observation epoch.
 - WISE 0855 is only visible above about 3.9 microns (detectors D5 and D6), at S/N 1.4 to 6.6 per frame.
 - Barnard's Star, R Dra, and Eps Ind A saturate. Saturated cores are NaN.
 - IRSA SIA, TAP, and cutouts send no CORS headers, so browsers can't call them directly. The S3 bucket `nasa-irsa-spherex` and IRSA HiPS allow browser access.
 - The cutout service throttles (HTTP 503, Retry-After 5). Each cutout is 4 to 5 MB because the PSF extension is copied whole.
-- CDS (SIMBAD, VizieR, Aladin CDN, alasky HiPS) has been degraded since Nov 9. Use the CfA and IDIA mirrors, and load Aladin Lite from npm or jsDelivr.
+- CDS (SIMBAD, VizieR, Aladin CDN, alasky HiPS) is degraded. Use the CfA and IDIA mirrors, and load Aladin Lite from npm or jsDelivr.
 
 ## Two Claudes, one repo
 

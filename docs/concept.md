@@ -4,7 +4,23 @@ Owned by Matt and Austin. Claude does not write or change the concept. Claude ma
 
 ## Final concept
 
-To be decided by Matt and Austin at kickoff on Nov 14. Record the concept, the feature list, and the priority order here.
+Given by Matt for the team at kickoff on Nov 14, 2026. Recorded exactly as written.
+
+> Our concept is to make this project able to pull out every bit of utilization this satellite can offer. We want:
+>
+> - the map to be fully annotated and movable. full FOV. all annotations will give information of the known object when clicked on.
+> - all different map layouts, the ones that currently exist as well as new ones like 360 degree.
+> - ability to highlight specific parts of the sky or put in coordinates of specific space objects and compare over time with sliders and play/pause.
+> - ability to fully utilize the 102 different wavelength bands and have data able to be added together from each of the six detector arrays.
+> - Generate spectra on the fly.
+> - Utilize data from other missions (Gaia, WISE) with all the other missions instrumentation. (astronomical data tools like CDS)
+> - Ability to keep this service updatable to handle the newest data from the satellites.
+> - Tools that make change over time studies extremely easy. movement and star light dimming to search for objects
+> - Tools that make spectroscopy easier to extrapolate elements like hydrogen, oxygen, water, ect
+>
+> Remember, I want this program to be used for all types of space science and research. Galaxies, pulsars, black holes, stars, exoplanets, commets, astroids, everything. I want full utilization from these satellites.
+
+Priority order: not set by the team yet. Until it is, the build order in `docs/architecture.md` puts NASA's stated objectives first.
 
 ## Matt's original notes
 

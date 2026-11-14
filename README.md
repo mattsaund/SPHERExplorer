@@ -8,7 +8,7 @@ Built by team Turing Complete (Matt and Austin) for the [NASA Space Apps Challen
 
 ## Use of Super Intelligence (SI)
 
-Space Apps calls AI tools "Super Intelligence (SI)". We use them and label their output.
+Space Apps 2026 uses the term "Super Intelligence (SI)" for tools such as Claude Code. We use SI tools and label their output.
 
 - **Tool.** Claude Code (Anthropic), with Claude Opus 5.5 and Claude Fable 5.2.
 - **What it does.** Background research on SPHEREx data and services, code generation, documentation, and testing.

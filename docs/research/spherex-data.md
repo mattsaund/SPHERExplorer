@@ -1,6 +1,6 @@
 # SPHEREx data
 
-Research from Nov 12 to 13, 2026, with live checks against IRSA. "Unverified" marks items not confirmed in a primary source.
+Includes live checks against IRSA. "Unverified" marks items not confirmed in a primary source.
 
 ## Mission and instrument
 
@@ -48,13 +48,13 @@ Research from Nov 12 to 13, 2026, with live checks against IRSA. "Unverified" ma
 
 ## Releases and collections
 
-| Collection | Contents | Status on Nov 13 |
+| Collection | Contents | Status |
 |---|---|---|
 | `spherex_dr1` | Data Release 1: Year 1 images reprocessed with pipeline 7 | Live |
 | `spherex_dr1_deep` | DR1 deep-field images | Live |
 | `spherex_qr3` | Quick Release 3, pipeline 7, data from 2026-07-20 on | Live, weekly batches |
 | `spherex_qr3_deep` | QR3 deep-field images | Live |
-| `spherex_qr2`, `spherex_qr2_deep` | Older quick release, pipeline 6 | 0 rows from SIA since Nov 13 |
+| `spherex_qr2`, `spherex_qr2_deep` | Older quick release, pipeline 6 | 0 rows from SIA |
 | `spherex_qr` | QR1 | Retired Feb 2026 |
 
 - IRSA: "The DR1 spectral images are intended to be used together with the QR3 spectral images as a uniformly processed set."

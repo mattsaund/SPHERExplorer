@@ -39,4 +39,4 @@
 
 ## Space Apps project page
 
-- The Project tab appears at 9:00 am on Nov 14. It has an edit lock. Turn it on while editing so you don't overwrite each other, and save often.
+- The Project tab opened at kickoff. It has an edit lock. Turn it on while editing so you don't overwrite each other, and save often.

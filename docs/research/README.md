@@ -1,6 +1,6 @@
 # Research notes
 
-Collected Nov 12 to 14, 2026, from public sources and live checks against the services. Items marked "unverified" were not confirmed in a primary source. Recheck anything time-sensitive, such as service status, collection names, and release dates.
+Collected from public sources and live checks against the services. Items marked "unverified" were not confirmed in a primary source. Recheck anything time-sensitive, such as service status, collection names, and release dates.
 
 | File | Covers |
 |---|---|

@@ -1,6 +1,6 @@
 # Test targets
 
-NASA asks teams to test on these five targets. Positions are propagated to epoch 2026.0 with full space motion. Pixel motions use 6.15 arcsec per pixel. Checked Nov 12 to 13, 2026.
+NASA asks teams to test on these five targets. Positions are propagated to epoch 2026.0 with full space motion. Pixel motions use 6.15 arcsec per pixel.
 
 ## Summary
 
@@ -14,7 +14,7 @@ NASA asks teams to test on these five targets. Positions are propagated to epoch
 
 ## SPHEREx images per collection
 
-SIA, radius 0.01 degrees, Nov 13 (after DR1 went live).
+SIA, radius 0.01 degrees, with DR1 live.
 
 | Target | dr1 | dr1_deep | qr3 | qr3_deep |
 |---|---|---|---|---|
@@ -24,7 +24,7 @@ SIA, radius 0.01 degrees, Nov 13 (after DR1 went live).
 | RW Aur | 226 | 0 | 110 | 0 |
 | R Dra | 422 | 1,233 | 126 | 733 |
 
-Season dates below were measured on QR2 on Nov 12. DR1 covers the same observations.
+Season dates below were measured on QR2. DR1 covers the same observations.
 
 ## Barnard's Star
 
@@ -90,7 +90,7 @@ Season dates below were measured on QR2 on Nov 12. DR1 covers the same observati
 
 ## NEOSSat coverage (CSA partner data)
 
-Images within 0.5 degrees, from CADC on Nov 13. See `partner-data.md`.
+Images within 0.5 degrees, from CADC. See `partner-data.md`.
 
 | Target | Images | Dates |
 |---|---|---|

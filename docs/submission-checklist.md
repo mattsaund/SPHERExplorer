@@ -1,6 +1,6 @@
 # Submission checklist
 
-From the 2026 Project Submission Guide and the 2026 Judging and Awards Guide (published Nov 13, 2026).
+From the 2026 Project Submission Guide and the 2026 Judging and Awards Guide.
 Deadline: click "Submit for Judging" before Sun Nov 15, 11:59 pm, local time of our Local Event.
 
 ## Eligibility

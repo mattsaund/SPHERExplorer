@@ -1,11 +1,11 @@
 # Services and libraries
 
-Research from Nov 12 to 13, 2026. CORS was tested with the header `Origin: https://example.com`.
+CORS was tested with the header `Origin: https://example.com`.
 
 ## CDS outage (check this first)
 
-- CDS Strasbourg declared a cybersecurity incident (notice updated Nov 9). SIMBAD, VizieR, Aladin image surveys, and X-Match are degraded. Status page: https://cds.unistra.fr/
-- Still down on Nov 13: SIMBAD and VizieR on cds.unistra.fr (404), the Aladin Lite script on aladin.cds.unistra.fr (404), alasky HiPS properties (404).
+- CDS Strasbourg declared a cybersecurity incident. SIMBAD, VizieR, Aladin image surveys, and X-Match are degraded. Status page: https://cds.unistra.fr/
+- Down at the last check: SIMBAD and VizieR on cds.unistra.fr (404), the Aladin Lite script on aladin.cds.unistra.fr (404), alasky HiPS properties (404).
 - Working mirrors that allow browser requests:
   - SIMBAD TAP: https://simbad.cfa.harvard.edu/simbad/sim-tap/sync (data frozen 2026-10-14) and https://simbad.idia.ac.za/simbad/sim-tap/sync
   - VizieR, no TAP: https://vizier.idia.ac.za and https://vizier.cfa.harvard.edu
@@ -54,7 +54,7 @@ Research from Nov 12 to 13, 2026. CORS was tested with the header `Origin: https
 |---|---|---|
 | Gaia DR3 | VizieR IDIA mirror `I/355/gaiadr3`, GAVO TAP `gaia.dr3lite` (https://dc.g-vo.org/tap/sync) | ESA Gaia TAP (https://gea.esac.esa.int/tap-server/tap/sync), MAST |
 | AllWISE | VizieR mirrors `II/328/allwise` | IRSA `allwise_p3as_psd` |
-| CatWISE2020 | None working on Nov 12 | IRSA `catwise_2020` |
+| CatWISE2020 | None found working | IRSA `catwise_2020` |
 | 2MASS | VizieR `II/246/out`, GAVO `twomass.data` | IRSA `fp_psc` |
 | SIMBAD | CfA and IDIA TAP mirrors | CDS (down) |
 | Variable stars | VizieR `B/vsx/vsx` | AAVSO VSX API (behind a Cloudflare challenge) |

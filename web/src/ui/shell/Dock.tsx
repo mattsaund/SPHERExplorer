@@ -206,6 +206,8 @@ function SaveAndShare() {
 function MapTools() {
   const map = useStore((s) => s.map);
   const meta = useStore((s) => s.meta);
+  const target = useStore((s) => s.target);
+  const fieldSize = useStore((s) => s.fieldSize);
   const current = SKY_LAYERS.find((entry) => entry.id === map.layer) ?? SKY_LAYERS[0];
   return (
     <details open>
@@ -233,6 +235,11 @@ function MapTools() {
       <p className="muted">{PROJECTIONS.find((entry) => entry.id === map.projection)?.about}</p>
       <label className="check"><input type="checkbox" checked={map.labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Labels</label>
       <label className="check"><input type="checkbox" checked={map.grid} onChange={(e) => actions.setMap({ grid: e.target.checked })} /> Grid</label>
+      {target && (
+        <button onClick={() => actions.flyTo(target, (fieldSize / 3600) * 1.6)} title="Zoom the map to the patch of sky the images show, to compare the two">
+          Zoom to the images' field
+        </button>
+      )}
       <button onClick={() => actions.flyTo({ ra: 266.4, dec: -29 }, 200)}>Whole sky</button>
     </details>
   );

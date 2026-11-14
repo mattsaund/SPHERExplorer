@@ -72,10 +72,12 @@ export function App() {
       <TopBar />
       <Messages />
       <div className="middle">
-        <Stage />
+        <div className="main">
+          <Stage />
+          <Tray />
+        </div>
         <Dock />
       </div>
-      <Tray />
       <BottomBar />
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>

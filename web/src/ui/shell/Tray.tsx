@@ -55,6 +55,8 @@ function SpectrumTab() {
             the halo's, so it reads lower than the star's true brightness.
           </p>
         )}
+        <FeaturesList />
+        <p className="group">Plot settings</p>
         <div className="row wrap">
           <label className="check"><input type="checkbox" checked={settings.perVisit} onChange={(e) => actions.setSpectrum({ perVisit: e.target.checked })} /> Compare visits</label>
           <label className="check"><input type="checkbox" checked={settings.showPoints} onChange={(e) => actions.setSpectrum({ showPoints: e.target.checked })} /> Every measurement</label>
@@ -91,7 +93,6 @@ function SpectrumTab() {
             </button>
           ))}
         </div>
-        <FeaturesList />
         <button onClick={() => actions.saveSpectrum()} disabled={!count}>Save spectrum table</button>
       </div>
     </section>
@@ -217,10 +218,10 @@ function AboutTab() {
         <strong>Not a NASA product.</strong> This is an independent team project. It is not an official NASA product and is not endorsed by NASA.
       </p>
       <p>
-        <strong>Data.</strong> {DATA_CREDIT}. This tool makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of
+        <strong>Data.</strong> {DATA_CREDIT.replace(/^Data: /, "")}. This tool makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of
         Reionization and Ices Explorer (SPHEREx), a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, funded by the
         National Aeronautics and Space Administration. It also uses the NASA/IPAC Infrared Science Archive.
-        {archive && ` ${archive.exposures.toLocaleString("en-US")} exposures are indexed, from releases ${archive.releases.join(" and ").toUpperCase()}.`}
+        {archive && ` ${archive.exposures.toLocaleString("en-US")} exposures are indexed, from releases ${archive.releases.map((release) => release.toUpperCase()).join(" and ")}.`}
       </p>
       <p>
         <strong>Other sources.</strong> Object names and facts from SIMBAD (CDS, Strasbourg). Star positions from Gaia DR3 (ESA). Brightness from 2MASS and

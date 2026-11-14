@@ -41,6 +41,11 @@
   --map-label: #9be8ff;
   --map-marker: #ff6b6b;
   --map-field: #ffd24a;
+  /* The crosshair on a chosen place on the map. The same yellow as the target marker in the images. */
+  --map-pick: #ffd24a;
+  --map-coverage: #ffa94d;
+  --map-deep: #c79bff;
+  --map-measure: #ffffff;
   --orbit-land: #3d5a45;
   --orbit-sea: #0e2233;
   --orbit-night: rgba(0, 0, 0, 0.45);

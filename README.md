@@ -13,12 +13,12 @@ Type a name or coordinates. SPHERExplorer finds every SPHEREx image of that spot
 - **Search.** Object names, J2000 RA and Dec in any common form, or a planet, asteroid, or comet. A dropdown suggests matches as you type.
 - **Watch.** Step through every exposure, one summed image per visit, one per wavelength, or the deepest sum of all.
 - **See change.** Follow a moving star or comet, subtract one visit from another, measure how fast a source moves, and track brightness over time.
-- **Name the movers.** Click a dot that moved and ask whether a known asteroid or comet was there at that moment. Then follow it by name.
+- **Name what is there.** One list holds every known object in the field. It also tells which asteroids, comets, and planets were in the image on screen at that moment. Follow any of them by name.
 - **Find change.** One button checks every source in the field and reports what moved, brightened, or faded between visits. It finds all five of NASA's test targets on its own, including stars too bright for the detector.
 - **Use all 102 colors.** Sum any of the six detectors, view full color, and read the spectrum of anything you point at.
 - **Identify.** Mark hydrogen, water, carbon dioxide, methane, and more on the spectrum. Slide the redshift for galaxies. The tool also measures which of them actually stand out, and says so in plain words.
 - **Compare.** Gaia stars, 2MASS and WISE brightness, and NEOSSat images of the same field.
-- **Explore.** A sky map with the SPHEREx all-sky survey in every channel and in full color, other missions, seven map shapes, and clickable labels.
+- **Explore.** A sky map with the SPHEREx all-sky survey in every channel and in full color, other missions, seven map shapes, and clickable labels. Overlays show where SPHEREx has images and where its deep fields are. Drag the selected area anywhere, measure angles, and copy coordinates.
 - **Share.** Every view has a link. Save pictures, animations, and spectrum tables.
 - **Embed.** Put coordinates in the address and add `embed=1` to place the viewer inside any web page. See [docs/embedding.md](docs/embedding.md).
 

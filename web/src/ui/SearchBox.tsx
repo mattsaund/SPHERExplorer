@@ -95,7 +95,11 @@ export function SearchBox() {
             setProblem(null);
             show(event.target.value);
           }}
-          onFocus={() => show(text)}
+          onFocus={(event) => {
+            // Select what is there, so typing a new search replaces the old one.
+            event.target.select();
+            show(text);
+          }}
           onKeyDown={onKey}
           placeholder="Object name, or RA and Dec (J2000), for example Vega or 08h55m10.8s -07d14m42s"
           autoComplete="off"

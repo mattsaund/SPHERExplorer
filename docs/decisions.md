@@ -4,6 +4,18 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Austin's Claude moves to the hosting side. Matt's Claude stays the lead, checks every push, and checks compliance with the hackathon rules | Matt | Roles updated in `CLAUDE.md` |
+| 2026-11-14 | One card on the image side lists every object in the field. Each row opens and closes. It replaces the "Known asteroid or comet?" button and the fast-mover pop-ups | Matt | Fast movers come first. The last row asks which asteroids, comets, and planets were in the image on screen |
+| 2026-11-14 | The selected area card says "Selected area", then the coordinates and size, then three buttons: Select, Copy Coordinates, Close. Everything is one yellow square. It appears with a search and goes away on Close | Matt | "Select" loads the area without changing the view |
+| 2026-11-14 | The selector mark on the map is a yellow crosshair, like the target marker in the images | Matt | Asked for green first, then yellow |
+| 2026-11-14 | The Examples drop-down leaves the top bar | Matt | NASA's test targets stay in the Find dropdown and in the empty image view |
+| 2026-11-14 | No loading card. The bottom bar says "Loading images x/x" beside a circular progress ring | Matt | The note about a sampled large field moved into the status line |
+| 2026-11-14 | The sky map gets the overlays of the IRSA site: SPHEREx spectral images, SPHEREx deep fields, the grid, and a measure tool | Matt | The coverage maps are IRSA's own files. The grid is the HEALPix tile grid, beside the coordinate grid |
+| 2026-11-14 | "What changed" and "Motion" become one tab named "Studies". Its two studies are named "Measure Changes" and "Measure Movement" | Matt | |
+| 2026-11-14 | The study box moves when dragged from inside | Matt | Dragging its edge still resizes it |
+| 2026-11-14 | The settings drawer gets divider lines. Sky map settings sit on the left, image study settings on the right, and the line between them sits where the line between the two views is | Matt | |
+| 2026-11-14 | The current coordinates show in the lower left of the sky map, with a button that copies them | Matt | Pointer and center. Copy takes the center |
+| 2026-11-14 | A search moves both the sky map and the study to the target. The image window never comes up by itself | Matt | The view buttons, the player, and "Study" buttons bring it up |
 | 2026-11-14 | Every graph goes in one tab. The other telescopes and the live map go in one tab, with maps for the other satellites and telescopes | Matt | Graphs tab and Telescopes tab |
 | 2026-11-14 | Map settings and image settings are one drawer, so they do not jump around | Matt | The player is always the bottom bar |
 | 2026-11-14 | The target's details are a card in the corner of the image, not a tab at the bottom | Matt | The card folds to one line |

@@ -1,4 +1,4 @@
-// "What changed here": runs the change finder over the whole loaded field and lists what moved
+// "Measure Changes": runs the change finder over the whole loaded field and lists what moved
 // or changed brightness. Kept in its own file so any layout can place it.
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
@@ -23,8 +23,8 @@ export function ChangesPanel({ onShow }: { onShow?: () => void }) {
   const yardstick = (count: number, value: string) => (count > 0 ? `${value}, from ${count} steady sources` : `${value}, a cautious standard value because this field has too few steady sources`);
 
   return (
-    <section className="panel" aria-label="What changed">
-      <h2>What changed here?</h2>
+    <section className="panel" aria-label="Measure changes">
+      <h2>Measure Changes</h2>
       <p className="muted">
         Checks every source in the field, not only the target. It finds anything that moved, brightened, or faded between visits. The field's own steady
         stars are the yardstick.

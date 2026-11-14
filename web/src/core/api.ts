@@ -11,6 +11,11 @@ export function apiUrl(path: string): string {
   return new URL(BASE + path, window.location.href).href;
 }
 
+/** Address of a coverage map of the SPHEREx archive, as a FITS MOC file. */
+export function coverageUrl(name: "spectral-images" | "deep-fields"): string {
+  return apiUrl(`/coverage/${name}`);
+}
+
 /** An error with a message fit to show a person. */
 export class ApiError extends Error {}
 

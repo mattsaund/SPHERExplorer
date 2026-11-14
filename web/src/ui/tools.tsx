@@ -103,15 +103,7 @@ function Spectrum() {
   );
 }
 
-/** Everything in the field that moved, brightened, or faded. "Show" brings the images forward. */
-function Changes({ showImages }: ToolProps) {
-  return (
-    <NeedsTarget then="Anything in its field that moved or changed brightness is listed here.">
-      <div className="tool"><ChangesPanel onShow={showImages} /></div>
-    </NeedsTarget>
-  );
-}
-
+/** How fast the target crosses the sky, measured from one visit to the next. */
 function Motion() {
   const motion = useStore((s) => s.motion);
   const visits = useStore((s) => s.visits);
@@ -124,16 +116,15 @@ function Motion() {
   if (moving) blocked = "Motion is measured for stars and other targets outside the solar system. Planets, asteroids, and comets are already followed along their path.";
   else if (visits.length < 2) blocked = "Motion needs images from at least two visits. This target has fewer so far.";
   return (
-    <NeedsTarget then="Its motion can be measured here.">
-      <div className="tool">
-        <h2>Is it moving?</h2>
+      <section className="study" aria-label="Measure movement">
+        <h2>Measure Movement</h2>
         <p className="muted">Finds the source in each visit and measures how fast it crosses the sky. Uses the detectors that are switched on.</p>
         {blocked ? (
           <p>{blocked}</p>
         ) : (
           <>
             <div className="row wrap">
-              <button className="primary" onClick={() => { actions.measureMotion(); setTriedIn(session); }}>Measure motion</button>
+              <button className="primary" onClick={() => { actions.measureMotion(); setTriedIn(session); }}>{motion ? "Measure again" : "Measure"}</button>
             </div>
             {motion && (
               <>
@@ -153,6 +144,20 @@ function Motion() {
             {tried && !motion && <p className="problem">The source was not found in two visits. Try other detectors or a brighter source.</p>}
           </>
         )}
+      </section>
+  );
+}
+
+/**
+ * The studies that run at the press of a button, in one tab: what changed anywhere in the
+ * field, and how the target itself moves. "Show" on a found change brings the images forward.
+ */
+function Studies({ showImages }: ToolProps) {
+  return (
+    <NeedsTarget then="Studies of its field appear here: what moved or changed brightness, and how fast the target crosses the sky.">
+      <div className="studies">
+        <div className="study"><ChangesPanel onShow={showImages} /></div>
+        <Motion />
       </div>
     </NeedsTarget>
   );
@@ -368,8 +373,7 @@ function About() {
 
 export const TOOLS: { id: string; label: string; Panel: ComponentType<ToolProps> }[] = [
   { id: "graphs", label: "Graphs", Panel: Graphs },
-  { id: "changes", label: "What changed", Panel: Changes },
-  { id: "motion", label: "Motion", Panel: Motion },
+  { id: "studies", label: "Studies", Panel: Studies },
   { id: "telescopes", label: "Telescopes", Panel: Telescopes },
   { id: "save", label: "Save and share", Panel: SaveAndShare },
   { id: "about", label: "About", Panel: About },

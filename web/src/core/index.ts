@@ -16,6 +16,7 @@ export type {
   KnownCheck,
   LoadState,
   MapState,
+  Measurement,
   Meta,
   MissionData,
   PartnerData,
@@ -44,7 +45,7 @@ export type { AppState, View } from "./store";
 export { actions, useStore } from "./store";
 export { TEST_TARGETS } from "./targets";
 export { COLOR_MAPS } from "./colormaps";
-export { distanceMethod, formatAu, formatDate, formatDec, formatDistance, formatMonth, formatRa, mjdToDate, mjdToYear, parseCoordinates } from "./astro";
+export { distanceMethod, formatAngle, formatAu, formatDate, formatDec, formatDistance, formatMonth, formatRa, mjdToDate, mjdToYear, parseCoordinates } from "./astro";
 export { formatWavelength } from "./sequence";
 export { FrameView } from "./FrameView";
 export { SpectrumPlot } from "./SpectrumPlot";

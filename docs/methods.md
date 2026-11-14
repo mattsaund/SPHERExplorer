@@ -49,8 +49,8 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 
 ### Is a moving dot already known?
 
-- A dot that shows in one image and not the next may be an asteroid. Clicking it and asking sends the spot and the time of that image to the SkyBoT service of IMCCE (Paris Observatory), which works out where every known solar system body was at that moment.
-- The answer lists what was within 2 arcminutes, nearest first, with its kind, magnitude, and motion. Any of them can then be followed through the SPHEREx images by name.
+- A dot that shows in one image and not the next may be an asteroid. The last row of the objects list asks the SkyBoT service of IMCCE (Paris Observatory) where every known solar system body was at the time of the image on screen.
+- The search is a circle from the middle of that image out to its corners. Bodies outside the square image are dropped. The answer lists the rest, nearest the middle first, with kind, magnitude, and motion. Any of them can then be followed through the SPHEREx images by name.
 - SkyBoT's positions are for the center of the Earth. SPHEREx is at most 7,000 km from it, which shifts a main-belt asteroid by a few arcseconds.
 - Checked on Vesta: asked at the position our own JPL Horizons path gives for one exposure, SkyBoT places Vesta 0.3 arcsec away.
 
@@ -131,6 +131,13 @@ Checked on known objects.
 ## 12. Distance
 
 - `distance.py` uses a parallax when it is at least five times its error, then a published distance from SIMBAD, then the redshift with Planck 2018 cosmology.
+
+## 13. The sky map's overlays and measure tool
+
+- The two coverage overlays are IRSA's own coverage maps, the ones its SPHEREx Data Explorer shows: every part of the sky with spectral images in the archive, and the deep fields. They are files in the IVOA MOC format. The API relays them, because IRSA does not let browsers read them directly, and keeps each for a day.
+- The tile grid is the HEALPix grid that every all-sky map (HiPS) is cut into. Aladin Lite draws it.
+- The measure tool gives the angle between two points on the sky with the Vincenty formula, which is exact at any separation. The direction is counted from north through east. The line drawn is the shortest path on the sky, in 48 pieces, so it is right in every map shape. Checked against the map library's own conversion from screen to sky, to 0.01 arcsec.
+- The coordinates box shows right ascension and declination, J2000, under the pointer and at the center of the map. What it copies reads back into the Find box and into other archives.
 
 ## Known limits
 

@@ -11,7 +11,7 @@ import { getPixels, imageOf } from "./pixels";
 import { FrameRenderer } from "./render/renderer";
 import { DEFAULT_APERTURE } from "./spectrum";
 import { actions, useStore, type AppState } from "./store";
-import type { SequenceItem, SkyObject } from "./types";
+import type { SequenceItem, SkyObject, Target } from "./types";
 
 /** How many known objects get a label in the frame view. */
 const OBJECT_LABELS = 25;
@@ -188,23 +188,26 @@ export function FrameView({ className }: { className?: string }) {
 
       // Known objects, moved to where they were at the time of the image on screen.
       labels = [];
+      const following = scene.stack !== undefined && state.follow;
+      /** Where a known object is on screen in the image now showing. */
+      const objectAt = (object: SkyObject, mjd: number, target: Target): [number, number] => {
+        const place = positionAt({ ra: object.ra, dec: object.dec, epoch: object.epoch, pmRa: object.pmRa ?? 0, pmDec: object.pmDec ?? 0 }, mjd);
+        let [east, north] = skyOffset(place, target);
+        // A sum that follows the target is drawn in the target's own frame.
+        if (following) {
+          const track = skyOffset(positionAt(target, mjd), target);
+          east -= track[0];
+          north -= track[1];
+        }
+        return [w / 2 - (east - state.view.east) / scale, h / 2 - (north - state.view.north) / scale];
+      };
       if (state.display.showObjects && state.target && item) {
         ctx.font = `12px ${font}`;
         ctx.textBaseline = "middle";
         ctx.textAlign = "left";
         ctx.lineWidth = 1.5;
-        const following = scene.stack !== undefined && state.follow;
         for (const object of state.fieldObjects.slice(0, OBJECT_LABELS)) {
-          const place = positionAt({ ra: object.ra, dec: object.dec, epoch: object.epoch, pmRa: object.pmRa ?? 0, pmDec: object.pmDec ?? 0 }, item.mjd);
-          let [east, north] = skyOffset(place, state.target);
-          // A sum that follows the target is drawn in the target's own frame.
-          if (following) {
-            const track = skyOffset(positionAt(state.target, item.mjd), state.target);
-            east -= track[0];
-            north -= track[1];
-          }
-          const x = w / 2 - (east - state.view.east) / scale;
-          const y = h / 2 - (north - state.view.north) / scale;
+          const [x, y] = objectAt(object, item.mjd, state.target);
           if (x < -20 || y < -20 || x > w + 20 || y > h + 20) continue;
           // The target already has its own marker. A second ring would hide a faint source.
           const markX = w / 2 - (scene.marker[0] - state.view.east) / scale;
@@ -217,6 +220,27 @@ export function FrameView({ className }: { className?: string }) {
           ctx.stroke();
           ctx.fillText(object.name, x + 13, y);
           labels.push({ x, y, object });
+        }
+      }
+
+      // The object chosen in the list or by a click gets a second, wider ring, so it is easy
+      // to find. It is named here when it has no label of its own.
+      const chosen = state.map.selected;
+      if (chosen && state.target && !state.target.moving && item) {
+        const [x, y] = objectAt(chosen, item.mjd, state.target);
+        if (x > -20 && y > -20 && x < w + 20 && y < h + 20) {
+          ctx.strokeStyle = label;
+          ctx.fillStyle = label;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(x, y, 14, 0, Math.PI * 2);
+          ctx.stroke();
+          if (!labels.some((entry) => entry.object.id === chosen.id)) {
+            ctx.font = `12px ${font}`;
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+            ctx.fillText(chosen.name, x + 18, y);
+          }
         }
       }
 
@@ -470,7 +494,7 @@ export function FrameView({ className }: { className?: string }) {
       const [east, north] = skyAt(x, y, state);
       const item = state.sequence[state.player.index];
       const origin = state.target.moving && item ? state.frames[item.frameIds[0]].center ?? state.target : state.target;
-      actions.pick(offsetToSky(east, north, origin));
+      actions.pick(offsetToSky(east, north, origin), "images");
     }
     function onWheel(event: WheelEvent) {
       event.preventDefault();
@@ -499,9 +523,15 @@ export function FrameView({ className }: { className?: string }) {
     observer.observe(wrap);
     resize();
     registerCapture({ renderStep });
-    // Redraw on any change except the pointer readout, which does not affect the picture.
+    // Redraw on any change except those that do not touch the picture: the pointer readouts,
+    // the search dropdown, the telescopes' live places, and the sky map moving about.
+    // Of the map's state, only the picked place and the chosen object are drawn here.
+    const unseen = new Set(["hover", "mapHover", "suggestions", "craftNow", "spacecraftNow", "map", "mapGoal"]);
     const unsubscribe = useStore.subscribe((state, before) => {
-      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view && state.fieldObjects === before.fieldObjects && state.subtract === before.subtract && state.missions === before.missions && state.spectrum === before.spectrum && state.map.picked === before.map.picked) return;
+      const now = state as unknown as Record<string, unknown>;
+      const then = before as unknown as Record<string, unknown>;
+      const changed = Object.keys(now).some((key) => !unseen.has(key) && now[key] !== then[key]);
+      if (!changed && state.map.picked === before.map.picked && state.map.selected === before.map.selected) return;
       schedule();
     });
 

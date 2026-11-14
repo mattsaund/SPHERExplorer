@@ -47,6 +47,50 @@ export function formatDec(deg: number): string {
 }
 
 /**
+ * The angle between two sky positions in arcseconds, and the direction from the first to the
+ * second in degrees, counted from north through east. Exact at any separation.
+ */
+export function separation(from: SkyPosition, to: SkyPosition): { arcsec: number; angle: number } {
+  const d1 = from.dec * DEG;
+  const d2 = to.dec * DEG;
+  const dra = (to.ra - from.ra) * DEG;
+  const east = Math.cos(d2) * Math.sin(dra);
+  const north = Math.cos(d1) * Math.sin(d2) - Math.sin(d1) * Math.cos(d2) * Math.cos(dra);
+  const along = Math.sin(d1) * Math.sin(d2) + Math.cos(d1) * Math.cos(d2) * Math.cos(dra);
+  return {
+    arcsec: (Math.atan2(Math.hypot(east, north), along) / DEG) * 3600,
+    angle: ((Math.atan2(east, north) / DEG) + 360) % 360,
+  };
+}
+
+/** Points along the shortest path on the sky between two positions, ends included, for drawing a line. */
+export function skyPath(from: SkyPosition, to: SkyPosition, steps = 48): SkyPosition[] {
+  const unit = (p: SkyPosition) => [Math.cos(p.dec * DEG) * Math.cos(p.ra * DEG), Math.cos(p.dec * DEG) * Math.sin(p.ra * DEG), Math.sin(p.dec * DEG)];
+  const a = unit(from);
+  const b = unit(to);
+  const angle = Math.acos(Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])));
+  // The same point within rounding, or opposite points with no single shortest path: nothing to curve.
+  if (Math.sin(angle) < 1e-6) return [from, to];
+  const path: SkyPosition[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const wa = Math.sin((1 - t) * angle) / Math.sin(angle);
+    const wb = Math.sin(t * angle) / Math.sin(angle);
+    const [x, y, z] = [wa * a[0] + wb * b[0], wa * a[1] + wb * b[1], wa * a[2] + wb * b[2]];
+    path.push({ ra: ((Math.atan2(y, x) / DEG) + 360) % 360, dec: Math.asin(Math.min(1, Math.max(-1, z))) / DEG });
+  }
+  return path;
+}
+
+/** An angle on the sky in the unit that reads best: arcseconds, arcminutes, or degrees. */
+export function formatAngle(arcsec: number): string {
+  const size = Math.abs(arcsec);
+  if (size < 60) return `${size.toFixed(1)} arcsec`;
+  if (size < 3600) return `${(size / 60).toFixed(2)} arcmin`;
+  return `${(size / 3600).toFixed(3)} degrees`;
+}
+
+/**
  * Read coordinates typed by a person. Returns null when the text is not coordinates,
  * so the caller can treat it as an object name instead.
  *

@@ -1,7 +1,7 @@
 // Tests for coordinate parsing, formatting, motion, and visit grouping.
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
-import { assignSeasons, distanceMethod, formatAu, formatDec, formatDistance, formatRa, mjdToDate, mjdToYear, offsetToSky, parseCoordinates, positionAt, skyOffset } from "./astro";
+import { assignSeasons, distanceMethod, formatAngle, formatAu, formatDec, formatDistance, formatRa, mjdToDate, mjdToYear, offsetToSky, parseCoordinates, positionAt, separation, skyOffset, skyPath } from "./astro";
 
 describe("parseCoordinates", () => {
   it("reads decimal degrees", () => {
@@ -137,5 +137,53 @@ describe("distances", () => {
     expect(formatAu(2.61)).toBe("2.61 au (390 million km)");
     expect(formatAu(29.9)).toBe("29.9 au (4.47 billion km)");
     expect(formatAu(0.00257)).toBe("0.00257 au (384,467 km)");
+  });
+});
+
+describe("measuring on the sky", () => {
+  it("gives the angle and direction between two positions", () => {
+    // One degree straight north.
+    const north = separation({ ra: 10, dec: 20 }, { ra: 10, dec: 21 });
+    expect(north.arcsec).toBeCloseTo(3600, 6);
+    expect(north.angle).toBeCloseTo(0, 6);
+    // East along the equator, across the 0 hour line.
+    const east = separation({ ra: 359.5, dec: 0 }, { ra: 0.5, dec: 0 });
+    expect(east.arcsec).toBeCloseTo(3600, 6);
+    expect(east.angle).toBeCloseTo(90, 6);
+    // A degree of right ascension is shorter away from the equator.
+    const high = separation({ ra: 100, dec: 60 }, { ra: 101, dec: 60 });
+    expect(high.arcsec / 3600).toBeCloseTo(Math.cos((60 * Math.PI) / 180), 3);
+    // Pole to pole is half the sky. Sirius to Betelgeuse is 27.1 degrees.
+    expect(separation({ ra: 0, dec: 90 }, { ra: 0, dec: -90 }).arcsec).toBeCloseTo(180 * 3600, 3);
+    expect(separation({ ra: 101.2872, dec: -16.7161 }, { ra: 88.7929, dec: 7.4071 }).arcsec / 3600).toBeCloseTo(27.1, 1);
+  });
+
+  it("agrees with the tangent-plane offset for small angles", () => {
+    const from = { ra: 133.79, dec: -7.24 };
+    const to = offsetToSky(30, -40, from);
+    const { arcsec, angle } = separation(from, to);
+    expect(arcsec).toBeCloseTo(50, 3);
+    // 30 east and 40 south: southeast, 143.13 degrees from north through east.
+    expect(angle).toBeCloseTo(143.13, 1);
+  });
+
+  it("draws the shortest path between two positions", () => {
+    const from = { ra: 350, dec: 10 };
+    const to = { ra: 20, dec: 40 };
+    const path = skyPath(from, to, 12);
+    expect(path).toHaveLength(13);
+    expect(path[0].ra).toBeCloseTo(350, 9);
+    expect(path[12].dec).toBeCloseTo(40, 9);
+    // Evenly spaced along the way, so every step is one twelfth of the whole.
+    const whole = separation(from, to).arcsec;
+    for (let i = 1; i < path.length; i++) expect(separation(path[i - 1], path[i]).arcsec).toBeCloseTo(whole / 12, 4);
+    // The same point twice has no path to curve.
+    expect(skyPath(from, from)).toHaveLength(2);
+  });
+
+  it("names an angle in the unit that reads best", () => {
+    expect(formatAngle(12.34)).toBe("12.3 arcsec");
+    expect(formatAngle(501.36)).toBe("8.36 arcmin");
+    expect(formatAngle(2.5 * 3600)).toBe("2.500 degrees");
   });
 });

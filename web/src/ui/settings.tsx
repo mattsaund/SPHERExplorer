@@ -1,4 +1,4 @@
-// What the top drawer holds: the challenge test targets, and every setting for the images and the sky map.
+// What the top drawer holds: the challenge test targets, and every setting for the sky map and the image study.
 // Written with Claude Code (Anthropic) assistance.
 import {
   COLOR_MAPS,
@@ -44,7 +44,7 @@ function Detectors() {
   const meta = useStore((s) => s.meta);
   return (
     <fieldset>
-      <legend>Detectors (wavelength bands)</legend>
+      <legend>Detectors</legend>
       <div className="detector-grid">
         {detectors.map((on, i) => {
           const range = meta?.detectors[String(i + 1)];
@@ -161,26 +161,24 @@ function Field() {
           ))}
         </select>
       </label>
-      <label className="check"><input type="checkbox" checked={follow} onChange={(e) => actions.setFollow(e.target.checked)} /> Follow the target when summing</label>
+      <label className="check" title="When images are summed, keep a moving target in the middle, so it stays sharp while the stars trail">
+        <input type="checkbox" checked={follow} onChange={(e) => actions.setFollow(e.target.checked)} /> Follow the target in sums
+      </label>
       <button onClick={() => actions.resetView()}>Reset zoom</button>
     </fieldset>
   );
 }
 
-/** Which survey the sky map shows, in which shape, and with which marks. */
-function SkyMapGroup() {
+/** Which survey the sky map shows, and in which shape. */
+function MapSurvey() {
   const layerId = useStore((s) => s.map.layer);
   const projection = useStore((s) => s.map.projection);
-  const labels = useStore((s) => s.map.labels);
-  const grid = useStore((s) => s.map.grid);
   const channel = useStore((s) => s.map.channel);
   const meta = useStore((s) => s.meta);
-  const target = useStore((s) => s.target);
-  const fieldSize = useStore((s) => s.fieldSize);
   const layer = SKY_LAYERS.find((entry) => entry.id === layerId) ?? SKY_LAYERS[0];
   return (
     <fieldset>
-      <legend>Sky map</legend>
+      <legend>Survey and shape</legend>
       <label className="field">
         <span>Show</span>
         <select value={layerId} onChange={(e) => actions.setMap({ layer: e.target.value })}>
@@ -199,36 +197,93 @@ function SkyMapGroup() {
           {PROJECTIONS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
         </select>
       </label>
-      <div className="row wrap">
-        <label className="check"><input type="checkbox" checked={labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Labels</label>
-        <label className="check"><input type="checkbox" checked={grid} onChange={(e) => actions.setMap({ grid: e.target.checked })} /> Grid</label>
-      </div>
-      <div className="row wrap">
-        <button onClick={() => actions.flyTo({ ra: 266.4, dec: -29 }, 200)}>Whole sky</button>
-        {target && (
-          <button onClick={() => actions.flyTo(target, (fieldSize / 3600) * 1.6)} title="Zoom the map to the patch of sky the images show, to compare the two">
-            The images' field
-          </button>
-        )}
-      </div>
     </fieldset>
   );
 }
 
 /**
- * Every setting in one place, for the images and for the sky map, in groups laid out as
- * columns that wrap. They stay put whichever view is showing.
+ * What is drawn over the sky map. The two coverage maps and the tile grid are the ones the
+ * IRSA SPHEREx Data Explorer offers. A swatch shows the color each coverage map is drawn in.
+ */
+function MapOverlays() {
+  const labels = useStore((s) => s.map.labels);
+  const grid = useStore((s) => s.map.grid);
+  const coverage = useStore((s) => s.map.coverage);
+  const deepFields = useStore((s) => s.map.deepFields);
+  const tiles = useStore((s) => s.map.tiles);
+  return (
+    <fieldset>
+      <legend>On the map</legend>
+      <label className="check"><input type="checkbox" checked={labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Object labels</label>
+      <label className="check" title="Every part of the sky that has SPHEREx spectral images in the archive">
+        <input type="checkbox" checked={coverage} onChange={(e) => actions.setMap({ coverage: e.target.checked })} /> SPHEREx spectral images
+        <span className="swatch coverage" aria-hidden="true" />
+      </label>
+      <label className="check" title="The two patches near the ecliptic poles that SPHEREx images on nearly every orbit">
+        <input type="checkbox" checked={deepFields} onChange={(e) => actions.setMap({ deepFields: e.target.checked })} /> SPHEREx deep fields
+        <span className="swatch deep" aria-hidden="true" />
+      </label>
+      <label className="check" title="Lines of right ascension and declination">
+        <input type="checkbox" checked={grid} onChange={(e) => actions.setMap({ grid: e.target.checked })} /> Coordinate grid
+      </label>
+      <label className="check" title="The numbered tiles (HEALPix) that all-sky maps are cut into">
+        <input type="checkbox" checked={tiles} onChange={(e) => actions.setMap({ tiles: e.target.checked })} /> Tile grid (HEALPix)
+      </label>
+    </fieldset>
+  );
+}
+
+/** The measure tool, and places the map can jump to. */
+function MapTools() {
+  const target = useStore((s) => s.target);
+  const fieldSize = useStore((s) => s.fieldSize);
+  const measuring = useStore((s) => s.map.measuring);
+  return (
+    <fieldset>
+      <legend>Tools</legend>
+      <button
+        className={measuring ? "on" : ""}
+        aria-pressed={measuring}
+        onClick={() => actions.setMap({ measuring: !measuring })}
+        title="Switch on, then drag on the map to measure the angle between two points"
+      >
+        {measuring ? "Measuring: drag on the map" : "Measure a distance"}
+      </button>
+      <button onClick={() => actions.flyTo({ ra: 266.4, dec: -29 }, 200)}>Whole sky</button>
+      {target && (
+        <button onClick={() => actions.flyTo(target, (fieldSize / 3600) * 1.6)} title="Zoom the map to the patch of sky the images show, to compare the two">
+          The images' field
+        </button>
+      )}
+    </fieldset>
+  );
+}
+
+/**
+ * Every setting in one place, in two halves: the sky map's on the left and the image study's on
+ * the right. The line between the halves sits where the line between the two views is, so each
+ * half lies under the view it controls. Nothing moves when the view changes.
  */
 export function Settings() {
   return (
     <div className="settings">
-      <Detectors />
-      <Brightness />
-      <Color />
-      <Changes />
-      <Marks />
-      <Field />
-      <SkyMapGroup />
+      <section className="settings-side" aria-labelledby="settings-map">
+        <h2 id="settings-map">Sky map</h2>
+        <div className="settings-groups">
+          <MapSurvey />
+          <MapOverlays />
+          <MapTools />
+        </div>
+      </section>
+      <section className="settings-side" aria-labelledby="settings-images">
+        <h2 id="settings-images">Image study</h2>
+        {/* Paired so that three columns come out about equally tall. Each group keeps its place. */}
+        <div className="settings-groups paired">
+          <div className="settings-column"><Detectors /><Field /></div>
+          <div className="settings-column"><Brightness /><Changes /></div>
+          <div className="settings-column"><Color /><Marks /></div>
+        </div>
+      </section>
     </div>
   );
 }

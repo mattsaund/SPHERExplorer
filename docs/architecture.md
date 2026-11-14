@@ -61,17 +61,20 @@ One full screen between a top bar and a bottom bar. Both bars expand. Austin's s
 
 | Part | File | Holds |
 |---|---|---|
-| Top bar | `ui/App.tsx`, `ui/SearchBox.tsx` | Name, search box with suggestions, the switch between sky map, images, and both, and two drawers |
-| Top drawers | `ui/settings.tsx` | "Examples" holds NASA's five test targets. "Settings" holds every setting, for the images and for the sky map, so none of them changes place when the view changes |
+| Top bar | `ui/App.tsx`, `ui/SearchBox.tsx` | Name, search box with suggestions, the switch between sky map, images, and both, and the settings drawer |
+| Settings drawer | `ui/settings.tsx` | Every setting in two halves: the sky map's on the left, the image study's on the right. The line between them sits where the line between the two views is, and nothing changes place when the view changes |
 | Stage | `ui/App.tsx` | The sky map, the image viewer, or both side by side on a wide screen. Both stay mounted while hidden. A details card sits in the corner of the images: name, kind, distance, the link to everything known about the target, and the image on screen. Boxes for clicked objects, spots, and messages lie over the stage |
 | Status line | `ui/App.tsx` | Progress on the left, the pointer readout or map help on the right. Fixed height |
 | Player | `ui/App.tsx` | Play, step, scrub, speed, and what to play. Always in the bottom bar, in every view |
-| Tool dock | `ui/tools.tsx` | Tabs that open upward: graphs (spectrum, brightness over time, timeline), what changed, motion, telescopes (live map, facts, other telescopes' images of the field), save and share, about. Only the open tool is on the page |
+| Tool dock | `ui/tools.tsx` | Tabs that open upward: graphs (spectrum, brightness over time, timeline), studies (measure changes, measure movement), telescopes (live map, facts, other telescopes' images of the field), save and share, about. Only the open tool is on the page |
 
 - A new tool usually needs one component and one entry in `TOOLS` in `ui/tools.tsx`.
 - `ui/ChangesPanel.tsx`, `ui/FeaturesList.tsx`, and `ui/SearchBox.tsx` are self-contained pieces with their own style files.
 - `ui/Embed.tsx` is the compact layout used when the address holds `embed=1`.
-- A search keeps the current view. On a screen at least 1100 pixels wide, a search from the map puts the images beside it. Study buttons bring the images forward.
+- A search keeps the current view, on every screen. The sky map moves to the target, its yellow square appears, and the images load behind. The view buttons, the player, and "Study" buttons bring the images up.
+- `ui/cards.tsx` holds the cards laid over the stage. On the map: the selected area (Select, Copy Coordinates, Close) or a chosen object. On the images: the details card, and under it one list of every object in the field. A spot clicked in the images gets its own card.
+- The lower left of the map shows the coordinates under the pointer and at the center, with a Copy button, and the measured angle while the measure tool is on.
+- NASA's test targets are in the Find dropdown and in the image view before a target is chosen.
 - Space plays and pauses. The left and right arrows step.
 
 Rules for both sides.

@@ -1,12 +1,13 @@
 // The sky map: a pannable, zoomable view of the whole sky with clickable labels for known objects.
 // Built on Aladin Lite (CDS, Strasbourg), loaded on demand. All of Aladin's own buttons are
 // switched off, so the UI supplies the controls through actions.setMap and friends.
-// Colors come from CSS variables: --map-label, --map-marker, --map-field.
+// Colors come from CSS variables: --map-label, --map-field, --map-pick, --map-coverage,
+// --map-deep, --map-measure.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef } from "react";
-import { apiUrl, getObjects } from "./api";
+import { apiUrl, coverageUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
-import { skyOffset } from "./astro";
+import { separation, skyOffset, skyPath } from "./astro";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
 
@@ -18,6 +19,27 @@ const SETTLE_MS = 450;
 const LIGHT_SPEED = 299792458; // meters per second
 /** How close, in screen pixels, the pointer must be to a square's outline to grab it. */
 const GRAB_PIXELS = 9;
+/** A square narrower than this many screen pixels is too small to see, so a mark stands in for it. */
+const TINY_PIXELS = 14;
+/**
+ * The crosshair that marks a chosen place: the gap around the place and the length of each arm,
+ * in screen pixels. The same shape and yellow as the target marker in the image viewer.
+ */
+const CROSS_GAP = 8;
+const CROSS_ARM = 10;
+/** A press that moves less than this many screen pixels is a click, not a drag. */
+const CLICK_SLOP = 4;
+/** How close, in screen pixels, a click must be to an object's ring to choose it. */
+const OBJECT_REACH = 10;
+
+/**
+ * Coverage maps laid over the sky, the same two the IRSA SPHEREx Data Explorer offers.
+ * `key` is the switch in the map state and `file` the map's name on our server.
+ */
+const COVERAGE = [
+  { key: "coverage", file: "spectral-images", name: "SPHEREx spectral images", color: "--map-coverage", fallback: "#ffa94d" },
+  { key: "deepFields", file: "deep-fields", name: "SPHEREx deep fields", color: "--map-deep", fallback: "#c79bff" },
+] as const;
 
 function cssVariable(element: HTMLElement, name: string, fallback: string): string {
   return getComputedStyle(element).getPropertyValue(name).trim() || fallback;
@@ -47,6 +69,9 @@ export function SkyMap({ className }: { className?: string }) {
     let request: AbortController | null = null;
     let lastObjectClick = 0;
     let applied: Partial<AppState["map"]> & { goal?: number; target?: unknown; fieldSize?: number } = {};
+    // Coverage maps already on the map, by their switch in the map state.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const coverage: Record<string, any> = {};
 
     /** Address of a layer's tile set. The color view of the cube is built by our own server. */
     function layerUrl(spec: SkyLayer): string {
@@ -131,12 +156,13 @@ export function SkyMap({ className }: { className?: string }) {
     }
 
     /**
-     * The square on the map that can be resized. There is only ever one: the area just picked,
-     * or, with nothing picked, the field being studied. Two squares at once were confusing.
+     * The selected area: one yellow square that can be moved and resized. It is the place just
+     * picked, or, with nothing picked, the field being studied while that is still shown.
+     * `studied` marks the second case, where a new size reloads the images.
      */
     function squares(state: AppState): { center: SkyPosition; studied: boolean }[] {
       if (state.map.picked) return [{ center: state.map.picked, studied: false }];
-      if (state.target && !state.target.moving) return [{ center: state.target, studied: true }];
+      if (state.map.fieldShown && state.target && !state.target.moving) return [{ center: state.target, studied: true }];
       return [];
     }
 
@@ -160,33 +186,109 @@ export function SkyMap({ className }: { className?: string }) {
       const [fovX] = aladin.getFov();
       const pixel = fovX / Math.max(host.clientWidth, 1); // degrees per screen pixel
       const field = cssVariable(host, "--map-field", "#ffd24a");
-      const marker = cssVariable(host, "--map-marker", "#ff6b6b");
+      const pick = cssVariable(host, "--map-pick", "#ffd24a");
+      /**
+       * Four short arms around a place, which leave the place itself uncovered. `gap` is in
+       * screen pixels. The arms are laid out on screen, so the cross stands upright in any map
+       * shape, also far from the middle of a whole-sky view where north is tilted.
+       */
+      const crosshair = (center: SkyPosition, gap: number) => {
+        const at = aladin.world2pix(center.ra, center.dec) as [number, number] | null;
+        if (!at) return;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const from = skyAt(at[0] + dx * gap, at[1] + dy * gap);
+          const to = skyAt(at[0] + dx * (gap + CROSS_ARM), at[1] + dy * (gap + CROSS_ARM));
+          if (from && to) marks.add(A.polyline([[from.ra, from.dec], [to.ra, to.dec]], { color: pick, lineWidth: 2 }));
+        }
+      };
       for (const square of squares(state)) {
-        // A north-up square, the true shape and size of the area that is loaded.
-        const color = square.studied ? field : marker;
+        if (state.fieldSize / 3600 < TINY_PIXELS * pixel) {
+          // From far out the square is too small to see, so the crosshair marks its place.
+          crosshair(square.center, CROSS_GAP);
+          continue;
+        }
+        // A north-up square, the true shape and size of the area the images cover.
         const corners = squareCorners(square.center, state.fieldSize);
-        marks.add(A.polygon(corners, { color, lineWidth: 2 }));
+        marks.add(A.polygon(corners, { color: field, lineWidth: 2 }));
         // Small grips on the corners show that the square can be dragged to resize.
-        for (const [ra, dec] of corners) marks.add(A.circle(ra, dec, 3.5 * pixel, { color, lineWidth: 2 }));
-        // From far out the square is too small to see, so a ring marks the place.
-        if (state.fieldSize / 3600 < 14 * pixel) marks.add(A.circle(square.center.ra, square.center.dec, 9 * pixel, { color, lineWidth: 2 }));
+        for (const [ra, dec] of corners) marks.add(A.circle(ra, dec, 3.5 * pixel, { color: field, lineWidth: 2 }));
       }
+      // The chosen object keeps its own ring. The crosshair goes around that.
       const selected = state.map.selected;
-      if (selected) marks.add(A.circle(selected.ra, selected.dec, Math.max(fovX / 60, 0.002), { color: marker, lineWidth: 2 }));
+      if (selected) crosshair(selected, CROSS_GAP + 6);
+      // The measured line follows the shortest path on the sky, so it is drawn as many short pieces.
+      const measured = state.map.measured;
+      if (measured) {
+        const ink = cssVariable(host, "--map-measure", "#ffffff");
+        marks.add(A.polyline(skyPath(measured.from, measured.to).map((point) => [point.ra, point.dec]), { color: ink, lineWidth: 2 }));
+        for (const end of [measured.from, measured.to]) marks.add(A.circle(end.ra, end.dec, 3 * pixel, { color: ink, lineWidth: 2 }));
+      }
     }
 
-    // ---- Resizing a square with the mouse or a finger -------------------------------------------
-    let resizing: { center: SkyPosition; studied: boolean } | null = null;
-    let swallowClick = false;
+    /** Switch a coverage map on or off. Its file is fetched the first time it is switched on. */
+    function showCoverage(entry: (typeof COVERAGE)[number], on: boolean) {
+      const shown = coverage[entry.key];
+      if (shown) {
+        if (on) shown.show();
+        else shown.hide();
+        return;
+      }
+      if (!on) return;
+      const color = cssVariable(host, entry.color, entry.fallback);
+      // A light fill tints the covered sky. The outline marks its edge.
+      const moc = A.MOCFromURL(
+        coverageUrl(entry.file),
+        { name: entry.name, color, fillColor: color, fill: true, perimeter: true, opacity: 0.22, lineWidth: 2 },
+        undefined,
+        () => {
+          // The file did not arrive. Switch the overlay back off and say so.
+          delete coverage[entry.key];
+          actions.setMap({ [entry.key]: false });
+          useStore.setState({ notice: `The map of ${entry.name} could not be loaded. Try again in a minute.` });
+        },
+      );
+      coverage[entry.key] = moc;
+      aladin.addMOC(moc);
+    }
 
-    /** Distance in screen pixels from a point to the outline of a square, or Infinity when it is off screen. */
-    function outlineDistance(x: number, y: number, center: SkyPosition, size: number): number {
+    // ---- Dragging on the map: measuring, or resizing and moving the square ----------------------
+    type Square = { center: SkyPosition; studied: boolean };
+    type Drag =
+      | { kind: "resize"; square: Square }
+      // offsetX and offsetY lead from the pointer to the square's center, in screen pixels.
+      | { kind: "move"; offsetX: number; offsetY: number; startX: number; startY: number; moved: boolean }
+      | { kind: "measure"; from: SkyPosition; startX: number; startY: number; moved: boolean };
+    let drag: Drag | null = null;
+    let swallowClick = false;
+    let hoverFrame = 0;
+    let hoverNext: SkyPosition | null = null;
+    // The cursor our own tools ask for: a cross to measure, arrows to resize, a hand to move.
+    let cursorWanted = "";
+
+    /** The pointer's place inside the map, in screen pixels. */
+    function point(event: { clientX: number; clientY: number }): [number, number] {
+      const box = host.getBoundingClientRect();
+      return [event.clientX - box.left, event.clientY - box.top];
+    }
+
+    /** The sky position at a place on the map, or null outside the sky. */
+    function skyAt(x: number, y: number): SkyPosition | null {
+      const sky = aladin?.pix2world(x, y) as [number, number] | undefined;
+      return sky && Number.isFinite(sky[0]) && Number.isFinite(sky[1]) ? { ra: sky[0], dec: sky[1] } : null;
+    }
+
+    /** The corners of a square on screen, or null when one of them is off the map. */
+    function screenCorners(center: SkyPosition, size: number): [number, number][] | null {
       const points = squareCorners(center, size).map(([ra, dec]) => aladin.world2pix(ra, dec) as [number, number] | null);
-      if (points.some((point) => !point)) return Infinity;
+      return points.some((corner) => !corner) ? null : (points as [number, number][]);
+    }
+
+    /** Distance in screen pixels from a point to the outline of a square. */
+    function outlineDistance(x: number, y: number, corners: [number, number][]): number {
       let best = Infinity;
       for (let i = 0; i < 4; i++) {
-        const [ax, ay] = points[i]!;
-        const [bx, by] = points[(i + 1) % 4]!;
+        const [ax, ay] = corners[i];
+        const [bx, by] = corners[(i + 1) % 4];
         const length = (bx - ax) ** 2 + (by - ay) ** 2;
         const along = length ? Math.min(1, Math.max(0, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / length)) : 0;
         best = Math.min(best, Math.hypot(x - (ax + along * (bx - ax)), y - (ay + along * (by - ay))));
@@ -194,61 +296,199 @@ export function SkyMap({ className }: { className?: string }) {
       return best;
     }
 
-    /** The square whose outline is under the pointer, if any. */
-    function grabbed(event: { clientX: number; clientY: number }) {
+    /** True when a point lies inside the four-sided shape with these corners. */
+    function insideCorners(x: number, y: number, corners: [number, number][]): boolean {
+      let sign = 0;
+      for (let i = 0; i < 4; i++) {
+        const [ax, ay] = corners[i];
+        const [bx, by] = corners[(i + 1) % 4];
+        const side = Math.sign((bx - ax) * (y - ay) - (by - ay) * (x - ax));
+        if (side !== 0 && sign !== 0 && side !== sign) return false;
+        if (side !== 0) sign = side;
+      }
+      return true;
+    }
+
+    /**
+     * What a press at this place would take hold of: the square's edge (to resize it), its
+     * inside (to move it), or nothing, which leaves the press to the map.
+     * A finger on the inside still moves the map, so the map can always be panned and pinched
+     * on a touch screen. A finger moves the square by tapping its new place.
+     */
+    function holdAt(x: number, y: number, touch: boolean): { part: "edge" | "inside"; square: Square } | null {
       if (!aladin) return null;
-      const box = host.getBoundingClientRect();
       const state = useStore.getState();
       for (const square of squares(state)) {
-        if (outlineDistance(event.clientX - box.left, event.clientY - box.top, square.center, state.fieldSize) <= GRAB_PIXELS) return square;
+        const corners = screenCorners(square.center, state.fieldSize);
+        if (!corners) continue;
+        const inside = insideCorners(x, y, corners);
+        const width = Math.hypot(corners[1][0] - corners[0][0], corners[1][1] - corners[0][1]);
+        if (width < TINY_PIXELS) {
+          // Too small to see, so its mark stands in for it. The mark can be dragged to a new
+          // place. Resizing a square that small by hand would jump straight to a huge field.
+          const middle = [(corners[0][0] + corners[2][0]) / 2, (corners[0][1] + corners[2][1]) / 2];
+          if (!touch && Math.hypot(x - middle[0], y - middle[1]) <= CROSS_GAP + CROSS_ARM) return { part: "inside", square };
+          continue;
+        }
+        // Inside a small square the edge band is thinner, so there is still an inside to grab.
+        const band = inside && !touch ? Math.min(GRAB_PIXELS, width / 6) : GRAB_PIXELS;
+        if (outlineDistance(x, y, corners) <= band) return { part: "edge", square };
+        if (inside && !touch) return { part: "inside", square };
       }
       return null;
     }
 
-    // These run before Aladin's own handlers, so a drag on a square's outline resizes it
-    // instead of moving the map.
+    /** A click inside the square never reaches the map, so do what the map would have done with it. */
+    function clickAt(x: number, y: number) {
+      const state = useStore.getState();
+      if (state.map.labels) {
+        let nearest: SkyObject | null = null;
+        let reach = OBJECT_REACH;
+        for (const object of state.map.objects) {
+          const at = aladin.world2pix(object.ra, object.dec) as [number, number] | null;
+          if (!at) continue;
+          const distance = Math.hypot(at[0] - x, at[1] - y);
+          if (distance <= reach) {
+            nearest = object;
+            reach = distance;
+          }
+        }
+        if (nearest) {
+          actions.selectObject(nearest);
+          return;
+        }
+      }
+      const sky = skyAt(x, y);
+      if (sky) actions.pick(sky);
+    }
+
+    /** Report where the pointer is on the sky, at most once per drawn frame. */
+    function reportHover(position: SkyPosition | null) {
+      hoverNext = position;
+      if (hoverFrame) return;
+      hoverFrame = requestAnimationFrame(() => {
+        hoverFrame = 0;
+        actions.setMapHover(hoverNext);
+      });
+    }
+
+    // These run before Aladin's own handlers, so a drag that measures, resizes, or moves the
+    // square does not also move the map.
     function onPointerDown(event: PointerEvent) {
-      const square = grabbed(event);
-      if (!square) return;
-      resizing = square;
+      if (!aladin || drag || (event.pointerType === "mouse" && event.button !== 0)) return;
+      const [x, y] = point(event);
+      if (useStore.getState().map.measuring) {
+        const from = skyAt(x, y);
+        if (!from) return;
+        drag = { kind: "measure", from, startX: x, startY: y, moved: false };
+      } else {
+        const hold = holdAt(x, y, event.pointerType === "touch");
+        if (!hold) return;
+        if (hold.part === "edge") {
+          drag = { kind: "resize", square: hold.square };
+        } else {
+          const center = aladin.world2pix(hold.square.center.ra, hold.square.center.dec) as [number, number] | null;
+          if (!center) return;
+          drag = { kind: "move", offsetX: center[0] - x, offsetY: center[1] - y, startX: x, startY: y, moved: false };
+        }
+      }
       event.stopPropagation();
       event.preventDefault();
       host.setPointerCapture(event.pointerId);
     }
     function onPointerMove(event: PointerEvent) {
-      if (!resizing) {
-        host.style.cursor = grabbed(event) ? "nwse-resize" : "";
+      const [x, y] = point(event);
+      if (event.pointerType !== "touch") reportHover(skyAt(x, y));
+      if (!drag) {
+        const measuring = useStore.getState().map.measuring;
+        const hold = measuring ? null : holdAt(x, y, event.pointerType === "touch");
+        wantCursor(measuring ? "crosshair" : hold ? (hold.part === "edge" ? "nwse-resize" : "move") : "");
         return;
       }
       event.stopPropagation();
       event.preventDefault();
-      const box = host.getBoundingClientRect();
-      const sky = aladin.pix2world(event.clientX - box.left, event.clientY - box.top) as [number, number] | undefined;
-      if (!sky) return;
-      // The square reaches as far as the pointer is from its center, east-west or north-south.
-      const [east, north] = skyOffset({ ra: sky[0], dec: sky[1] }, resizing.center);
-      actions.setFieldSize(2 * Math.max(Math.abs(east), Math.abs(north)), false);
+      if (drag.kind === "resize") {
+        const sky = skyAt(x, y);
+        if (!sky) return;
+        // The square reaches as far as the pointer is from its center, east-west or north-south.
+        const [east, north] = skyOffset(sky, drag.square.center);
+        actions.setFieldSize(2 * Math.max(Math.abs(east), Math.abs(north)), false);
+        return;
+      }
+      if (!drag.moved && Math.hypot(x - drag.startX, y - drag.startY) < CLICK_SLOP) return;
+      drag.moved = true;
+      if (drag.kind === "move") {
+        // The square keeps the same place under the pointer that it was grabbed by. A moved
+        // square is a picked area, so the field being studied stays loaded until "Study" is pressed.
+        const sky = skyAt(x + drag.offsetX, y + drag.offsetY);
+        if (sky) actions.pick(sky);
+      } else {
+        const to = skyAt(x, y);
+        if (!to) return;
+        const { arcsec, angle } = separation(drag.from, to);
+        actions.mapReport({ measured: { from: drag.from, to, separation: arcsec, angle } });
+      }
     }
     function onPointerUp(event: PointerEvent) {
-      if (!resizing) return;
+      if (!drag) return;
       event.stopPropagation();
       event.preventDefault();
-      const studied = resizing.studied;
-      resizing = null;
+      const done = drag;
+      drag = null;
       swallowClick = true;
       setTimeout(() => (swallowClick = false), 50);
-      // The field being studied reloads at its new size once the drag ends.
-      if (studied) actions.setFieldSize(useStore.getState().fieldSize, true);
+      if (event.type === "pointercancel") return;
+      if (done.kind === "resize") {
+        // The field being studied reloads at its new size once the drag ends.
+        if (done.square.studied) actions.setFieldSize(useStore.getState().fieldSize, true);
+      } else if (done.kind === "move") {
+        if (!done.moved) clickAt(...point(event));
+      } else if (!done.moved) {
+        // A click with the measure tool clears the last line.
+        actions.mapReport({ measured: null });
+      }
     }
-    /** While a square is being dragged, keep the matching mouse and touch events from reaching the map. */
+    function onPointerLeave() {
+      reportHover(null);
+    }
+    /**
+     * Aladin sets the cursor on its own canvas as the pointer moves, which hides any cursor set
+     * on the map's box. So ours is set through Aladin, after its handlers have run.
+     */
+    function wantCursor(cursor: string) {
+      const released = cursorWanted !== "" && cursor === "";
+      cursorWanted = cursor;
+      if (released) setCursor("default");
+    }
+    function setCursor(cursor: string) {
+      try {
+        aladin?.view.setCursor(cursor);
+      } catch {
+        // An Aladin internal. Without it the tools still work, only the cursor stays an arrow.
+      }
+    }
+    function applyCursor() {
+      if (cursorWanted) setCursor(cursorWanted);
+    }
+    /** While a drag of ours is under way, keep the matching mouse and touch events from reaching the map. */
     function shield(event: Event) {
-      if (resizing || swallowClick || (event.type === "mousedown" && grabbed(event as MouseEvent))) event.stopPropagation();
+      if (drag || swallowClick) {
+        event.stopPropagation();
+        return;
+      }
+      if (event.type !== "mousedown") return;
+      const [x, y] = point(event as MouseEvent);
+      if (useStore.getState().map.measuring || holdAt(x, y, false)) event.stopPropagation();
     }
     const SHIELDED = ["mousedown", "mousemove", "mouseup", "click", "touchstart", "touchmove", "touchend"];
     host.addEventListener("pointerdown", onPointerDown, true);
     host.addEventListener("pointermove", onPointerMove, true);
     host.addEventListener("pointerup", onPointerUp, true);
     host.addEventListener("pointercancel", onPointerUp, true);
+    host.addEventListener("pointerleave", onPointerLeave);
+    // Bubble phase, so these run after Aladin has set its own cursor.
+    host.addEventListener("pointermove", applyCursor);
+    host.addEventListener("mousemove", applyCursor);
     for (const type of SHIELDED) host.addEventListener(type, shield, true);
 
     /** Apply store changes to the map. */
@@ -283,18 +523,39 @@ export function SkyMap({ className }: { className?: string }) {
         }
         applied.labels = map.labels;
       }
+      for (const entry of COVERAGE) {
+        if (applied[entry.key] !== map[entry.key]) {
+          showCoverage(entry, map[entry.key]);
+          applied[entry.key] = map[entry.key];
+        }
+      }
+      if (applied.tiles !== map.tiles) {
+        aladin.showHealpixGrid(map.tiles);
+        applied.tiles = map.tiles;
+      }
+      if (applied.measuring !== map.measuring) {
+        wantCursor(map.measuring ? "crosshair" : "");
+        applyCursor();
+        applied.measuring = map.measuring;
+      }
       if (applied.goal !== state.mapGoal.token) {
         aladin.gotoRaDec(state.mapGoal.ra, state.mapGoal.dec);
         if (state.mapGoal.fov) aladin.setFoV(state.mapGoal.fov);
         applied.goal = state.mapGoal.token;
       }
-      if (applied.target !== state.target || applied.fieldSize !== state.fieldSize || applied.picked !== map.picked || applied.selected !== map.selected || applied.fov !== map.fov) {
+      if (
+        applied.target !== state.target || applied.fieldSize !== state.fieldSize || applied.picked !== map.picked || applied.fieldShown !== map.fieldShown ||
+        applied.selected !== map.selected || applied.fov !== map.fov || applied.center !== map.center || applied.measured !== map.measured
+      ) {
         drawMarks(state);
         applied.target = state.target;
         applied.fieldSize = state.fieldSize;
         applied.picked = map.picked;
+        applied.fieldShown = map.fieldShown;
         applied.selected = map.selected;
         applied.fov = map.fov; // the grips are sized in screen pixels, so they follow the zoom
+        applied.center = map.center; // the crosshair is laid out on screen, so it follows the view
+        applied.measured = map.measured;
       }
     }
 
@@ -352,7 +613,7 @@ export function SkyMap({ className }: { className?: string }) {
         (window as unknown as { spxMap?: unknown }).spxMap = aladin;
         (window as unknown as { spxMarks?: unknown }).spxMarks = marks;
       }
-      applied = { projection: state.map.projection, layer: state.map.layer, grid: state.map.grid, goal: state.mapGoal.token };
+      applied = { projection: state.map.projection, layer: state.map.layer, grid: state.map.grid, goal: state.mapGoal.token, coverage: false, deepFields: false, tiles: false, measuring: false };
       if (start.cube) whenReady(layer, generation, (cube) => setChannel(cube, useStore.getState().map.channel));
 
       const labelColor = cssVariable(host, "--map-label", "#9be8ff");
@@ -393,6 +654,11 @@ export function SkyMap({ className }: { className?: string }) {
       host.removeEventListener("pointermove", onPointerMove, true);
       host.removeEventListener("pointerup", onPointerUp, true);
       host.removeEventListener("pointercancel", onPointerUp, true);
+      host.removeEventListener("pointerleave", onPointerLeave);
+      host.removeEventListener("pointermove", applyCursor);
+      host.removeEventListener("mousemove", applyCursor);
+      if (hoverFrame) cancelAnimationFrame(hoverFrame);
+      actions.setMapHover(null);
       for (const type of SHIELDED) host.removeEventListener(type, shield, true);
       request?.abort();
       if (settle) clearTimeout(settle);

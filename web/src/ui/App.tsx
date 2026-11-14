@@ -13,8 +13,8 @@ import {
   actions,
   compass,
   distanceMethod,
+  formatAngle,
   formatAu,
-  formatDate,
   formatDec,
   formatDistance,
   formatFlux,
@@ -22,6 +22,7 @@ import {
   useStore,
   type SequenceMode,
 } from "../core";
+import { AreaCard, Chevron, CopyButton, ObjectCard, ObjectsCard, SpotCard, useAreaShown } from "./cards";
 import { Embed } from "./Embed";
 import { SearchBox } from "./SearchBox";
 import { Examples, Settings } from "./settings";
@@ -42,8 +43,6 @@ function withImages(now: ViewId): ViewId {
   if (now !== "map" || useStore.getState().target === null) return now;
   return window.innerWidth >= WIDE ? "both" : "images";
 }
-/** The drawers under the top bar. */
-type TopDrawer = "examples" | "settings";
 
 const MODES: { value: SequenceMode; label: string; hint: string }[] = [
   { value: "exposures", label: "Every image", hint: "Each exposure in time order" },
@@ -51,15 +50,6 @@ const MODES: { value: SequenceMode; label: string; hint: string }[] = [
   { value: "channels", label: "By wavelength", hint: "One summed image per wavelength channel" },
   { value: "deep", label: "Deepest", hint: "Every image summed into one" },
 ];
-
-/** Points down. Turns up while its drawer is open (see app.css). */
-function Chevron() {
-  return (
-    <svg className="chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-      <path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 /** Step arrows drawn as shapes. Arrow characters render as emoji on some phones. */
 function Arrow({ back = false }: { back?: boolean }) {
@@ -98,11 +88,11 @@ function DrawerToggle({ open, onClick, children }: { open: boolean; onClick: () 
 }
 
 /**
- * The details card, in the upper left corner of the image viewer: what the target is, how far,
- * where to read everything known about it, and which image is on screen.
- * It can be folded down to its first line. `beside` moves it to the right half, next to the map.
+ * The details card, first in the upper left corner of the image viewer: what the target is,
+ * how far, where to read everything known about it, and which image is on screen.
+ * It can be folded down to its first line.
  */
-function DetailsCard({ beside }: { beside: boolean }) {
+function DetailsCard() {
   const target = useStore((s) => s.target);
   const fieldSize = useStore((s) => s.fieldSize);
   const item = useStore((s) => s.sequence[s.player.index]);
@@ -115,13 +105,14 @@ function DetailsCard({ beside }: { beside: boolean }) {
     const step = s.sequence[s.player.index];
     return step ? s.frames[step.frameIds[0]] : null;
   });
-  const [open, setOpen] = useState(true);
+  // On a phone the image is small, so the card starts folded to its first line.
+  const [open, setOpen] = useState(() => window.innerWidth >= 720);
   if (!target) return null;
   const facts = [`${Number((fieldSize / 60).toFixed(1))} arcmin field`];
   if (frame) facts.push(`Detector ${frame.detector}`);
   if (frame?.phot?.flux != null && frame.phot.err != null) facts.push(`Brightness ${formatFlux(frame.phot.flux)} ± ${formatFlux(frame.phot.err)}`);
   return (
-    <section className={beside ? "stage-label details beside" : "stage-label details"} aria-label="Details">
+    <section className={open ? "stage-label details open" : "stage-label details"} aria-label="Details">
       <div className="details-head">
         <p>
           <strong>{target.name ?? "Custom position"}</strong>
@@ -159,109 +150,92 @@ function MapLabel() {
   const layerId = useStore((s) => s.map.layer);
   const layer = SKY_LAYERS.find((entry) => entry.id === layerId) ?? SKY_LAYERS[0];
   return (
-    <div className="stage-label">
+    <div className="stage-label layer">
       <p><strong>{layer.name}</strong></p>
       <p className="muted">{layer.mission}. {layer.light}. {layer.about}</p>
     </div>
   );
 }
 
-/** The answer to "was a known solar system body here when this image was taken?", inside the selected-spot box. */
-function KnownAnswer() {
-  const known = useStore((s) => s.known);
-  if (!known) return null;
-  if (known.status === "loading") return <p className="muted" aria-live="polite">Asking where every known asteroid and comet was at that moment. This takes a few seconds.</p>;
-  if (known.status === "failed") return <p className="problem" role="alert">{known.error}</p>;
-  const reach = `${Math.round(known.radius / 60)} arcminutes`;
+/**
+ * Lower left of the sky map: the coordinates under the pointer and at the middle of the map,
+ * with a button that copies the middle. Both are right ascension and declination, J2000.
+ * While the measure tool is on, the measured angle shows here too.
+ */
+function MapPlace() {
+  const ready = useStore((s) => s.map.ready);
+  const center = useStore((s) => s.map.center);
+  const hover = useStore((s) => s.mapHover);
+  const measuring = useStore((s) => s.map.measuring);
+  const measured = useStore((s) => s.map.measured);
+  if (!ready) return null;
+  const middle = `${formatRa(center.ra)} ${formatDec(center.dec)}`;
   return (
-    <div className="known" aria-live="polite">
-      {known.bodies.length === 0 ? (
-        <p>No known asteroid, comet, or planet was within {reach} of this spot on {formatDate(known.mjd)}.</p>
-      ) : (
-        known.bodies.slice(0, 3).map((body) => (
-          <p key={body.name}>
-            <strong>{body.name}</strong>. {body.kind}, {body.separation < 10 ? body.separation.toFixed(1) : Math.round(body.separation)} arcsec from this spot
-            {body.magnitude != null && `, magnitude ${body.magnitude.toFixed(1)}`}. It was moving {body.rate.toFixed(0)} arcsec per hour to the {compass(body.angle)}.{" "}
-            <button onClick={() => void actions.search(body.query)}>Follow it</button>
-          </p>
-        ))
+    <div className="stage-label place" aria-label="Coordinates on the sky map, J2000" title="Right ascension and declination, J2000">
+      {measuring && (
+        <p className="place-row">
+          <span className="muted">Measure</span>
+          <span aria-live="polite">{measured ? `${formatAngle(measured.separation)}, toward the ${compass(measured.angle)}` : "Drag on the map"}</span>
+          <button onClick={() => actions.setMap({ measuring: false })}>Done</button>
+        </p>
       )}
-      {known.summed && <p className="muted">This image is a sum of many, so the moment is only its middle. Choose "Every image" to check one moment.</p>}
-      <p className="muted">From the SkyBoT service of IMCCE, Paris Observatory.</p>
+      {/* Kept even when empty, so the box does not change height as the pointer comes and goes. */}
+      <p className="place-row pointer">
+        <span className="muted">Pointer</span>
+        <span className="mono">{hover ? `${formatRa(hover.ra)} ${formatDec(hover.dec)}` : ""}</span>
+        <span />
+      </p>
+      <p className="place-row">
+        <span className="muted">Center</span>
+        <span className="mono">{middle}</span>
+        <CopyButton text={middle} title="Copy the coordinates at the center of the map" />
+      </p>
     </div>
   );
 }
 
-/** Facts about an object clicked on the map or in a frame, or a spot of sky clicked in either. */
-function InfoBox({ view, openTool, showImages }: { view: ViewId; openTool: (id: string) => void; showImages: () => void }) {
+/**
+ * The card for the sky map: a chosen object, or else the selected area.
+ * With both views up, an object that is in the images' list opens there instead, and a spot
+ * picked in the images is the image side's to show.
+ */
+function MapCards({ both, showImages }: { both: boolean; showImages: () => void }) {
   const chosen = useStore((s) => s.map.selected);
-  const picked = useStore((s) => s.map.picked);
-  const target = useStore((s) => s.target);
-  const fieldSize = useStore((s) => s.fieldSize);
-  const known = useStore((s) => s.known);
-  if (chosen) {
-    return (
-      <section className="box" aria-label={`About ${chosen.name}`}>
-        <h2>{chosen.name}</h2>
-        <p>{chosen.kind ?? "Known object"}{chosen.spectralType ? `, type ${chosen.spectralType}` : ""}</p>
-        <p className="mono">{formatRa(chosen.ra)} {formatDec(chosen.dec)}</p>
-        {chosen.distance && <p>Distance: {formatDistance(chosen.distance)}, {distanceMethod(chosen.distance.method)}</p>}
-        {chosen.refs != null && <p className="muted">Mentioned in {chosen.refs.toLocaleString("en-US")} papers</p>}
-        <div className="row wrap">
-          <button className="primary" onClick={() => { actions.studyObject(chosen); showImages(); }}>Study in SPHEREx</button>
-          <a className="button" href={chosen.url} target="_blank" rel="noreferrer">Full details</a>
-          <button onClick={() => actions.selectObject(null)}>Close</button>
-        </div>
-      </section>
-    );
-  }
-  if (picked && view === "map") {
-    // On the map the pick is an area the size of the field, drawn as a square with grips.
-    return (
-      <section className="box" aria-label="Selected area">
-        <h2>Selected area</h2>
-        <p className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</p>
-        <p>{(fieldSize / 60).toFixed(1)} arcminutes across. Drag the edge of the red square to resize it.</p>
-        <div className="row wrap">
-          <button className="primary" onClick={() => { actions.goTo({ ...picked, epoch: 2026.0 }); showImages(); }}>Study this area</button>
-          <button onClick={() => actions.pick(null)}>Close</button>
-        </div>
-      </section>
-    );
-  }
-  if (picked) {
-    // In the frames, a spot can be measured in place. A planet or comet has no fixed field to measure in.
-    const canMeasure = target !== null && !target.moving;
-    return (
-      <section className="box" aria-label="Selected spot">
-        <h2>Selected spot</h2>
-        <p className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</p>
-        <div className="row wrap">
-          {canMeasure && (
-            <button className="primary" onClick={() => { actions.probe(picked); openTool("graphs"); }}>Spectrum here</button>
-          )}
-          <button className={canMeasure ? "" : "primary"} onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
-          <button onClick={() => void actions.identify()} disabled={known?.status === "loading"} title="Ask whether a known asteroid, comet, or planet was here when this image was taken">
-            Known asteroid or comet?
-          </button>
-          <button onClick={() => actions.pick(null)}>Close</button>
-        </div>
-        <KnownAnswer />
-      </section>
-    );
-  }
+  const listed = useStore((s) => {
+    const id = s.map.selected?.id;
+    return id !== undefined && (s.fieldObjects.some((object) => object.id === id) || s.movers.some((object) => object.id === id));
+  });
+  const fromImages = useStore((s) => s.map.picked !== null && s.map.pickedIn === "images");
+  if (chosen && !(both && listed)) return <ObjectCard object={chosen} onStudy={showImages} />;
+  if (both && fromImages) return null;
+  return <AreaCard />;
+}
+
+/**
+ * The card for the image side, beside the list of objects: a spot picked in the images.
+ * With the images alone on screen, an object chosen earlier on the map that is not in the
+ * list still gets its card.
+ */
+function ImageCards({ both, openTool, showImages }: { both: boolean; openTool: (id: string) => void; showImages: () => void }) {
+  const chosen = useStore((s) => s.map.selected);
+  const listed = useStore((s) => {
+    const id = s.map.selected?.id;
+    return id !== undefined && (s.fieldObjects.some((object) => object.id === id) || s.movers.some((object) => object.id === id));
+  });
+  const fromImages = useStore((s) => s.map.pickedIn === "images");
+  const picked = useStore((s) => s.map.picked !== null);
+  if (chosen) return both || listed ? null : <ObjectCard object={chosen} onStudy={showImages} />;
+  if (picked && (!both || fromImages)) return <SpotCard openTool={openTool} />;
   return null;
 }
 
 /** Problems and notes from the engine, laid over the stage so the layout never shifts. */
-function Messages({ view, showImages }: { view: ViewId; showImages: () => void }) {
+function Messages({ view }: { view: ViewId }) {
   const error = useStore((s) => s.error);
   const notice = useStore((s) => s.notice);
-  const movers = useStore((s) => (s.movers.length ? s.movers : null));
   const mapFailure = useStore((s) => s.map.failure);
   const [showError, closeError] = useClosable(error);
   const [showNotice, closeNotice] = useClosable(notice);
-  const [showMovers, closeMovers] = useClosable(movers);
   return (
     <>
       {showError && (
@@ -275,17 +249,6 @@ function Messages({ view, showImages }: { view: ViewId; showImages: () => void }
       )}
       {view !== "images" && mapFailure && (
         <div className="box alert" role="alert"><p>{mapFailure}</p></div>
-      )}
-      {showMovers && movers && (
-        <div className="box hint">
-          {movers.slice(0, 2).map((mover) => (
-            <p key={mover.id}>
-              {mover.name}{mover.kind ? ` (${mover.kind.toLowerCase()})` : ""} moves quickly across the sky and is near these coordinates. It may have moved since they were measured.{" "}
-              <button onClick={() => { actions.studyObject(mover); showImages(); }}>Follow {mover.name}</button>
-            </p>
-          ))}
-          <div className="row"><button onClick={closeMovers}>Close</button></div>
-        </div>
       )}
       {showNotice && (
         <div className="box">
@@ -326,6 +289,45 @@ function Readout() {
   );
 }
 
+/**
+ * A small ring that fills as work is done. `value` runs from 0 to 1.
+ * With null the ring turns instead, for work whose length is not known yet.
+ */
+function ProgressRing({ value, label }: { value: number | null; label: string }) {
+  const size = 18;
+  const stroke = 3;
+  const radius = (size - stroke) / 2;
+  const around = 2 * Math.PI * radius;
+  const share = value === null ? 0.25 : Math.min(1, Math.max(0, value));
+  return (
+    <svg
+      className={value === null ? "ring turning" : "ring"}
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={value === null ? undefined : Math.round(share * 100)}
+    >
+      <circle className="ring-track" cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={stroke} />
+      {/* The arc starts at the top and runs clockwise. */}
+      <circle
+        className="ring-fill"
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        strokeWidth={stroke}
+        strokeDasharray={around}
+        strokeDashoffset={around * (1 - share)}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+    </svg>
+  );
+}
+
 /** One line under the stage: progress on the left, the pointer readout or map help on the right. Its height is fixed. */
 function StatusBar({ view }: { view: ViewId }) {
   const targetState = useStore((s) => s.targetState);
@@ -334,23 +336,45 @@ function StatusBar({ view }: { view: ViewId }) {
   const total = useStore((s) => s.frames.filter((f) => f.status !== "outside").length);
   const loaded = useStore((s) => s.loaded);
   const failed = useStore((s) => s.failed);
+  const leftOut = useStore((s) => s.leftOut);
+  const areaShown = useAreaShown();
+  const count = (n: number) => n.toLocaleString("en-US");
 
   let text = "Pick a target or enter coordinates to begin.";
-  if (targetState === "loading") text = "Searching the SPHEREx archive…";
-  else if (targetState === "ready" && total === 0) text = "SPHEREx has no public images of this spot yet.";
-  else if (framesState === "loading") text = `Loading images: ${loaded + failed} of ${total}`;
-  else if (framesState === "ready") text = `${loaded} images loaded${failed ? `, ${failed} could not be read` : ""}.`;
+  // The ring: null turns while the archive is searched, a number fills while images arrive.
+  let progress: number | null | undefined;
+  if (targetState === "loading") {
+    text = "Searching the SPHEREx archive…";
+    progress = null;
+  } else if (targetState === "ready" && total === 0) {
+    text = "SPHEREx has no public images of this spot yet.";
+  } else if (framesState === "loading") {
+    text = `Loading images ${count(loaded + failed)}/${count(total)}`;
+    progress = total ? (loaded + failed) / total : 0;
+  } else if (framesState === "ready") {
+    text = leftOut > 0 ? `${count(loaded)} of ${count(loaded + failed + leftOut)} images loaded` : `${count(loaded)} images loaded`;
+    text += failed ? `, ${count(failed)} could not be read.` : ".";
+    // A very large field holds more pixels than a page can keep in memory. Said here, not in a message box.
+    if (leftOut > 0) text += " A field this large is sampled evenly over time to keep the page fast. A smaller field loads every image.";
+    // A search leaves the view where it is, so say where the images are.
+    else if (view === "map" && loaded > 0) text += " Choose Images or Both to see them.";
+  }
+  const why = leftOut > 0 ? `Every image is kept in memory so that playing, summing, and measuring are instant. ${count(leftOut)} images were left out. Choose a smaller field to load them all.` : undefined;
 
   return (
     <div className="statusbar">
-      <p className="status" aria-live="polite">
+      <p className="status" aria-live="polite" title={why}>
+        {progress !== undefined && <ProgressRing value={progress} label={progress === null ? "Searching" : "Images loaded"} />}
         <span>{text}</span>
-        {framesState === "loading" && <progress max={total} value={loaded + failed} />}
       </p>
       {view !== "map" ? (
         <Readout />
       ) : (
-        <p className="hint-text">Drag to move, scroll to zoom. Click a label to learn about an object, or click anywhere to study that spot.</p>
+        <p className="hint-text">
+          {areaShown
+            ? "Drag the square to move it, or drag its edge to resize it. Click anywhere else to select a new area."
+            : "Drag to move, scroll to zoom. Click a label to learn about an object, or click anywhere to select that area."}
+        </p>
       )}
     </div>
   );
@@ -437,7 +461,7 @@ function Dock({ tool, open, tall, onTool, onTall, onClose, showMap, showImages }
 
 export function App() {
   const [view, setView] = useState<ViewId>("map");
-  const [top, setTop] = useState<TopDrawer | null>("examples");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [tool, setTool] = useState(TOOLS[0].id);
   const [dockOpen, setDockOpen] = useState(false);
   const [dockTall, setDockTall] = useState(false);
@@ -446,19 +470,12 @@ export function App() {
 
   useEffect(() => {
     actions.init();
-    // A link that names a target opens on its images, with the drawer closed.
-    if (useStore.getState().targetState === "loading") {
-      setView("images");
-      setTop(null);
-    }
-    // A new search puts the test target list away. On the map, the map moves to the target
-    // while its images load. On a wide screen the images join the map, side by side, so the
-    // search shows in both. On a narrow one the view is left alone, and the Study buttons switch.
-    return useStore.subscribe((next, before) => {
-      if (next.targetState !== "loading" || before.targetState === "loading") return;
-      setTop((open) => (open === "examples" ? null : open));
-      if (window.innerWidth >= WIDE) setView((now) => (now === "map" ? "both" : now));
-    });
+    // A link that names a target opens on its images.
+    if (useStore.getState().targetState === "loading") setView("images");
+    // A search made on the page is different. The engine moves the sky map to the target and
+    // loads its images, whichever view is showing, and the view itself stays put (Matt's
+    // decision). The images come up only when asked for: with the view buttons, a Study
+    // button, or the player.
   }, []);
 
   // Side by side needs room. If the window is made narrow, fall back to the images alone.
@@ -487,8 +504,6 @@ export function App() {
   // With both on screen, nothing needs to come to the front.
   const showImages = () => setView((now) => (now === "both" ? now : "images"));
   const showMap = () => setView((now) => (now === "both" ? now : "map"));
-  // A clicked spot is offered as a spot in the images when there are images to measure it in.
-  const boxView: ViewId = view === "both" ? (hasTarget ? "images" : "map") : view;
 
   function chooseTool(id: string) {
     if (dockOpen && id === tool) {
@@ -498,8 +513,6 @@ export function App() {
       setDockOpen(true);
     }
   }
-
-  const toggleTop = (drawer: TopDrawer) => setTop((open) => (open === drawer ? null : drawer));
 
   // A page opened with embed=1 sits inside another site, so it gets the compact layout.
   if (embed) return <Embed />;
@@ -511,14 +524,12 @@ export function App() {
         <SearchBox />
         <ViewSwitch view={view} onChange={setView} />
         <div className="toggles">
-          <DrawerToggle open={top === "examples"} onClick={() => toggleTop("examples")}>Examples</DrawerToggle>
-          <DrawerToggle open={top === "settings"} onClick={() => toggleTop("settings")}>Settings</DrawerToggle>
+          <DrawerToggle open={settingsOpen} onClick={() => setSettingsOpen((open) => !open)}>Settings</DrawerToggle>
         </div>
       </header>
 
-      <section id="top-drawer" className="drawer" hidden={top === null} aria-label={top === "settings" ? "Settings" : "Test targets"}>
-        {top === "examples" && <Examples />}
-        {top === "settings" && <Settings />}
+      <section id="top-drawer" className="drawer split" hidden={!settingsOpen} aria-label="Settings">
+        {settingsOpen && <Settings />}
       </section>
 
       {/* Both views stay mounted and keep their size. The hidden one is only made invisible,
@@ -527,10 +538,22 @@ export function App() {
         <div className={view === "images" ? "view map off" : "view map"}><SkyMap /></div>
         <div className={view === "map" ? "view images off" : "view images"}>{hasTarget ? <FrameView /> : <EmptyImages />}</div>
         {view !== "images" && <MapLabel />}
-        {view !== "map" && <DetailsCard beside={view === "both"} />}
+        {view !== "images" && <MapPlace />}
+        {/* The image side's own column: what the target is, then every object in its field. */}
+        {view !== "map" && (
+          <div className="image-cards">
+            <DetailsCard />
+            <ObjectsCard />
+          </div>
+        )}
+        {/* With both views up, the map's card sits over the map and the image side's over the images. */}
+        {view === "both" && (
+          <div className="overlay beside-map"><MapCards both showImages={showImages} /></div>
+        )}
         <div className="overlay">
-          <InfoBox view={boxView} openTool={(id) => { setTool(id); setDockOpen(true); }} showImages={showImages} />
-          <Messages view={view} showImages={showImages} />
+          {view === "map" && <MapCards both={false} showImages={showImages} />}
+          {view !== "map" && <ImageCards both={view === "both"} openTool={(id) => { setTool(id); setDockOpen(true); }} showImages={showImages} />}
+          <Messages view={view} />
         </div>
       </main>
 

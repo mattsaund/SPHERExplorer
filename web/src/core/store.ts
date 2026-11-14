@@ -57,6 +57,8 @@ export interface AppState {
   framesState: LoadState;
   /** Frames whose pixels have arrived, and frames that failed. */
   loaded: number;
+  /** Images found but not loaded, to keep the page fast, when a field has more than the page can hold. Zero when all are loaded. */
+  leftOut: number;
   failed: number;
   filters: Filters;
   mode: SequenceMode;
@@ -93,6 +95,8 @@ export interface AppState {
   /** Where every telescope in Earth orbit is this second, by telescope id. Updated while the orbit view is on the page. */
   craftNow: Record<string, SpacecraftNow>;
   map: MapState;
+  /** The sky position under the pointer on the map, or null when the pointer is elsewhere. */
+  mapHover: SkyPosition | null;
   /** A request to move the map. The map acts when `token` changes. */
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
 }
@@ -147,6 +151,7 @@ export const useStore = create<AppState>(() => ({
   partner: null,
   framesState: "idle",
   loaded: 0,
+  leftOut: 0,
   failed: 0,
   filters: DEFAULT_FILTERS,
   mode: "exposures",
@@ -182,7 +187,15 @@ export const useStore = create<AppState>(() => ({
     objectsState: "idle",
     selected: null,
     picked: null,
+    pickedIn: "map",
+    fieldShown: false,
+    coverage: false,
+    deepFields: false,
+    tiles: false,
+    measuring: false,
+    measured: null,
   },
+  mapHover: null,
   mapGoal: { ra: 266.4, dec: -29.0, fov: 200, token: 0 },
 }));
 
@@ -294,13 +307,15 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     known: null,
     sequence: [],
     loaded: 0,
+    leftOut: 0,
     failed: 0,
     error: null,
     notice: null,
     hover: null,
     spectrum: { ...get().spectrum, probe: null, halo: false },
-    // The picked area has become the target, or been left behind. Either way its square goes.
-    map: { ...get().map, picked: null },
+    // The picked area has become the field being studied, or been left behind. The map now
+    // shows the field's own square. A solar system body has no fixed field to draw.
+    map: { ...get().map, picked: null, fieldShown: !target.moving },
     player: { ...get().player, index: 0, playing: false },
     view: { east: 0, north: 0, zoom: 1 },
   });
@@ -404,7 +419,8 @@ async function load(target: Target, fieldSize: number): Promise<void> {
       const keep = new Set(wanted.map((frame) => frame.id));
       set({
         frames: frames.map((frame) => (keep.has(frame.id) ? frame : { ...frame, status: "outside" as const, error: "Not loaded, to keep the page fast" })),
-        notice: `Loading ${budget.toLocaleString("en-US")} of ${frames.length.toLocaleString("en-US")} images, spread evenly over time, to keep the page fast. Choose a smaller field to load them all.`,
+        // The UI says so in its status line. No message box, at Matt's request.
+        leftOut: frames.length - budget,
       });
     }
 
@@ -485,6 +501,8 @@ const suggestCache = new Map<string, Suggestion[]>();
 /** The pending lookup of known solar system bodies, and how far around a spot it looks, arcseconds. */
 let knownAbort: AbortController | null = null;
 const KNOWN_RADIUS = 120;
+/** The widest search for known bodies, arcseconds. Covers the corners of the largest field. */
+const KNOWN_REACH = 2700;
 
 /** True once the spacecraft facts have been asked for. */
 let spacecraftRequested = false;
@@ -799,13 +817,20 @@ export const actions = {
     set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false } });
   },
 
-  /** Change map settings: projection, layer, channel, grid, or labels. */
-  setMap(change: Partial<Pick<MapState, "projection" | "layer" | "channel" | "grid" | "labels">>): void {
+  /** Change map settings: projection, layer, channel, grid, labels, the coverage overlays, the tile grid, or the measure tool. */
+  setMap(change: Partial<Pick<MapState, "projection" | "layer" | "channel" | "grid" | "labels" | "coverage" | "deepFields" | "tiles" | "measuring">>): void {
     const before = get().map;
     const map = { ...before, ...change };
     map.channel = Math.min(101, Math.max(0, Math.round(map.channel)));
     if (BLANK_CHANNELS.includes(map.channel)) map.channel = map.channel >= before.channel ? 52 : 49;
+    // Putting the measure tool away takes its line off the map.
+    if (!map.measuring) map.measured = null;
     set({ map });
+  },
+
+  /** Used by the map to report the sky position under the pointer. */
+  setMapHover(position: SkyPosition | null): void {
+    if (position !== get().mapHover) set({ mapHover: position });
   },
 
   /** Move the map to a position. fov is the width of the view in degrees. */
@@ -818,28 +843,53 @@ export const actions = {
     set({ map: { ...get().map, selected: object, picked: null } });
   },
 
-  /** Choose a spot of empty sky on the map, or pass null to clear it. */
-  pick(position: SkyPosition | null): void {
-    knownAbort?.abort();
-    set({ map: { ...get().map, picked: position, selected: null }, known: null });
+  /**
+   * Choose a place by a click on the map or in an image, or pass null to clear the choice.
+   * `from` says where the click was, so the UI can offer the tools that fit.
+   */
+  pick(position: SkyPosition | null, from: "map" | "images" = "map"): void {
+    const { map, known } = get();
+    // An answer about one spot belongs to that spot. An answer about the whole field stays.
+    const spot = known !== null && !known.field;
+    if (spot) knownAbort?.abort();
+    set({ map: { ...map, picked: position, pickedIn: position ? from : map.pickedIn, selected: null }, known: spot ? null : known });
+  },
+
+  /** Take the selected area off the map: the picked place, and the square of the field being studied. A search or a click brings one back. */
+  closeArea(): void {
+    actions.pick(null);
+    set({ map: { ...get().map, fieldShown: false } });
   },
 
   /**
-   * Ask whether a known asteroid, comet, or planet was at the picked spot when the image on
-   * screen was taken. The answer lands in state.known. It takes several seconds, because the
-   * service works out where every known body was at that moment.
+   * Ask which known asteroids, comets, and planets were in view when the image on screen was
+   * taken: across the whole field of that image ("field"), or around the picked spot ("spot").
+   * The answer lands in state.known. It takes several seconds, because the service works out
+   * where every known body was at that moment.
    */
-  async identify(): Promise<void> {
+  async identify(where: "field" | "spot" = "field"): Promise<void> {
     const state = get();
-    const position = state.map.picked;
     const item = state.sequence[state.player.index];
-    if (!position || !item) return;
+    if (!item) return;
+    const whole = where === "field";
+    // A field is searched from the middle of the image on screen out to its corners.
+    const position = whole ? state.frames[item.frameIds[0]]?.center ?? state.target : state.map.picked;
+    if (!position) return;
+    const half = state.fieldSize / 2;
+    const radius = whole ? Math.min(KNOWN_REACH, Math.max(KNOWN_RADIUS, half * Math.SQRT2)) : KNOWN_RADIUS;
     knownAbort?.abort();
     knownAbort = new AbortController();
-    const check: KnownCheck = { position, mjd: item.mjd, summed: item.frameIds.length > 1, radius: KNOWN_RADIUS, status: "loading", bodies: [] };
+    const check: KnownCheck = { position: { ra: position.ra, dec: position.dec }, mjd: item.mjd, summed: item.frameIds.length > 1, radius, field: whole, status: "loading", bodies: [] };
     set({ known: check });
     try {
-      const bodies = await getKnown(position.ra, position.dec, item.mjd, KNOWN_RADIUS, knownAbort.signal);
+      let bodies = await getKnown(position.ra, position.dec, item.mjd, radius, knownAbort.signal);
+      // The search is a circle around the corners. Keep what lies inside the square image.
+      if (whole) {
+        bodies = bodies.filter((body) => {
+          const [east, north] = skyOffset(body, position);
+          return Math.abs(east) <= half && Math.abs(north) <= half;
+        });
+      }
       if (get().known === check) set({ known: { ...check, status: "ready", bodies } });
     } catch (error) {
       if ((error as Error).name === "AbortError") return;

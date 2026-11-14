@@ -4,7 +4,7 @@ Every tool the app offers, and the engine pieces the UI must use to offer it. A 
 
 `scripts/check_ui_coverage.py` reads the third column of these tables and fails when a piece is not used anywhere under `web/src/ui/`. CI runs it on every pull request. When the engine gains a tool, its row is added here in the same commit that adds it to the UI.
 
-The working example of every row is in `web/src/ui/`: `App.tsx` holds the page and its bars, `settings.tsx` the top drawer, and `tools.tsx` the tools in the bottom dock. A new tool usually needs one component and one entry in `TOOLS` in `tools.tsx`. `docs/architecture.md` says which part of the page holds what.
+The working example of every row is in `web/src/ui/`: `App.tsx` holds the page and its bars, `settings.tsx` the settings drawer, `cards.tsx` the cards laid over the map and the images, and `tools.tsx` the tools in the bottom dock. A new tool usually needs one component and one entry in `TOOLS` in `tools.tsx`. `docs/architecture.md` says which part of the page holds what.
 
 ## Start and search
 
@@ -14,9 +14,9 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Search | Type a name, J2000 coordinates, or a planet, asteroid, or comet | `actions.search` |
 | Search suggestions | Pick from a dropdown: recent searches and NASA's targets at first, then matching names and typed coordinates | `actions.suggest`, `suggestions` |
 | Test targets | Open any of NASA's five test targets in one click | `TEST_TARGETS`, `actions.goTo` |
-| Status | See search and download progress | `targetState`, `framesState`, `loaded`, `failed` |
+| Status | See search and download progress as a count and a ring, and whether a very large field was sampled | `targetState`, `framesState`, `loaded`, `failed`, `leftOut` |
 | Messages | Read notices and errors, and try again | `notice`, `error`, `actions.reload` |
-| Fast-mover hint | Be offered a fast-moving object near typed coordinates | `movers`, `actions.studyObject` |
+| Fast movers | See a fast-moving object near typed coordinates first in the objects list, and follow it | `movers`, `actions.studyObject` |
 
 ## Image viewer
 
@@ -38,9 +38,9 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Details | See the target's name, kind, and distance, and open its full database entry | `distance`, `formatDistance`, `url` |
 | Per-image facts | See date, detector, wavelength, and brightness of the image on screen | `phot`, `formatFlux` |
 | Solar system distances | See a body's distance from Earth and the Sun at each image | `earthDistance`, `sunDistance`, `formatAu` |
-| Object card | Open a labeled object's facts, study it, or open its details | `actions.selectObject`, `actions.studyObject` |
-| Picked spot | Take the spectrum of a clicked spot, or study it | `actions.probe`, `actions.pick` |
-| Known movers | Ask whether a known asteroid, comet, or planet was at a clicked spot when the image was taken, and follow it | `actions.identify`, `known` |
+| Objects list | See every object in the field in one card, open one for its facts, study it, or open its details | `fieldObjects`, `actions.selectObject`, `actions.studyObject` |
+| Picked spot | Take the spectrum of a clicked spot, study it, or copy its coordinates | `actions.probe`, `actions.pick`, `pickedIn` |
+| Known bodies | Ask which known asteroids, comets, and planets were in the field when the image on screen was taken, and follow one | `actions.identify`, `known` |
 
 ## Measuring
 
@@ -70,7 +70,11 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Labels and grid | Switch object labels and the coordinate grid | `labels`, `grid` |
 | Go to | Jump to the whole sky or to a place | `actions.flyTo` |
 | Object card | See a clicked object's facts, distance, and details link | `selected` |
-| Selected area | See the picked area and its size, resize it by dragging, and study it | `picked`, `fieldSize` |
+| Selected area | See the selected area and its size, move it by dragging inside it, resize it by dragging its edge, load its images, copy its coordinates, and close it | `picked`, `fieldSize`, `fieldShown`, `actions.closeArea` |
+| Coordinates | Read the coordinates under the pointer and at the center of the map, and copy the center | `mapHover`, `center` |
+| Coverage | Show where SPHEREx spectral images exist, and where the deep fields are | `coverage`, `deepFields` |
+| Tile grid | Show the HEALPix tiles that all-sky maps are cut into | `tiles` |
+| Measure | Drag on the map to measure the angle between two points | `measuring`, `measured`, `formatAngle` |
 
 ## Telescopes
 

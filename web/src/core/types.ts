@@ -363,8 +363,35 @@ export interface MapState {
   objectsState: LoadState;
   /** The object the user clicked, if any. */
   selected: SkyObject | null;
-  /** A spot of empty sky the user clicked, if any. */
+  /** A place the user chose by clicking the map or an image, if any. The map draws it as the selected area. */
   picked: SkyPosition | null;
+  /** Where that place was chosen: on the sky map or in the images. */
+  pickedIn: "map" | "images";
+  /**
+   * True while the square of the field being studied is shown on the map.
+   * A search switches it on. Closing the selected area switches it off.
+   */
+  fieldShown: boolean;
+  /** Coverage map of every SPHEREx spectral image in the archive, on or off. */
+  coverage: boolean;
+  /** Coverage map of the SPHEREx deep fields, on or off. */
+  deepFields: boolean;
+  /** The HEALPix tile grid that all-sky maps are cut into, on or off. */
+  tiles: boolean;
+  /** True while the measure tool is on. A drag on the map then measures an angle instead of moving the map. */
+  measuring: boolean;
+  /** The line last measured on the map, if any. */
+  measured: Measurement | null;
+}
+
+/** A line measured between two points on the sky map. */
+export interface Measurement {
+  from: SkyPosition;
+  to: SkyPosition;
+  /** The angle between the two ends, in arcseconds. */
+  separation: number;
+  /** The direction from the first end to the second, in degrees from north through east. */
+  angle: number;
 }
 
 /**
@@ -495,6 +522,8 @@ export interface KnownCheck {
   summed: boolean;
   /** How far around the spot was searched, arcseconds. */
   radius: number;
+  /** True when the whole field of the image was searched, not the surroundings of one picked spot. */
+  field: boolean;
   status: "loading" | "ready" | "failed";
   /** The bodies found, nearest first. Empty when none is known there. */
   bodies: KnownBody[];

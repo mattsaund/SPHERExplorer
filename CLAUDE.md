@@ -97,8 +97,8 @@ Details in `docs/research/`.
 ## Two Claudes, one repo
 
 - Matt's Claude: data access, backend, science logic, heavy lifting.
-- Austin's Claude: UI, styling, fonts, buttons, polish.
-- Matt's Claude leads the build. It reviews and merges every pull request.
+- Austin's Claude: hosting and deployment (since the evening of Nov 14). Before that: UI, styling, fonts, buttons, polish.
+- Matt's Claude leads the build. It reviews and merges every pull request, checks every push, and checks that the work follows the Space Apps rules. It also carries the UI work now.
 - Directory ownership. Each side edits only its own directories.
   - Matt: `server/`, `web/src/core/`, `scripts/`, `.github/`.
   - Austin: `web/src/ui/`.

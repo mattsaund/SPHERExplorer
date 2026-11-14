@@ -93,6 +93,9 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Save picture | Save the image on screen | `actions.saveImage` |
 | Save animation | Save the sequence as a GIF, with progress | `actions.saveAnimation`, `exporting` |
 | Save spectrum | Save the spectrum table | `actions.saveSpectrum` |
+| Save FITS | Save the image on screen as a FITS file with sky coordinates: the archive's own pixels, flags, and variance for one exposure, or the sum | `actions.saveFits` |
+| Save all FITS | Save every loaded image as FITS files in one zip, with progress | `actions.saveAllFits`, `packing` |
+| Save tables | Save the brightness over time, and what the change finder found, as CSV tables | `actions.saveLightCurve`, `actions.saveChanges` |
 | Share | Copy a link that reopens the view | `actions.shareLink` |
 | About and credits | Read who made it, where the data comes from, that it is not a NASA product, and that SI was used | `DATA_CREDIT`, `index` |
 | Embed code | Copy HTML that shows the view inside another web page | `actions.embedCode` |

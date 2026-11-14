@@ -298,6 +298,10 @@ function Telescopes({ showMap }: ToolProps) {
 function SaveAndShare() {
   const count = useStore((s) => s.sequence.length);
   const exporting = useStore((s) => s.exporting);
+  const packing = useStore((s) => s.packing);
+  const loaded = useStore((s) => s.loaded);
+  const summed = useStore((s) => (s.sequence[s.player.index]?.frameIds.length ?? 1) > 1);
+  const hasChanges = useStore((s) => s.changes !== null && !s.changes.note);
   // Which copy button just succeeded, so it can say so for a moment.
   const [copied, setCopied] = useState<"link" | "embed" | null>(null);
   function copy(text: string, which: "link" | "embed") {
@@ -309,7 +313,7 @@ function SaveAndShare() {
     });
   }
   return (
-    <NeedsTarget then="Pictures, animations, spectrum tables, and links can be saved here.">
+    <NeedsTarget then="Pictures, animations, FITS files, tables, and links can be saved here.">
       <div className="tool">
         <dl className="save-list">
           <dt><button onClick={() => void actions.saveImage()} disabled={!count}>Save picture</button></dt>
@@ -320,8 +324,24 @@ function SaveAndShare() {
             </button>
           </dt>
           <dd>Every step of the player as an animated GIF.</dd>
+          <dt><button onClick={() => actions.saveFits()} disabled={!count}>Save image as FITS</button></dt>
+          <dd>
+            {summed
+              ? "The sum on screen as a FITS file with sky coordinates, for finding and placing sources."
+              : "The image on screen as a FITS file: the archive's own pixels, flags, and variance, with its sky coordinates."}
+          </dd>
+          <dt>
+            <button onClick={() => void actions.saveAllFits()} disabled={!loaded || packing}>
+              {packing ? "Making the files…" : "Save all images as FITS"}
+            </button>
+          </dt>
+          <dd>Every loaded image as a FITS file, in one zip. For measuring with your own tools.</dd>
           <dt><button onClick={() => actions.saveSpectrum()} disabled={!count}>Save spectrum table</button></dt>
           <dd>Every brightness measurement as a CSV table, one row per image.</dd>
+          <dt><button onClick={() => actions.saveLightCurve()} disabled={!count}>Save brightness table</button></dt>
+          <dd>The brightness over time as a CSV table, each measurement against the usual brightness at its wavelength.</dd>
+          <dt><button onClick={() => actions.saveChanges()} disabled={!hasChanges}>Save change report</button></dt>
+          <dd>{hasChanges ? "What Measure Changes found, as a CSV table." : "What Measure Changes found, as a CSV table. Run it in the Studies tab first."}</dd>
           <dt><button onClick={() => copy(actions.shareLink(), "link")} disabled={!count}>{copied === "link" ? "Link copied" : "Copy link"}</button></dt>
           <dd>A link that reopens this target with these settings.</dd>
           <dt><button onClick={() => copy(actions.embedCode(), "embed")} disabled={!count}>{copied === "embed" ? "Embed code copied" : "Copy embed code"}</button></dt>

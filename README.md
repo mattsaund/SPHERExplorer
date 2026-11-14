@@ -19,7 +19,7 @@ Type a name or coordinates. SPHERExplorer finds every SPHEREx image of that spot
 - **Identify.** Mark hydrogen, water, carbon dioxide, methane, and more on the spectrum. Slide the redshift for galaxies. The tool also measures which of them actually stand out, and says so in plain words.
 - **Compare.** Gaia stars, 2MASS and WISE brightness, and NEOSSat images of the same field.
 - **Explore.** A sky map with the SPHEREx all-sky survey in every channel and in full color, other missions, seven map shapes, and clickable labels. Overlays show where SPHEREx has images and where its deep fields are. Drag the selected area anywhere, measure angles, and copy coordinates.
-- **Share.** Every view has a link. Save pictures, animations, and spectrum tables.
+- **Share and save.** Every view has a link. Save pictures and animations. Save the science too: FITS files of every image with sky coordinates, flags, and variance, and tables of the spectrum, the brightness over time, and the changes found.
 - **Embed.** Put coordinates in the address and add `embed=1` to place the viewer inside any web page. See [docs/embedding.md](docs/embedding.md).
 
 ## Try these

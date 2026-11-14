@@ -39,6 +39,14 @@ function remember(key: string, stack: Stack): void {
   while (stacks.size > MAX_STACKS) stacks.delete(stacks.keys().next().value!);
 }
 
+/**
+ * The summed image of a step that is a sum, in one color and with nothing subtracted,
+ * whatever the display settings are. Null for a step that is a single exposure.
+ */
+export function plainSum(item: SequenceItem, state: AppState): Stack | null {
+  return item.frameIds.length > 1 ? sumOf(item, state, null)?.stack ?? null : null;
+}
+
 /** Offset of the target's position in a frame from the field center. */
 export function trackOffset(frame: Frame, state: AppState): [number, number] {
   // Each frame of a solar system body is cut out around the body itself, so the offset is zero.

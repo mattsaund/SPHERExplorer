@@ -6,7 +6,7 @@ import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits
 import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { COLOR_PRESETS } from "./colorBands";
-import { exportAnimation, exportImage, exportSpectrum } from "./export";
+import { exportAllFits, exportAnimation, exportChanges, exportFits, exportImage, exportLightCurve, exportSpectrum } from "./export";
 import { spectrumFeatures } from "./features";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
@@ -79,6 +79,8 @@ export interface AppState {
   embed: boolean;
   /** Progress of an animation being saved, from 0 to 1, or null when none is running. */
   exporting: number | null;
+  /** True while the zip of FITS files is being made by the server and downloaded. */
+  packing: boolean;
   /** The measured motion of the source at the target, from actions.measureMotion. Null until measured. */
   motion: MotionFit | null;
   /** What moved or changed brightness anywhere in the field, from actions.findChanges. Null until searched. */
@@ -168,6 +170,7 @@ export const useStore = create<AppState>(() => ({
   spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, aperture: null, halo: false, probe: null, families: [], redshift: 0 },
   embed: openedEmbedded(),
   exporting: null,
+  packing: false,
   motion: null,
   changes: null,
   finding: null,
@@ -1007,6 +1010,37 @@ export const actions = {
   /** Save the spectrum as a CSV table, one row per image. */
   saveSpectrum(): void {
     exportSpectrum(get());
+  },
+
+  /**
+   * Save the image on screen as a FITS file. A single exposure is the archive's own pixels,
+   * with flags and variance. A sum is saved on its north-up grid.
+   */
+  saveFits(): void {
+    exportFits(get());
+  },
+
+  /** Save every loaded exposure as FITS cutouts in one zip file. state.packing is true while it is made. */
+  async saveAllFits(): Promise<void> {
+    if (get().packing) return;
+    set({ packing: true });
+    try {
+      await exportAllFits(get());
+    } catch (error) {
+      set({ notice: error instanceof ApiError ? error.message : "The files could not be made. Try again in a minute." });
+    } finally {
+      set({ packing: false });
+    }
+  },
+
+  /** Save the brightness over time as a CSV table. */
+  saveLightCurve(): void {
+    exportLightCurve(get());
+  },
+
+  /** Save what the change finder found as a CSV table. */
+  saveChanges(): void {
+    exportChanges(get());
   },
 
   /**

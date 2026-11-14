@@ -140,7 +140,15 @@ Checked on known objects.
 - Checked on RW Aurigae against 2MASS: every bright star falls on the same screen pixel in both pictures, at the first zoom and after zooming and panning. Checked on WISE 0855 with detectors 5 and 6: the brown dwarf is at the marker in the SPHEREx sum and is not there in the WISE picture from 2010, when it was 127 arcsec to the east.
 - A single SPHEREx exposure is much shallower than these surveys, so many faint stars show only in the older picture. Summing by visit, or all visits, gives a fairer match.
 
-## 14. The sky map's overlays and measure tool
+## 14. Saving data
+
+- A single exposure is saved as a FITS file made by the API: the archive's own pixels around the position, unchanged, in three extensions (IMAGE in MJy/sr, FLAGS, VARIANCE). The header carries the parent image's world coordinates, tangent plane with SIP distortion. Only the reference pixel is moved to the cutout's corner, which is the standard way to cut out an image.
+- "Save all images" gives every loaded exposure in that form, in one zip with a note that lists anything left out.
+- A sum exists only in the browser, so the browser writes its FITS file: one image on a north-up tangent-plane grid of half detector pixels, with the number of exposures and their date and wavelength ranges in the header. A sum mixes wavelengths and has each exposure's background removed, so its header says it is for finding and placing sources, not for calibrated brightness.
+- Checked with Astropy on Epsilon Indi B. The server's cutout puts the target at the center pixel of a 67 by 69 pixel cutout, with pixels of 6.15 arcsec. The browser's sum passes Astropy's format check and puts the target on its brightest pixel. A unit test proves that a cutout's pixel and the same pixel of the parent image give the same sky position.
+- Tables are CSV with a few comment lines that say what each column is: the spectrum, the brightness over time, and what the change finder found.
+
+## 15. The sky map's overlays and measure tool
 
 - The two coverage overlays are IRSA's own coverage maps, the ones its SPHEREx Data Explorer shows: every part of the sky with spectral images in the archive, and the deep fields. They are files in the IVOA MOC format. The API relays them, because IRSA does not let browsers read them directly, and keeps each for a day.
 - The tile grid is the HEALPix grid that every all-sky map (HiPS) is cut into. Aladin Lite draws it.

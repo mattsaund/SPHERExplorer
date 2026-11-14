@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, instrument, missions, net, partners, resolve, sia, skybot, solarsystem, spacecraft, suggest
+from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, fitsout, instrument, missions, net, partners, resolve, sia, skybot, solarsystem, spacecraft, suggest
 
 SWEEP_SECONDS = 600
 
@@ -64,6 +64,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 KEY_PATTERN = re.compile(r"^[a-z0-9_]+/level2/[A-Za-z0-9_\-./]+\.fits$")
 MAX_BATCH = 6000
 MAX_BATCH_PIXELS = 2.5e8   # about four times what the web app asks for
+MAX_FITS_PIXELS = 2.5e7    # about 300 MB of FITS files in one zip
 
 
 def check_key(key: str) -> str:
@@ -329,6 +330,44 @@ async def many_cutouts(body: BatchRequest):
 
     headers = {"Content-Encoding": "gzip", "Cache-Control": "no-store", "X-Accel-Buffering": "no"}
     return StreamingResponse(stream(), media_type="application/octet-stream", headers=headers)
+
+
+@app.get("/api/fits")
+async def fits_cutout(
+    key: str,
+    ra: float = Query(ge=0, lt=360),
+    dec: float = Query(ge=-90, le=90),
+    size: float = Query(300, ge=30, le=3600, description="Arcseconds"),
+    delta: float | None = Query(None, gt=0, description="Distance in au of a solar system body"),
+):
+    """One Level 2 image cut out around a position, as a FITS file: image, flags, and variance, with its own WCS."""
+    check_key(key)
+    try:
+        name, data = await fitsout.cutout(key, ra, dec, size, delta)
+    except fitsout.Outside as error:
+        raise HTTPException(404, "The position is off this detector.") from error
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
+    headers = {"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "public, max-age=86400"}
+    return Response(data, media_type="application/fits", headers=headers)
+
+
+@app.post("/api/fits")
+async def fits_archive(body: BatchRequest):
+    """Many FITS cutouts in one zip file, streamed as it is written. Same request as /api/cutouts."""
+    for frame in body.frames:
+        check_key(frame.key)
+    # Three planes of four bytes each, so the ceiling on pixels is a ceiling on the download.
+    pixels = len(body.frames) * (body.size / config.PIXEL_SCALE) ** 2 * 2
+    if pixels > MAX_FITS_PIXELS:
+        raise HTTPException(413, "That is too much data for one download. Choose a smaller field, or save the image on screen by itself.")
+
+    def job(frame: FrameRequest):
+        own = frame.ra is not None and frame.dec is not None
+        return fitsout.cutout(frame.key, frame.ra if own else body.ra, frame.dec if own else body.dec, body.size, frame.delta if own else None)
+
+    headers = {"Content-Disposition": 'attachment; filename="spherex_cutouts.zip"', "Cache-Control": "no-store", "X-Accel-Buffering": "no"}
+    return StreamingResponse(fitsout.zip_stream([job(frame) for frame in body.frames]), media_type="application/zip", headers=headers)
 
 
 # ---- The web app itself, when a built copy is present ------------------------------------------

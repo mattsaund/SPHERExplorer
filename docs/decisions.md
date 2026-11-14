@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Implement exports of the scans | Matt | From his own notes ("export scans"). FITS for the image on screen and for every loaded image, plus the brightness table and the change report |
 | 2026-11-14 | A Blink button in the image study, to compare with an older picture of the same sky | Matt | Claude listed it as an option after NASA named WiseView as a model. Matt chose it. Partners: WISE (2010), 2MASS (1997 to 2001), and the Digitized Sky Survey |
 | 2026-11-14 | A popup walkthrough tutorial | Matt | Opens on a first visit and from Help. It loads a real example so every step has something to show |
 | 2026-11-14 | The blue circle of an object stays in the image study when that object is selected as the target | Matt | It used to be dropped under the yellow target marker. Names that would print over each other now show once |

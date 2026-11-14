@@ -16,6 +16,29 @@ export function coverageUrl(name: "spectral-images" | "deep-fields"): string {
   return apiUrl(`/coverage/${name}`);
 }
 
+/** Address of one Level 2 image cut out around a position, as a FITS file with image, flags, and variance. */
+export function fitsUrl(key: string, ra: number, dec: number, size: number, delta?: number): string {
+  const query = new URLSearchParams({ key, ra: String(ra), dec: String(dec), size: String(size) });
+  if (delta !== undefined) query.set("delta", String(delta));
+  return apiUrl(`/fits?${query}`);
+}
+
+/** Many FITS cutouts in one zip file. The request is the one used to load the images. */
+export async function fitsArchive(request: CutoutRequest, signal?: AbortSignal): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(BASE + "/fits", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request), signal });
+  } catch (cause) {
+    if ((cause as Error).name === "AbortError") throw cause;
+    throw new ApiError("Can't reach the SPHERExplorer server. Check your connection and try again.");
+  }
+  if (!response.ok) {
+    const detail = await response.json().then((body) => body?.detail as string | undefined, () => undefined);
+    throw new ApiError(detail ?? `The server could not make the files (${response.status}).`);
+  }
+  return response.blob();
+}
+
 /** An error with a message fit to show a person. */
 export class ApiError extends Error {}
 

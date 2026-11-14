@@ -1,0 +1,290 @@
+// The frame viewer: a WebGL canvas for the image and a 2D canvas on top for the marker,
+// compass, and scale bar. It fills its parent and carries no chrome of its own.
+// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-flag, --frame-empty.
+// Written with Claude Code (Anthropic) assistance.
+import { useEffect, useRef, useState } from "react";
+import { offsetToSky } from "./astro";
+import { sceneFor, type Scene } from "./layers";
+import { getPixels, imageOf } from "./pixels";
+import { FrameRenderer } from "./render/renderer";
+import { actions, useStore, type AppState } from "./store";
+
+/** Parse a CSS color into [r, g, b] in 0 to 1 by letting the browser resolve it. */
+function cssColor(element: HTMLElement, name: string, fallback: string): { css: string; rgb: [number, number, number] } {
+  const css = getComputedStyle(element).getPropertyValue(name).trim() || fallback;
+  const probe = document.createElement("canvas").getContext("2d")!;
+  probe.fillStyle = css;
+  probe.fillRect(0, 0, 1, 1);
+  const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+  return { css, rgb: [r / 255, g / 255, b / 255] };
+}
+
+/** A round length in arcseconds for the scale bar, near a wanted length. */
+function niceLength(arcsec: number): number {
+  const steps = [1, 2, 5, 10, 20, 30, 60, 120, 300, 600, 1200, 1800, 3600];
+  return steps.reduce((best, step) => (Math.abs(step - arcsec) < Math.abs(best - arcsec) ? step : best));
+}
+
+function lengthLabel(arcsec: number): string {
+  if (arcsec >= 3600) return `${arcsec / 3600}°`;
+  if (arcsec >= 60) return `${arcsec / 60}′`;
+  return `${arcsec}″`;
+}
+
+export function FrameView({ className }: { className?: string }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const glRef = useRef<HTMLCanvasElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  useEffect(() => {
+    const wrap = wrapRef.current!;
+    const canvas = glRef.current!;
+    const overlay = overlayRef.current!;
+    let renderer: FrameRenderer;
+    try {
+      renderer = new FrameRenderer(canvas);
+    } catch (error) {
+      setFailure((error as Error).message);
+      return;
+    }
+
+    let raf = 0;
+    let scene: Scene | null = null;
+    let session = -1;
+    const schedule = () => {
+      raf ||= requestAnimationFrame(draw);
+    };
+
+    /** Arcseconds per CSS pixel for the current view. */
+    const scaleOf = (state: AppState) => state.fieldSize / (Math.min(wrap.clientWidth, wrap.clientHeight) * state.view.zoom || 1);
+
+    function draw() {
+      raf = 0;
+      const state = useStore.getState();
+      if (state.session !== session) {
+        // A new target. Old textures belong to other frames.
+        renderer.clear();
+        session = state.session;
+      }
+      const item = state.sequence[state.player.index];
+      scene = item ? sceneFor(item, state) : null;
+      const scale = scaleOf(state);
+      const flag = cssColor(wrap, "--frame-flag", "#e5484d");
+      const empty = cssColor(wrap, "--frame-empty", "#5b2a86");
+      renderer.draw(scene?.layer ?? null, {
+        center: [state.view.east, state.view.north],
+        scale,
+        stretch: state.display.stretch,
+        lo: state.display.lo,
+        hi: state.display.hi,
+        colorMap: state.display.colorMap,
+        invert: state.display.invert,
+        smooth: state.display.smooth,
+        showFlags: state.display.showFlags,
+        flagMask: state.meta?.badMask ?? 0,
+        flagColor: flag.rgb,
+        emptyColor: empty.rgb,
+      });
+      drawOverlay(state, scale);
+    }
+
+    function drawOverlay(state: AppState, scale: number) {
+      const ratio = overlay.width / (wrap.clientWidth || 1);
+      const ctx = overlay.getContext("2d")!;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      if (!scene) return;
+      const ink = cssColor(wrap, "--frame-ink", "rgba(255,255,255,0.92)").css;
+      const marker = cssColor(wrap, "--frame-marker", "#ffd24a").css;
+      const font = getComputedStyle(wrap).fontFamily || "sans-serif";
+
+      if (state.display.showMarker) {
+        // Four ticks around the expected position, leaving the source itself uncovered.
+        const x = w / 2 - (scene.marker[0] - state.view.east) / scale;
+        const y = h / 2 - (scene.marker[1] - state.view.north) / scale;
+        const gap = Math.max(8, 9 / scale);
+        const length = 10;
+        ctx.strokeStyle = marker;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          ctx.moveTo(x + dx * gap, y + dy * gap);
+          ctx.lineTo(x + dx * (gap + length), y + dy * (gap + length));
+        }
+        ctx.stroke();
+      }
+
+      // Scale bar, bottom left.
+      const barArcsec = niceLength((w * 0.22) * scale);
+      const bar = barArcsec / scale;
+      ctx.strokeStyle = ink;
+      ctx.fillStyle = ink;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(14, h - 16);
+      ctx.lineTo(14 + bar, h - 16);
+      ctx.stroke();
+      ctx.font = `13px ${font}`;
+      ctx.textBaseline = "bottom";
+      ctx.textAlign = "left";
+      ctx.fillText(lengthLabel(barArcsec), 14, h - 21);
+
+      // Compass, bottom right. North is up and east is left.
+      const cx = w - 26;
+      const cy = h - 22;
+      const arm = 26;
+      ctx.beginPath();
+      ctx.moveTo(cx - arm, cy);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx, cy - arm);
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillText("N", cx, cy - arm - 2);
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "right";
+      ctx.fillText("E", cx - arm - 4, cy);
+    }
+
+    function resize() {
+      const ratio = Math.min(2, window.devicePixelRatio || 1);
+      const w = Math.max(1, Math.round(wrap.clientWidth * ratio));
+      const h = Math.max(1, Math.round(wrap.clientHeight * ratio));
+      for (const target of [canvas, overlay]) {
+        if (target.width !== w) target.width = w;
+        if (target.height !== h) target.height = h;
+      }
+      schedule();
+    }
+
+    /** Sky offset [east, north] under a pointer position given in CSS pixels. */
+    function skyAt(x: number, y: number, state: AppState): [number, number] {
+      const scale = scaleOf(state);
+      return [state.view.east - (x - wrap.clientWidth / 2) * scale, state.view.north - (y - wrap.clientHeight / 2) * scale];
+    }
+
+    function publishHover(event: PointerEvent) {
+      const state = useStore.getState();
+      if (!scene || !state.target) return;
+      const box = wrap.getBoundingClientRect();
+      const [east, north] = skyAt(event.clientX - box.left, event.clientY - box.top, state);
+      const position = offsetToSky(east, north, state.target);
+      const item = state.sequence[state.player.index];
+      let value: number | null = null;
+      let wavelength: number | null = item?.wavelength ?? null;
+      let bits = 0;
+      const layer = scene.layer;
+      const [a, b, c, d] = layer.m;
+      const det = a * d - b * c;
+      const se = east + (layer.shift?.[0] ?? 0);
+      const sn = north + (layer.shift?.[1] ?? 0);
+      const px = Math.round(layer.cx + (d * se - b * sn) / det);
+      const py = Math.round(layer.cy + (-c * se + a * sn) / det);
+      if (px >= 0 && py >= 0 && px < layer.nx && py < layer.ny) {
+        if (scene.stack) {
+          const v = scene.stack.image[py * layer.nx + px];
+          value = Number.isFinite(v) ? v : null;
+        } else if (item) {
+          const frame = state.frames[item.frameIds[0]];
+          const v = imageOf(frame.id)?.[py * layer.nx + px];
+          value = v !== undefined && Number.isFinite(v) ? v : null;
+          bits = getPixels(frame.id)?.flags?.[py * layer.nx + px] ?? 0;
+          if (frame.dwl && frame.cx !== undefined && frame.cy !== undefined) {
+            wavelength = frame.wavelength + frame.dwl[0] * (px - frame.cx) + frame.dwl[1] * (py - frame.cy);
+          }
+        }
+      }
+      actions.setHover({ ...position, value, wavelength, bits });
+    }
+
+    // Pointer handling: drag to pan, pinch or wheel to zoom, double click to reset.
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinch = 0;
+    function onDown(event: PointerEvent) {
+      wrap.setPointerCapture(event.pointerId);
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      pinch = 0;
+    }
+    function onMove(event: PointerEvent) {
+      const last = pointers.get(event.pointerId);
+      if (!last) {
+        publishHover(event);
+        return;
+      }
+      const state = useStore.getState();
+      const scale = scaleOf(state);
+      if (pointers.size === 1) {
+        actions.setView({
+          east: state.view.east + (event.clientX - last.x) * scale,
+          north: state.view.north + (event.clientY - last.y) * scale,
+        });
+      }
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 2) {
+        const [p, q] = [...pointers.values()];
+        const spread = Math.hypot(p.x - q.x, p.y - q.y);
+        if (pinch) actions.setView({ zoom: state.view.zoom * (spread / pinch) });
+        pinch = spread;
+      }
+    }
+    function onUp(event: PointerEvent) {
+      pointers.delete(event.pointerId);
+      pinch = 0;
+    }
+    function onWheel(event: WheelEvent) {
+      event.preventDefault();
+      const state = useStore.getState();
+      const box = wrap.getBoundingClientRect();
+      const x = event.clientX - box.left;
+      const y = event.clientY - box.top;
+      const [east, north] = skyAt(x, y, state);
+      const zoom = Math.min(40, Math.max(0.5, state.view.zoom * Math.exp(-event.deltaY * 0.0015)));
+      // Keep the sky point under the pointer where it is.
+      const scale = state.fieldSize / (Math.min(wrap.clientWidth, wrap.clientHeight) * zoom);
+      actions.setView({ zoom, east: east + (x - wrap.clientWidth / 2) * scale, north: north + (y - wrap.clientHeight / 2) * scale });
+    }
+    const onLeave = () => actions.setHover(null);
+    const onDouble = () => actions.resetView();
+
+    wrap.addEventListener("pointerdown", onDown);
+    wrap.addEventListener("pointermove", onMove);
+    wrap.addEventListener("pointerup", onUp);
+    wrap.addEventListener("pointercancel", onUp);
+    wrap.addEventListener("pointerleave", onLeave);
+    wrap.addEventListener("dblclick", onDouble);
+    wrap.addEventListener("wheel", onWheel, { passive: false });
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(wrap);
+    resize();
+    // Redraw on any change except the pointer readout, which does not affect the picture.
+    const unsubscribe = useStore.subscribe((state, before) => {
+      if (state.hover !== before.hover && state.sequence === before.sequence && state.player === before.player && state.display === before.display && state.view === before.view) return;
+      schedule();
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      unsubscribe();
+      wrap.removeEventListener("pointerdown", onDown);
+      wrap.removeEventListener("pointermove", onMove);
+      wrap.removeEventListener("pointerup", onUp);
+      wrap.removeEventListener("pointercancel", onUp);
+      wrap.removeEventListener("pointerleave", onLeave);
+      wrap.removeEventListener("dblclick", onDouble);
+      wrap.removeEventListener("wheel", onWheel);
+      renderer.dispose();
+    };
+  }, []);
+
+  return (
+    <div ref={wrapRef} className={className} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", touchAction: "none", cursor: "crosshair" }}>
+      <canvas ref={glRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+      <canvas ref={overlayRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
+      {failure && <p role="alert" style={{ position: "absolute", inset: 0, margin: "auto", height: "fit-content", textAlign: "center", padding: 16 }}>{failure}</p>}
+    </div>
+  );
+}

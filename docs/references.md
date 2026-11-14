@@ -6,9 +6,9 @@ Every external resource goes here with its license and required credit. Set "In 
 
 | Resource | Provider | Terms | Credit or DOI | In use |
 |---|---|---|---|---|
-| SPHEREx DR1 Spectral Images | NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA | Public, no restrictions | DOI 10.26131/IRSA678 | Not yet |
+| SPHEREx DR1 Spectral Images | NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA | Public, no restrictions | DOI 10.26131/IRSA678 | Yes |
 | SPHEREx DR1 Spectral All-Sky Cube | Same | Same | DOI 10.26131/IRSA679 | Not yet |
-| SPHEREx QR3 Spectral Images | Same | Same | DOI 10.26131/IRSA662 | Not yet |
+| SPHEREx QR3 Spectral Images | Same | Same | DOI 10.26131/IRSA662 | Yes |
 | Gaia DR3 | ESA Gaia, DPAC (via MAST, ESA, or VizieR) | Gaia credit required | Gaia Collaboration 2016, 2023 | Not yet |
 | NEOSSat astronomy data | Canadian Space Agency (CSA), CADC | Open Government Licence - Canada | Credit line below | Not yet |
 | SIMBAD | CDS, Strasbourg (or CfA and IDIA mirrors) | Credit required | Wenger et al. 2000 | Not yet |
@@ -70,6 +70,7 @@ Add the license and version when a library goes into the build.
 | Vite 8, @vitejs/plugin-react | MIT | | Yes (build) |
 | TypeScript 7 | Apache-2.0 | | Yes (build) |
 | Vitest 5 | MIT | | Yes (tests) |
+| matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/colormaps.ts`) |
 | astroquery | BSD-3-Clause | Ginsburg et al. 2019 | Not yet |
 | Aladin Lite v3 (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Keep the Aladin logo and link in the view | Not yet |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
@@ -78,7 +79,8 @@ Add the license and version when a library goes into the build.
 | Mediabunny | MPL-2.0 | | Not yet |
 | sampjs | CC0 | | Not yet |
 | NEOSSat tutorial (CSA) | MIT, Crown copyright 2023 | | Reference only |
-| IRSA SIA, TAP, cutout service, AWS S3 bucket `nasa-irsa-spherex` | Public | IRSA acknowledgment | Not yet |
+| IRSA SIA and the AWS S3 bucket `nasa-irsa-spherex` | Public | IRSA acknowledgment | Yes (search and pixels) |
+| IRSA TAP and cutout service | Public | IRSA acknowledgment | Not used. The API reads S3 directly |
 | MAST (Gaia DR3) | Public | MAST | Not yet |
 | IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
 | JPL Horizons and SBDB | Public | JPL Solar System Dynamics | Not yet |

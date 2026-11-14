@@ -12,7 +12,6 @@ import asyncio
 import re
 import time
 from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor
 
 import httpx
 import numpy as np
@@ -25,9 +24,9 @@ FILE = re.compile(r"level2_(?P<obsid>[A-Za-z0-9_]+)D(?P<det>[1-6])_spx_(?P<ver>l
 HEAD_BYTES = 28800       # primary header plus the IMAGE header
 MISSING = 0xFFFF         # version-directory index for a detector with no file
 INDEX_PATH = config.CACHE_DIR / "index" / "exposures.npz"
-CALIBRATION_SAMPLE = 240  # exposures read on all six detectors to measure the detector angles
-WORKERS = 8
-PER_WORKER = 48          # parallel reads in each worker process
+CALIBRATION_SAMPLE = 200  # exposures read on all six detectors to measure the detector angles
+CONNECTIONS = 40          # parallel header reads. Kept modest so a home connection stays usable.
+BATCH = 20000             # exposures between saves, so an interrupted build can resume
 
 ROW = np.dtype([
     ("obsid", "S24"),
@@ -98,62 +97,54 @@ def file_key(release: str, obsid: str, detector: int, version: str) -> str:
     return f"{release}/level2/{week}/{version}/{detector}/level2_{obsid}D{detector}_spx_{version}.fits"
 
 
-def _read_heads(keys: list[str]) -> list:
-    """Worker process: fetch and parse the headers of many files. Returns pointing facts per key."""
+async def _read_heads(keys: list[str]) -> list:
+    """Fetch and parse the headers of many files over one small, persistent connection pool."""
+    out: list = [None] * len(keys)
+    todo = iter(range(len(keys)))
+    started = time.time()
+    done = 0
+    limits = httpx.Limits(max_connections=CONNECTIONS, max_keepalive_connections=CONNECTIONS, keepalive_expiry=120)
+    async with httpx.AsyncClient(timeout=60, limits=limits, headers={"User-Agent": config.USER_AGENT}) as client:
 
-    async def run():
-        out = [None] * len(keys)
-        gate = asyncio.Semaphore(PER_WORKER)
-        limits = httpx.Limits(max_connections=PER_WORKER, max_keepalive_connections=PER_WORKER)
-        async with httpx.AsyncClient(timeout=60, limits=limits, headers={"User-Agent": config.USER_AGENT}) as client:
-
-            async def one(i: int, key: str):
-                async with gate:
-                    for attempt in range(6):
-                        try:
-                            response = await client.get(config.S3_BASE + key, headers={"Range": f"bytes=0-{HEAD_BYTES - 1}"})
-                            if response.status_code in (200, 206):
-                                break
-                        except httpx.HTTPError:
-                            pass
-                        await asyncio.sleep(0.3 * 2**attempt)
-                    else:
-                        return
+        async def worker():
+            nonlocal done
+            for i in todo:
+                response = None
+                for attempt in range(6):
+                    try:
+                        response = await client.get(config.S3_BASE + keys[i], headers={"Range": f"bytes=0-{HEAD_BYTES - 1}"})
+                        if response.status_code in (200, 206):
+                            break
+                    except httpx.HTTPError:
+                        pass
+                    response = None
+                    await asyncio.sleep(0.3 * 2**attempt)
+                done += 1
+                if done % 5000 == 0:
+                    print(f"  headers: {done}/{len(keys)} ({done / (time.time() - started):.0f} per second)", flush=True)
+                if response is None:
+                    continue
                 buf = response.content
                 primary = parse_header(buf)
                 parsed = parse_header(buf[primary[2]:]) if primary else None
                 if not parsed:
-                    return
+                    continue
                 cards = parsed[0]
                 frame, scale = detector_frame(cards)
                 out[i] = (
                     float(cards.get("MJD-AVG", 0.0)),
-                    frame.astype(np.float64),
+                    frame,
                     scale,
                     1 if str(cards.get("SPS_FLAGS", "")).startswith("deep") else 0,
                 )
 
-            await asyncio.gather(*(one(i, key) for i, key in enumerate(keys)))
-        return out
-
-    return asyncio.run(run())
+        await asyncio.gather(*(worker() for _ in range(CONNECTIONS)))
+    return out
 
 
 def read_heads(keys: list[str]) -> list:
-    """Read headers for many keys across worker processes, keeping the input order."""
-    if not keys:
-        return []
-    chunk = 2000
-    parts = [keys[i:i + chunk] for i in range(0, len(keys), chunk)]
-    results: list = []
-    started = time.time()
-    with ProcessPoolExecutor(WORKERS) as pool:
-        for done, part in enumerate(pool.map(_read_heads, parts), 1):
-            results.extend(part)
-            if done % 10 == 0 or done == len(parts):
-                rate = len(results) / (time.time() - started)
-                print(f"  headers: {len(results)}/{len(keys)} ({rate:.0f} per second)", flush=True)
-    return results
+    """Read headers for many keys, keeping the input order."""
+    return asyncio.run(_read_heads(keys)) if keys else []
 
 
 def orthonormal(matrix: np.ndarray) -> np.ndarray:
@@ -166,29 +157,25 @@ def calibrate(sample: list[tuple[str, str, dict]]):
     """Measure the fixed angles between detectors from exposures that have all six files.
 
     Returns relative[k] with frame_k = frame_1 @ relative[k], and the scale matrix of each detector.
+    Medians are used because a few exposures have a poor astrometric solution on one detector.
     """
     keys = [file_key(release, obsid, det, dets[det]) for release, obsid, dets in sample for det in range(1, 7)]
     heads = read_heads(keys)
-    relative = np.zeros((6, 3, 3))
-    scales = np.zeros((6, 2, 2))
-    used = 0
-    spread = []
+    each = []
+    scale_samples = []
     for i in range(len(sample)):
         six = heads[i * 6:(i + 1) * 6]
         if any(h is None for h in six):
             continue
         base = six[0][1]
-        each = [base.T @ six[k][1] for k in range(6)]
-        for k in range(6):
-            relative[k] += each[k]
-            scales[k] += six[k][2]
-        spread.append(each)
-        used += 1
-    relative = np.array([orthonormal(relative[k] / used) for k in range(6)])
-    scales /= used
-    # Report how steady the detector angles are across the sample, in arcseconds.
-    worst = max(float(np.max(np.abs(np.array(spread)[:, k] - relative[k]))) for k in range(6)) / (np.pi / 180 / 3600)
-    print(f"  detector geometry from {used} exposures. Largest deviation {worst:.1f} arcsec", flush=True)
+        each.append([base.T @ six[k][1] for k in range(6)])
+        scale_samples.append([six[k][2] for k in range(6)])
+    each = np.array(each)                      # (exposures, 6, 3, 3)
+    relative = np.array([orthonormal(np.median(each[:, k], axis=0)) for k in range(6)])
+    scales = np.median(np.array(scale_samples), axis=0)
+    # Report how far single exposures stray from the median geometry, in arcseconds of rotation.
+    stray = np.abs(each - relative).max(axis=(2, 3)) / (np.pi / 180 / 3600)
+    print(f"  detector geometry from {len(each)} exposures. Typical deviation {np.median(stray):.0f} arcsec, largest {stray.max():.0f}", flush=True)
     return relative, scales
 
 
@@ -231,36 +218,47 @@ def build(fresh: bool = False) -> None:
         step = max(1, len(full) // CALIBRATION_SAMPLE)
         relative, scales = calibrate(full[::step][:CALIBRATION_SAMPLE])
 
-    # One header per exposure, from its lowest-numbered detector.
-    refs = [min(dets) for _, _, dets in todo]
-    heads = read_heads([file_key(release, obsid, ref, dets[ref]) for (release, obsid, dets), ref in zip(todo, refs)])
+    rows = old["rows"] if old is not None else np.zeros(0, dtype=ROW)
+    missed = 0
+    for begin in range(0, max(len(todo), 1), BATCH):
+        part = todo[begin:begin + BATCH]
+        # One header per exposure, from its lowest-numbered detector.
+        refs = [min(dets) for _, _, dets in part]
+        heads = read_heads([file_key(release, obsid, ref, dets[ref]) for (release, obsid, dets), ref in zip(part, refs)])
+        fresh_rows = np.zeros(len(part), dtype=ROW)
+        keep = np.zeros(len(part), dtype=bool)
+        for i, ((release, obsid, dets), ref, head) in enumerate(zip(part, refs, heads)):
+            if head is None:
+                continue
+            if release not in releases:
+                releases.append(release)
+            row = fresh_rows[i]
+            row["obsid"] = obsid.encode()
+            row["release"] = releases.index(release)
+            row["vdir"] = MISSING
+            for det, version in dets.items():
+                if version not in versions:
+                    versions.append(version)
+                row["vdir"][det - 1] = versions.index(version)
+            row["mjd"] = head[0]
+            # Express the pointing for detector 1, whichever detector supplied the header.
+            row["frame"] = head[1] @ relative[ref - 1].T
+            row["deep"] = head[3]
+            row["ref"] = ref
+            keep[i] = True
+        missed += int((~keep).sum())
+        rows = np.concatenate([rows, fresh_rows[keep]])
+        rows = rows[np.argsort(rows["mjd"], kind="stable")]
+        finished = begin + BATCH >= len(todo)
+        save(rows, releases, versions, sorted(done_weeks | set(new_weeks)) if finished else sorted(done_weeks), relative, scales)
+        print(f"saved {len(rows)} exposures ({min(begin + BATCH, len(todo))}/{len(todo)} read)", flush=True)
 
-    rows = np.zeros(len(todo), dtype=ROW)
-    keep = np.zeros(len(todo), dtype=bool)
-    for i, ((release, obsid, dets), ref, head) in enumerate(zip(todo, refs, heads)):
-        if head is None:
-            continue
-        if release not in releases:
-            releases.append(release)
-        row = rows[i]
-        row["obsid"] = obsid.encode()
-        row["release"] = releases.index(release)
-        row["vdir"] = MISSING
-        for det, version in dets.items():
-            if version not in versions:
-                versions.append(version)
-            row["vdir"][det - 1] = versions.index(version)
-        row["mjd"] = head[0]
-        # Express the pointing for detector 1, whichever detector supplied the header.
-        row["frame"] = head[1] @ relative[ref - 1].T
-        row["deep"] = head[3]
-        row["ref"] = ref
-        keep[i] = True
-    rows = rows[keep]
-    if old is not None:
-        rows = np.concatenate([old["rows"], rows])
-    rows = rows[np.argsort(rows["mjd"], kind="stable")]
+    size = INDEX_PATH.stat().st_size / 1e6
+    print(f"Index has {len(rows)} exposures, {size:.1f} MB, built in {time.time() - started:.0f} s. Missed headers: {missed}", flush=True)
 
+
+def save(rows, releases, versions, weeks, relative, scales) -> None:
+    """Write the index atomically."""
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     temp = INDEX_PATH.with_name("exposures.tmp.npz")
     np.savez_compressed(
@@ -268,14 +266,12 @@ def build(fresh: bool = False) -> None:
         rows=rows,
         releases=np.array(releases),
         versions=np.array(versions),
-        weeks=np.array(sorted(done_weeks | set(new_weeks))),
+        weeks=np.array(weeks),
         relative=relative,
         scales=scales,
         built=np.array(time.time()),
     )
     temp.replace(INDEX_PATH)
-    size = INDEX_PATH.stat().st_size / 1e6
-    print(f"Index has {len(rows)} exposures, {size:.1f} MB, built in {time.time() - started:.0f} s. Missed headers: {int((~keep).sum())}", flush=True)
 
 
 if __name__ == "__main__":

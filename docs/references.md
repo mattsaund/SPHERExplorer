@@ -103,5 +103,6 @@ Add the license and version when a library goes into the build.
 | MAST catalog API (Gaia DR3) | Public | MAST, STScI | Yes |
 | IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
 | JPL Horizons and Small-Body Database APIs | Public | JPL Solar System Dynamics. Giorgini et al. 1996 | Yes (names and paths of planets, asteroids, and comets) |
-| CelesTrak orbital elements (NORAD 63182) | Public, rate limited | CelesTrak, T.S. Kelso | Yes (cached by the API) |
+| CelesTrak orbital elements (NORAD 63182 SPHEREx, 39089 NEOSSat, 27783 GALEX, 13777 IRAS) | Public, rate limited | CelesTrak, T.S. Kelso | Yes (live telescope map, cached by the API for three hours) |
+| Mission facts for the telescope list (launch and retirement dates, sites) | Public | Each mission's own pages: NASA, ESA, CSA, IPAC (2MASS), SDSS, STScI (DSS) | Yes (Telescopes tab) |
 | CADC TAP and file services (NEOSSat) | Public | Canadian Astronomy Data Centre, operated by the National Research Council of Canada with the support of the Canadian Space Agency | Yes |

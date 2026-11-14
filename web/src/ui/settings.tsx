@@ -1,8 +1,10 @@
-// What the top drawer holds: the challenge test targets, and every setting for how images are drawn.
+// What the top drawer holds: the challenge test targets, and every setting for the images and the sky map.
 // Written with Claude Code (Anthropic) assistance.
 import {
   COLOR_MAPS,
   COLOR_PRESETS,
+  PROJECTIONS,
+  SKY_LAYERS,
   TEST_TARGETS,
   actions,
   useStore,
@@ -165,8 +167,59 @@ function Field() {
   );
 }
 
-/** Every image setting, in groups laid out as columns that wrap. */
-export function ImageSettings() {
+/** Which survey the sky map shows, in which shape, and with which marks. */
+function SkyMapGroup() {
+  const layerId = useStore((s) => s.map.layer);
+  const projection = useStore((s) => s.map.projection);
+  const labels = useStore((s) => s.map.labels);
+  const grid = useStore((s) => s.map.grid);
+  const channel = useStore((s) => s.map.channel);
+  const meta = useStore((s) => s.meta);
+  const target = useStore((s) => s.target);
+  const fieldSize = useStore((s) => s.fieldSize);
+  const layer = SKY_LAYERS.find((entry) => entry.id === layerId) ?? SKY_LAYERS[0];
+  return (
+    <fieldset>
+      <legend>Sky map</legend>
+      <label className="field">
+        <span>Show</span>
+        <select value={layerId} onChange={(e) => actions.setMap({ layer: e.target.value })}>
+          {SKY_LAYERS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
+        </select>
+      </label>
+      {layer.cube && (
+        <label className="field">
+          <span>Color <output>{meta ? `${meta.channels[channel].toFixed(2)} µm` : `channel ${channel + 1}`}</output></span>
+          <input type="range" min={0} max={101} value={channel} onChange={(e) => actions.setMap({ channel: Number(e.target.value) })} />
+        </label>
+      )}
+      <label className="field">
+        <span>Map shape</span>
+        <select value={projection} onChange={(e) => actions.setMap({ projection: e.target.value })}>
+          {PROJECTIONS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
+        </select>
+      </label>
+      <div className="row wrap">
+        <label className="check"><input type="checkbox" checked={labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Labels</label>
+        <label className="check"><input type="checkbox" checked={grid} onChange={(e) => actions.setMap({ grid: e.target.checked })} /> Grid</label>
+      </div>
+      <div className="row wrap">
+        <button onClick={() => actions.flyTo({ ra: 266.4, dec: -29 }, 200)}>Whole sky</button>
+        {target && (
+          <button onClick={() => actions.flyTo(target, (fieldSize / 3600) * 1.6)} title="Zoom the map to the patch of sky the images show, to compare the two">
+            The images' field
+          </button>
+        )}
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * Every setting in one place, for the images and for the sky map, in groups laid out as
+ * columns that wrap. They stay put whichever view is showing.
+ */
+export function Settings() {
   return (
     <div className="settings">
       <Detectors />
@@ -175,6 +228,7 @@ export function ImageSettings() {
       <Changes />
       <Marks />
       <Field />
+      <SkyMapGroup />
     </div>
   );
 }

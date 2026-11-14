@@ -88,6 +88,8 @@ export interface AppState {
   spacecraft: SpacecraftInfo | null;
   /** Where the spacecraft is this second. Updated while the orbit view is on the page. */
   spacecraftNow: SpacecraftNow | null;
+  /** Where every telescope in Earth orbit is this second, by telescope id. Updated while the orbit view is on the page. */
+  craftNow: Record<string, SpacecraftNow>;
   map: MapState;
   /** A request to move the map. The map acts when `token` changes. */
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
@@ -162,6 +164,7 @@ export const useStore = create<AppState>(() => ({
   suggestions: [],
   spacecraft: null,
   spacecraftNow: null,
+  craftNow: {},
   map: {
     ready: false,
     failure: null,
@@ -882,6 +885,11 @@ export const actions = {
   /** Used by the orbit view to publish the live position. */
   spacecraftNow(now: SpacecraftNow): void {
     set({ spacecraftNow: now });
+  },
+
+  /** Used by the orbit view to publish the live position of every telescope in Earth orbit. */
+  craftNow(now: Record<string, SpacecraftNow>): void {
+    set({ craftNow: now, spacecraftNow: now.spherex ?? get().spacecraftNow });
   },
 
   /** Used by the frame view to publish what is under the pointer. */

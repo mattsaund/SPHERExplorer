@@ -24,6 +24,7 @@
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
 
   --radius: 6px;
@@ -45,4 +46,6 @@
   --orbit-night: rgba(0, 0, 0, 0.45);
   --orbit-track: #ffd24a;
   --orbit-craft: #ffffff;
+  --orbit-site: #9be8ff;
+  --orbit-ink: #ffffff;
 }

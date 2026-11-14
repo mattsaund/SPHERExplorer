@@ -1,12 +1,13 @@
 // The page: one full-page view between a top bar and a bottom bar. Both bars expand.
-// Top bar: search with suggestions, the switch between the sky map and the images, and a drawer for test targets or image settings.
+// Top bar: search with suggestions, the switch between the sky map and the images, and a drawer for test targets or settings.
 // Middle: the sky map or the image viewer, or both side by side on a wide screen, with a label and messages laid over it.
-// Bottom bar: a status line with the pointer readout, the player or the map controls, and a dock of tools that opens upward.
+// Bottom bar: a status line with the pointer readout, the player, and a dock of tools that opens upward.
+// Every setting, for the images and for the map, lives in the one settings drawer, and the player
+// is always in the bottom bar. Nothing changes place when the view changes.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useState, type ReactNode } from "react";
 import {
   FrameView,
-  PROJECTIONS,
   SKY_LAYERS,
   SkyMap,
   actions,
@@ -21,7 +22,7 @@ import {
 } from "../core";
 import { Embed } from "./Embed";
 import { SearchBox } from "./SearchBox";
-import { Examples, ImageSettings } from "./settings";
+import { Examples, Settings } from "./settings";
 import { TOOLS } from "./tools";
 import "./styles/app.css";
 
@@ -29,8 +30,8 @@ import "./styles/app.css";
 type ViewId = "map" | "images" | "both";
 /** Narrower than this, the stage shows one view at a time. */
 const WIDE = 1100;
-/** The drawers under the top bar. The map's settings get one only when the map shares the stage with the images. */
-type TopDrawer = "examples" | "settings" | "map";
+/** The drawers under the top bar. */
+type TopDrawer = "examples" | "settings";
 
 const MODES: { value: SequenceMode; label: string; hint: string }[] = [
   { value: "exposures", label: "Every image", hint: "Each exposure in time order" },
@@ -198,7 +199,7 @@ function InfoBox({ view, openTool, showImages }: { view: ViewId; openTool: (id: 
         <p className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</p>
         <div className="row wrap">
           {canMeasure && (
-            <button className="primary" onClick={() => { actions.probe(picked); openTool("spectrum"); }}>Spectrum here</button>
+            <button className="primary" onClick={() => { actions.probe(picked); openTool("graphs"); }}>Spectrum here</button>
           )}
           <button className={canMeasure ? "" : "primary"} onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
           <button onClick={() => actions.pick(null)}>Close</button>
@@ -352,48 +353,6 @@ function PlayerBar() {
   );
 }
 
-function MapBar() {
-  const layerId = useStore((s) => s.map.layer);
-  const projection = useStore((s) => s.map.projection);
-  const labels = useStore((s) => s.map.labels);
-  const grid = useStore((s) => s.map.grid);
-  const channel = useStore((s) => s.map.channel);
-  const meta = useStore((s) => s.meta);
-  const target = useStore((s) => s.target);
-  const fieldSize = useStore((s) => s.fieldSize);
-  const layer = SKY_LAYERS.find((entry) => entry.id === layerId) ?? SKY_LAYERS[0];
-  return (
-    <div className="controlbar" role="group" aria-label="Sky map controls">
-      <label className="inline">
-        Show
-        <select value={layerId} onChange={(e) => actions.setMap({ layer: e.target.value })}>
-          {SKY_LAYERS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
-        </select>
-      </label>
-      <label className="inline">
-        Map shape
-        <select value={projection} onChange={(e) => actions.setMap({ projection: e.target.value })}>
-          {PROJECTIONS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
-        </select>
-      </label>
-      <label className="check"><input type="checkbox" checked={labels} onChange={(e) => actions.setMap({ labels: e.target.checked })} /> Labels</label>
-      <label className="check"><input type="checkbox" checked={grid} onChange={(e) => actions.setMap({ grid: e.target.checked })} /> Grid</label>
-      <button onClick={() => actions.flyTo({ ra: 266.4, dec: -29 }, 200)}>Whole sky</button>
-      {target && (
-        <button onClick={() => actions.flyTo(target, (fieldSize / 3600) * 1.6)} title="Zoom the map to the patch of sky the images show, to compare the two">
-          Zoom to the images' field
-        </button>
-      )}
-      {layer.cube && (
-        <label className="inline channel">
-          <span className="channel-name">Color: {meta ? `${meta.channels[channel].toFixed(2)} µm` : `channel ${channel + 1}`}</span>
-          <input type="range" min={0} max={101} value={channel} onChange={(e) => actions.setMap({ channel: Number(e.target.value) })} />
-        </label>
-      )}
-    </div>
-  );
-}
-
 interface DockProps {
   tool: string;
   open: boolean;
@@ -480,11 +439,6 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // The map's settings drawer exists only while the map shares the stage with the images.
-  useEffect(() => {
-    if (view !== "both") setTop((open) => (open === "map" ? null : open));
-  }, [view]);
-
   // With both on screen, nothing needs to come to the front.
   const showImages = () => setView((now) => (now === "both" ? now : "images"));
   const showMap = () => setView((now) => (now === "both" ? now : "map"));
@@ -513,16 +467,13 @@ export function App() {
         <ViewSwitch view={view} onChange={setView} />
         <div className="toggles">
           <DrawerToggle open={top === "examples"} onClick={() => toggleTop("examples")}>Examples</DrawerToggle>
-          <DrawerToggle open={top === "settings"} onClick={() => toggleTop("settings")}>Image settings</DrawerToggle>
-          {/* Side by side, the bottom bar holds the player, so the map's controls move up here. */}
-          {view === "both" && <DrawerToggle open={top === "map"} onClick={() => toggleTop("map")}>Map settings</DrawerToggle>}
+          <DrawerToggle open={top === "settings"} onClick={() => toggleTop("settings")}>Settings</DrawerToggle>
         </div>
       </header>
 
-      <section id="top-drawer" className="drawer" hidden={top === null} aria-label={top === "settings" ? "Image settings" : top === "map" ? "Map settings" : "Test targets"}>
+      <section id="top-drawer" className="drawer" hidden={top === null} aria-label={top === "settings" ? "Settings" : "Test targets"}>
         {top === "examples" && <Examples />}
-        {top === "settings" && <ImageSettings />}
-        {top === "map" && <MapBar />}
+        {top === "settings" && <Settings />}
       </section>
 
       {/* Both views stay mounted and keep their size. The hidden one is only made invisible,
@@ -539,8 +490,7 @@ export function App() {
       </main>
 
       <StatusBar view={view} />
-      {view !== "map" && <PlayerBar />}
-      {view === "map" && <MapBar />}
+      <PlayerBar />
       <Dock
         tool={tool}
         open={dockOpen}

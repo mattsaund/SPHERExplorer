@@ -185,6 +185,7 @@ async def spacecraft_status():
     return {
         **spacecraft.FACTS,
         "elements": await spacecraft.elements(),
+        "telescopes": await spacecraft.telescopes(),
         "archive": index.summary() if index else None,
         "recent": spacecraft.recent_pointings(index),
     }

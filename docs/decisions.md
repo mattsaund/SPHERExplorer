@@ -4,6 +4,10 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Every graph goes in one tab. The other telescopes and the live map go in one tab, with maps for the other satellites and telescopes | Matt | Graphs tab and Telescopes tab |
+| 2026-11-14 | Map settings and image settings are one drawer, so they do not jump around | Matt | The player is always the bottom bar |
+| 2026-11-14 | The target's details are a card in the corner of the image, not a tab at the bottom | Matt | The card folds to one line |
+| 2026-11-14 | A selected area and the yellow study area never show on the map together | Matt | One square at a time |
 | 2026-11-14 | Austin's full-page layout is the UI. Matt's Claude merged it, retired its own stand-in layout, and carried the newer tools into Austin's | Matt asked for Austin's branch to be reviewed once it reached GitHub | Kept from the stand-in: map and images side by side on a wide screen, where a search from the map then shows in both. Austin's side can change that |
 | 2026-11-14 | Matt's Claude takes over the UI redesign while Austin's computer is down. Nothing from Austin's branch had reached GitHub | Matt | Full screen with a top bar and a bottom bar, as decided earlier. Austin's side reviews it when back |
 | 2026-11-14 | The search box gets a dropdown of suggestions | Matt | Recent searches and NASA's targets first, then matching names, coordinates, asteroids, and comets |

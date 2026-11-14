@@ -466,6 +466,27 @@ export interface PartnerData {
 }
 
 /** Orbital elements of the spacecraft and facts about the public archive. */
+/**
+ * A telescope whose data the tool shows, and where it is: circling the Earth now, at an
+ * observatory on the ground, far from the Earth, or no longer in orbit.
+ */
+export interface Telescope {
+  id: string;
+  name: string;
+  /** Who built and ran it. */
+  agency: string;
+  where: "orbit" | "ground" | "deep" | "gone";
+  /** What the tool uses from it, in plain words. */
+  use: string;
+  /** When it flew or where it stands, in plain words. */
+  note: string;
+  /** For a telescope in orbit: its orbital elements in the OMM format, or null when they could not be fetched. */
+  elements?: Record<string, string | number> | null;
+  /** For an observatory on the ground: its place in degrees, east positive. */
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface SpacecraftInfo {
   name: string;
   fullName: string;
@@ -479,6 +500,8 @@ export interface SpacecraftInfo {
   archive: { exposures: number; built: string; newest: number | null; releases: string[] } | null;
   /** Where the newest public exposures looked. */
   recent: { obsId: string; mjd: number; ra: number; dec: number }[];
+  /** Every telescope behind the tool, SPHEREx first. */
+  telescopes: Telescope[];
 }
 
 /** Where the spacecraft is right now, worked out in the browser from its orbital elements. */

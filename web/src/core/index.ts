@@ -33,6 +33,7 @@ export type {
   SurveyPoint,
   SurveySource,
   Target,
+  Telescope,
   Visit,
 } from "./types";
 export type { LineFamily, SpectralFeature } from "./lines";

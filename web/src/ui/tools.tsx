@@ -41,7 +41,6 @@ function Spectrum() {
   const tooBright = useStore((s) => s.framesState === "ready" && !s.spectrum.halo && !s.target?.moving && s.loaded > 20 && spectrumTrust(s) < 0.6);
   const measure = settings.halo ? "halo" : settings.aperture === null ? "fit" : String(settings.aperture);
   return (
-    <NeedsTarget then="Its spectrum appears here.">
       <div className="tool split">
         <div className="tool-main">
           <p className="muted">
@@ -101,7 +100,6 @@ function Spectrum() {
           </div>
         </div>
       </div>
-    </NeedsTarget>
   );
 }
 
@@ -160,23 +158,25 @@ function Motion() {
   );
 }
 
-function Brightness() {
+/** Every graph in one tab: the spectrum, the brightness over time, and when the images were taken. */
+function Graphs() {
   return (
-    <NeedsTarget then="Its brightness over time appears here.">
-      <div className="tool">
-        <p className="muted">Is it getting brighter or fainter? Each point compares one image with the target's usual brightness at that wavelength.</p>
-        <div className="plot"><LightCurvePlot /></div>
-      </div>
-    </NeedsTarget>
-  );
-}
-
-function When() {
-  return (
-    <NeedsTarget then="The dates of its images appear here.">
-      <div className="tool">
-        <p className="muted">When SPHEREx looked. Each dot is one image. On every visit the telescope steps the target through all its colors. Click a dot to see that image.</p>
-        <div className="plot"><Timeline /></div>
+    <NeedsTarget then="Its spectrum, its brightness over time, and the dates of its images appear here.">
+      <div className="graphs">
+        <section className="graph wide" aria-label="Spectrum">
+          <h2>Spectrum</h2>
+          <Spectrum />
+        </section>
+        <section className="graph" aria-label="Brightness over time">
+          <h2>Brightness over time</h2>
+          <p className="muted">Is it getting brighter or fainter? Each point compares one image with the target's usual brightness at that wavelength.</p>
+          <div className="plot"><LightCurvePlot /></div>
+        </section>
+        <section className="graph" aria-label="Timeline">
+          <h2>When SPHEREx looked</h2>
+          <p className="muted">Each dot is one image. On every visit the telescope steps the target through all its colors. Click a dot to see that image.</p>
+          <div className="plot"><Timeline /></div>
+        </section>
       </div>
     </NeedsTarget>
   );
@@ -188,23 +188,29 @@ function spread<T>(items: T[], count: number): T[] {
   return Array.from({ length: count }, (_, i) => items[Math.round((i * (items.length - 1)) / (count - 1))]);
 }
 
-function Partner() {
+/** What other telescopes saw of the field being studied. */
+function PartnerImages() {
   const partner = useStore((s) => s.partner);
+  const hasTarget = useStore((s) => s.target !== null);
   const moving = useStore((s) => !!s.target?.moving);
   let empty: string | null = null;
-  if (moving) empty = "Images from other telescopes are matched to a fixed field, so they are not shown for planets, asteroids, and comets.";
+  if (!hasTarget) empty = "Pick a target to see what other telescopes saw of the same field.";
+  else if (moving) empty = "Images from other telescopes are matched to a fixed field, so they are not shown for planets, asteroids, and comets.";
   else if (!partner) empty = "No images from other telescopes for this field yet.";
   else if (partner.count === 0) empty = `${partner.mission} has no images of this field.`;
   return (
-    <NeedsTarget then="Images of the same field from other telescopes appear here.">
+    <section className="partner" aria-label="This field seen by other telescopes">
+      <h2>This field seen by other telescopes</h2>
       {empty || !partner ? (
         <p className="muted">{empty}</p>
       ) : (
-        <div className="tool">
-          <h2>Seen in visible light by {partner.mission}</h2>
-          <p className="muted">
-            {partner.agency}. {partner.count.toLocaleString("en-US")} images of this field
-            {partner.first != null && partner.last != null && `, from ${formatDate(partner.first)} to ${formatDate(partner.last)}`}. Each covers 0.85 degrees.
+        <>
+          <p>
+            <strong>In visible light, by {partner.mission}.</strong>{" "}
+            <span className="muted">
+              {partner.agency}. {partner.count.toLocaleString("en-US")} images of this field
+              {partner.first != null && partner.last != null && `, from ${formatDate(partner.first)} to ${formatDate(partner.last)}`}. Each covers 0.85 degrees.
+            </span>
           </p>
           <div className="thumbs">
             {spread(partner.images, 12).map((image) => (
@@ -215,40 +221,71 @@ function Partner() {
             ))}
           </div>
           <p className="muted">{partner.credit}</p>
-        </div>
+        </>
       )}
-    </NeedsTarget>
+    </section>
   );
 }
 
-function Spacecraft({ showMap }: ToolProps) {
+/**
+ * Every telescope behind the tool in one tab: a live map of where each one is, what the tool
+ * takes from it, and what other telescopes saw of the field being studied.
+ */
+function Telescopes({ showMap }: ToolProps) {
   const info = useStore((s) => s.spacecraft);
-  const now = useStore((s) => s.spacecraftNow);
+  const live = useStore((s) => s.craftNow);
+  const [focus, setFocus] = useState("spherex");
+  const list = info?.telescopes ?? [];
+  const chosen = list.find((telescope) => telescope.id === focus) ?? list[0];
+  const now = chosen ? live[chosen.id] : undefined;
   const newest = info?.archive?.newest;
   return (
-    <div className="tool spacecraft">
-      <div className="orbit"><OrbitView /></div>
-      <div className="tool-main">
-        <h2>Where is SPHEREx right now?</h2>
-        <p className="muted">The telescope circles the Earth from pole to pole about every 98 minutes, riding the line between day and night.</p>
-        {now && (
-          <p>
-            Over latitude {now.latitude.toFixed(1)}°, longitude {now.longitude.toFixed(1)}°. {Math.round(now.altitude)} km up, moving at{" "}
-            {now.speed.toFixed(2)} km per second. One lap takes {now.period.toFixed(1)} minutes. {now.sunlit ? "In sunlight." : "In the Earth's shadow."}
-          </p>
-        )}
-        {info?.archive && (
-          <p className="muted">
-            {info.archive.exposures.toLocaleString("en-US")} exposures are public
-            {newest != null && `. The newest is from ${formatDate(newest)}`}. Launched {info.launched}.
-          </p>
-        )}
-        {info && info.recent.length > 0 && (
-          <div className="row wrap">
-            <button onClick={() => { actions.flyTo(info.recent[0], 25); showMap(); }}>Show where the newest public image looked</button>
-          </div>
-        )}
+    <div className="tool telescopes">
+      <div className="telescope-map">
+        <div className="orbit"><OrbitView focus={focus} onPick={setFocus} /></div>
+        <p className="muted">
+          Live. Dots are telescopes circling the Earth. Squares are observatories on the ground. The shaded side is night. Click a mark, or pick a name.
+        </p>
       </div>
+      <div className="tool-main">
+        <div className="chips" role="radiogroup" aria-label="Telescopes">
+          {list.map((telescope) => (
+            <button key={telescope.id} role="radio" aria-checked={telescope.id === focus} className={telescope.id === focus ? "on" : ""} onClick={() => setFocus(telescope.id)}>
+              {telescope.name}
+            </button>
+          ))}
+        </div>
+        {chosen && (
+          <section className="telescope-card" aria-live="polite">
+            <h2>{chosen.name}</h2>
+            <p className="muted">{chosen.agency}</p>
+            <p><span className="muted">In this tool:</span> {chosen.use}.</p>
+            <p>{chosen.note}</p>
+            {now && (
+              <p>
+                <strong>Right now</strong> it is over latitude {now.latitude.toFixed(1)}°, longitude {now.longitude.toFixed(1)}°, {Math.round(now.altitude)} km up, moving at{" "}
+                {now.speed.toFixed(2)} km per second. One lap takes {now.period.toFixed(1)} minutes. {now.sunlit ? "It is in sunlight." : "It is in the Earth's shadow."}
+              </p>
+            )}
+            {chosen.where === "orbit" && !now && <p className="muted">Its position could not be worked out just now.</p>}
+            {chosen.where === "deep" && <p className="muted">It is too far from the Earth to show on this map.</p>}
+            {chosen.where === "gone" && <p className="muted">It is no longer in orbit, so it is not on the map.</p>}
+            {chosen.id === "spherex" && info?.archive && (
+              <p className="muted">
+                {info.archive.exposures.toLocaleString("en-US")} of its exposures are public
+                {newest != null && `. The newest is from ${formatDate(newest)}`}.
+              </p>
+            )}
+            {chosen.id === "spherex" && info && info.recent.length > 0 && (
+              <div className="row wrap">
+                <button onClick={() => { actions.flyTo(info.recent[0], 25); showMap(); }}>Show where the newest public image looked</button>
+              </div>
+            )}
+          </section>
+        )}
+        {!info && <p className="muted">Loading the telescopes.</p>}
+      </div>
+      <PartnerImages />
     </div>
   );
 }
@@ -330,13 +367,10 @@ function About() {
 }
 
 export const TOOLS: { id: string; label: string; Panel: ComponentType<ToolProps> }[] = [
-  { id: "spectrum", label: "Spectrum", Panel: Spectrum },
+  { id: "graphs", label: "Graphs", Panel: Graphs },
   { id: "changes", label: "What changed", Panel: Changes },
   { id: "motion", label: "Motion", Panel: Motion },
-  { id: "brightness", label: "Brightness over time", Panel: Brightness },
-  { id: "timeline", label: "Timeline", Panel: When },
-  { id: "partner", label: "Other telescopes", Panel: Partner },
-  { id: "spacecraft", label: "Spacecraft", Panel: Spacecraft },
+  { id: "telescopes", label: "Telescopes", Panel: Telescopes },
   { id: "save", label: "Save and share", Panel: SaveAndShare },
   { id: "about", label: "About", Panel: About },
 ];

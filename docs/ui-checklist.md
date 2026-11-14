@@ -71,12 +71,12 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Object card | See a clicked object's facts, distance, and details link | `selected` |
 | Selected area | See the picked area and its size, resize it by dragging, and study it | `picked`, `fieldSize` |
 
-## Spacecraft
+## Telescopes
 
 | Tool | The user can | Engine pieces |
 |---|---|---|
-| Orbit | Watch where SPHEREx is right now | `OrbitView` |
-| Live numbers | Read latitude, longitude, height, speed, and sunlight | `spacecraftNow` |
+| Live map | Watch where SPHEREx and the other telescopes in Earth orbit are right now, and see the observatories on the ground | `OrbitView` |
+| Telescope facts | Pick any telescope behind the tool and read what it is, what the tool takes from it, and where it is this second | `telescopes`, `craftNow` |
 | Archive status | See how many exposures are public and how new | `spacecraft` |
 
 ## Save and share

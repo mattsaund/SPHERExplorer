@@ -62,11 +62,11 @@ One full screen between a top bar and a bottom bar. Both bars expand. Austin's s
 | Part | File | Holds |
 |---|---|---|
 | Top bar | `ui/App.tsx`, `ui/SearchBox.tsx` | Name, search box with suggestions, the switch between sky map, images, and both, and two drawers |
-| Top drawers | `ui/settings.tsx` | "Examples" holds NASA's five test targets. "Image settings" holds every setting for how images are drawn |
-| Stage | `ui/App.tsx` | The sky map, the image viewer, or both side by side on a wide screen. Both stay mounted while hidden. A label says what is on screen, and boxes for clicked objects, spots, and messages lie over it |
+| Top drawers | `ui/settings.tsx` | "Examples" holds NASA's five test targets. "Settings" holds every setting, for the images and for the sky map, so none of them changes place when the view changes |
+| Stage | `ui/App.tsx` | The sky map, the image viewer, or both side by side on a wide screen. Both stay mounted while hidden. A details card sits in the corner of the images: name, kind, distance, the link to everything known about the target, and the image on screen. Boxes for clicked objects, spots, and messages lie over the stage |
 | Status line | `ui/App.tsx` | Progress on the left, the pointer readout or map help on the right. Fixed height |
-| Control bar | `ui/App.tsx` | The player for the images, the map's controls for the map, or both |
-| Tool dock | `ui/tools.tsx` | Tabs that open upward: details, spectrum, what changed, motion, brightness over time, timeline, other telescopes, spacecraft, save and share, about. Only the open tool is on the page |
+| Player | `ui/App.tsx` | Play, step, scrub, speed, and what to play. Always in the bottom bar, in every view |
+| Tool dock | `ui/tools.tsx` | Tabs that open upward: graphs (spectrum, brightness over time, timeline), what changed, motion, telescopes (live map, facts, other telescopes' images of the field), save and share, about. Only the open tool is on the page |
 
 - A new tool usually needs one component and one entry in `TOOLS` in `ui/tools.tsx`.
 - `ui/ChangesPanel.tsx`, `ui/FeaturesList.tsx`, and `ui/SearchBox.tsx` are self-contained pieces with their own style files.

@@ -84,15 +84,13 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
-/* The map's controls, when they sit in the drawer instead of the bottom bar. */
-.drawer .controlbar { padding: 0; background: none; border: 0; }
 .examples { display: flex; flex-direction: column; gap: var(--space-2); }
 .example-list { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .example-list button { flex-direction: column; align-items: flex-start; gap: 0; padding: var(--space-2) var(--space-3); text-align: left; background: var(--color-bg); }
 .example-list small { font-size: 0.85rem; }
 
-/* Six groups in one row on a laptop screen. Narrower screens wrap them. */
-.settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--space-4) var(--space-6); }
+/* Seven groups in one row on a laptop screen. Narrower screens wrap them. */
+.settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: var(--space-4) var(--space-5); }
 .settings fieldset { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .settings legend { padding: 0 0 var(--space-2); font-weight: 600; }
 .settings fieldset > button { align-self: flex-start; }
@@ -245,12 +243,25 @@ button.play { min-width: 88px; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chips button { min-height: 34px; padding: 0 var(--space-3); font-size: 0.9rem; }
 .tool.about { max-width: 980px; height: auto; }
+/* All the graphs in one tab: the spectrum across the top, the other two side by side under it. */
+.graphs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4) var(--space-6); }
+.graph { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.graph.wide { grid-column: 1 / -1; }
+.graph h2 { font-size: 1.05rem; }
+.graph > .plot { flex: none; height: 230px; }
+.graph .tool.split { height: clamp(250px, 30dvh, 400px); }
 .tool.columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-content: start; gap: var(--space-4) var(--space-6); height: auto; }
 .tool.columns section { display: flex; flex-direction: column; gap: var(--space-2); }
 .thumbs { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .thumbs a { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.8rem; color: var(--color-text-muted); text-decoration: none; }
 .thumbs img { background: #000000; border: 1px solid var(--color-border); border-radius: var(--radius); }
-.tool.spacecraft { flex-direction: row; gap: var(--space-4); }
+/* The telescopes tab: the live map beside the chosen telescope's facts, then other telescopes' images of the field. */
+.tool.telescopes { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, 1fr); align-items: start; gap: var(--space-4) var(--space-6); height: auto; }
+.telescope-map { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.telescope-map .orbit { width: 100%; height: auto; cursor: pointer; }
+.telescope-card { display: flex; flex-direction: column; gap: var(--space-1); }
+.partner { grid-column: 1 / -1; display: flex; flex-direction: column; gap: var(--space-2); }
+.partner h2 { font-size: 1.05rem; }
 /* The world map is drawn at 2 by 1, so its box keeps that shape. */
 .orbit { flex: none; height: min(100%, 30vw); aspect-ratio: 2 / 1; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius); }
 .save-list { display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: var(--space-2) var(--space-4); margin: 0; }
@@ -273,8 +284,10 @@ button.play { min-width: 88px; }
   .dock-tabs { flex-basis: 100%; }
   .dock-actions { margin-left: auto; }
   .tool.split { grid-template-columns: 1fr; height: auto; }
+  .graphs { grid-template-columns: 1fr; }
+  .graph .tool.split { height: auto; }
   .tool.split .plot { flex: none; height: 260px; }
-  .tool.spacecraft { flex-direction: column; height: auto; }
+  .tool.telescopes { grid-template-columns: 1fr; }
   .orbit { width: 100%; height: auto; }
   .save-list { grid-template-columns: 1fr; }
 }

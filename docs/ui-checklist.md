@@ -30,7 +30,7 @@ The working example of every row is the starter UI in `web/src/ui/App.tsx`.
 | Show only changes | Subtract the first step, the one before, or all others | `actions.setSubtract` |
 | Brightness | Pick the curve, black and white points, and auto contrast | `stretch`, `lo`, `hi`, `actions.autoStretch` |
 | Look | Pick a color table, invert, and smooth pixels | `COLOR_MAPS`, `invert`, `smooth` |
-| Overlays | Show bad pixels, the target marker, known objects, and Gaia stars | `showFlags`, `showMarker`, `showObjects`, `showGaia` |
+| Overlays | Show bad pixels, the target marker, known objects, Gaia stars, and found changes | `showFlags`, `showMarker`, `showObjects`, `showGaia`, `showChanges` |
 | Follow | Keep a moving target centered in sums | `actions.setFollow` |
 | Reset zoom | Return to the whole field | `actions.resetView` |
 | Readout | Read position, value, wavelength, and flags under the pointer | `hover` |
@@ -49,6 +49,8 @@ The working example of every row is the starter UI in `web/src/ui/App.tsx`.
 | Spectrum options | Compare visits, show every measurement, use a log scale, show 2MASS and WISE | `perVisit`, `showPoints`, `log`, `showSurveys` |
 | Measuring shape | Measure a point or a circle of chosen size | `aperture` |
 | Features | Mark hydrogen, water, and the other families, and slide the redshift | `LINE_FAMILIES`, `actions.toggleFamily`, `redshift` |
+| Change finder | Search the whole field for anything that moved, brightened, or faded, with progress | `actions.findChanges`, `finding`, `changes` |
+| Found changes | Read what each source did in plain words, and jump to it | `describeChange`, `actions.showChange` |
 | Motion | Measure how fast the source crosses the sky | `actions.measureMotion`, `motion` |
 | Brightness over time | See whether the source brightened or faded | `LightCurvePlot` |
 | Partner images | See NEOSSat images of the field with their credit line | `partner` |

@@ -59,8 +59,9 @@ const SATURATED_FLOOR = 1.0;
  * Uses a Gaussian-windowed centroid, repeated until it settles.
  * Saturated pixels (stored as Infinity) are the brightest part of a bright star. They are
  * counted at a level above the brightest measured pixel, so the core still anchors the position.
+ * radius is how far from the expected spot the source may sit, in arcseconds.
  */
-export function locate(stack: Stack, expected: [number, number]): { east: number; north: number; err: number; snr: number; saturated: boolean } | null {
+export function locate(stack: Stack, expected: [number, number], radius = SEARCH_RADIUS): { east: number; north: number; err: number; snr: number; saturated: boolean } | null {
   const scale = Math.abs(stack.m[0]);
   // The brightest measured pixel near the expected spot sets the level given to saturated ones.
   let cap = 0;
@@ -114,7 +115,7 @@ export function locate(stack: Stack, expected: [number, number]): { east: number
     north = nextNorth;
     if (moved < 0.005) break;
   }
-  if (Math.hypot(east - expected[0], north - expected[1]) > SEARCH_RADIUS) return null;
+  if (Math.hypot(east - expected[0], north - expected[1]) > radius) return null;
   const snr = stack.rms > 0 ? peak / stack.rms : 0;
   // A centroid is good to about the source width divided by its signal-to-noise, but never
   // better than the floor set by the coarse pixels. A saturated core is worse still.

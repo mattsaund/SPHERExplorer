@@ -1,7 +1,7 @@
 // Tests for measuring the light in a circle.
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
-import { measureAperture } from "./aperture";
+import { measureAperture, measureRing } from "./aperture";
 import type { FramePixels } from "./pixels";
 import type { Frame } from "./types";
 
@@ -68,5 +68,51 @@ describe("measureAperture", () => {
     flagged.pixels.flags![30 * 61 + 31] = 4;
     expect(measureAperture(flagged.frame, flagged.pixels, 0, 0, 12, 4)!.good).toBe(false);
     expect(measureAperture(flagged.frame, flagged.pixels, 170, 0, 12, 4)).toBeNull();
+  });
+});
+
+describe("measureRing", () => {
+  // A star with a bright core and a faint flat halo out to 6 pixels.
+  const halo = (x: number, y: number) => {
+    const r = Math.hypot(x - 30, y - 30);
+    return r < 1.5 ? 5000 : r <= 6.5 ? 2 : 0;
+  };
+  it("measures the halo and ignores the core", () => {
+    const { frame, pixels } = scene(0.5, halo);
+    const out = measureRing(frame, pixels, 0, 0, 18, 36, 0)!;
+    // The ring from 3 to 6 pixels holds about 85 pixels of 2 units each.
+    expect(out.flux / PER_PIXEL).toBeGreaterThan(150);
+    expect(out.flux / PER_PIXEL).toBeLessThan(190);
+    expect(out.sky).toBeCloseTo(0.5, 2);
+    // A halo twice as bright gives twice the signal, whatever the core does.
+    const doubled = scene(0.5, (x, y) => 2 * halo(x, y));
+    expect(measureRing(doubled.frame, doubled.pixels, 0, 0, 18, 36, 0)!.flux / out.flux).toBeCloseTo(2, 2);
+  });
+  it("fills in for a few bad pixels and gives up when most of the ring is bad", () => {
+    const { frame, pixels } = scene(0.5, halo);
+    const clean = measureRing(frame, pixels, 0, 0, 18, 36, 0)!;
+    // A flagged column through the star, as charge bloom leaves.
+    for (let y = 0; y < 61; y++) pixels.flags![y * 61 + 30] = 1;
+    const bloomed = measureRing(frame, pixels, 0, 0, 18, 36, 1)!;
+    expect(bloomed.flux / clean.flux).toBeCloseTo(1, 1);
+    // With most of the ring flagged there is too little left to stand for the whole.
+    for (let k = 0; k < pixels.flags!.length; k++) if (k % 3) pixels.flags![k] = 1;
+    expect(measureRing(frame, pixels, 0, 0, 18, 36, 1)).toBeNull();
+  });
+  it("fills a missing pixel from its own distance, so a growing bad core does not change the answer", () => {
+    // A halo that fades steeply, like a real one, with the inner part of the ring flagged.
+    const steep = (x: number, y: number) => 4000 / (1 + (x - 30) ** 2 + (y - 30) ** 2) ** 1.5;
+    const whole = scene(0.5, steep);
+    const clean = measureRing(whole.frame, whole.pixels, 0, 0, 18, 36, 1)!;
+    const bitten = scene(0.5, steep);
+    // A wedge of the ring is bad, as when a bright core spills to one side.
+    for (let y = 0; y < 61; y++) for (let x = 31; x < 61; x++) if (Math.abs(y - 30) <= 2) bitten.pixels.flags![y * 61 + x] = 1;
+    const filled = measureRing(bitten.frame, bitten.pixels, 0, 0, 18, 36, 1)!;
+    expect(filled.flux / clean.flux).toBeGreaterThan(0.95);
+    expect(filled.flux / clean.flux).toBeLessThan(1.05);
+  });
+  it("needs room for the ring and its sky", () => {
+    const { frame, pixels } = scene(0.5, halo);
+    expect(measureRing(frame, pixels, 120, 0, 18, 36, 0)).toBeNull();
   });
 });

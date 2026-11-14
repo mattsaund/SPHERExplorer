@@ -31,6 +31,7 @@ import {
   type Stretch,
   type Subtract,
 } from "../core";
+import { ChangesPanel } from "./ChangesPanel";
 import { Embed } from "./Embed";
 import "./styles/app.css";
 
@@ -586,6 +587,7 @@ export function App() {
           <PlayerControls />
           {hasTarget && <TimelinePanel />}
           {hasTarget && <SpectrumPanel />}
+          {hasTarget && <ChangesPanel />}
           {hasTarget && <MotionPanel />}
           {hasTarget && <LightCurvePanel />}
           {hasTarget && <PartnerPanel />}

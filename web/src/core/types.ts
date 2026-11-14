@@ -248,6 +248,8 @@ export interface DisplaySettings {
   showObjects: boolean;
   /** Mark Gaia stars at their position for the date of each image. */
   showGaia: boolean;
+  /** Mark what the change finder found on the image. */
+  showChanges: boolean;
 }
 
 /** Which frames take part. */

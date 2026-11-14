@@ -1,10 +1,11 @@
 // The frame viewer: a WebGL canvas for the image and a 2D canvas on top for the marker,
 // compass, and scale bar. It fills its parent and carries no chrome of its own.
-// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-gaia, --frame-pick, --frame-flag, --frame-empty.
+// Colors come from CSS variables on any ancestor: --frame-ink, --frame-marker, --frame-label, --frame-gaia, --frame-pick, --frame-change, --frame-flag, --frame-empty.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
 import { offsetToSky, positionAt, skyOffset } from "./astro";
 import { registerCapture } from "./capture";
+import { changeLabel } from "./changes";
 import { sceneFor, type Scene } from "./layers";
 import { getPixels, imageOf } from "./pixels";
 import { FrameRenderer } from "./render/renderer";
@@ -216,6 +217,54 @@ export function FrameView({ className }: { className?: string }) {
           ctx.stroke();
           ctx.fillText(object.name, x + 13, y);
           labels.push({ x, y, object });
+        }
+      }
+
+      // What the change finder flagged: a diamond on each source, with a word for what it did.
+      const report = state.changes;
+      if (state.display.showChanges && report && state.target && item) {
+        const following = scene.stack !== undefined && state.follow;
+        const track = following ? skyOffset(positionAt(state.target, item.mjd), state.target) : [0, 0];
+        const color = cssColor(wrap, "--frame-change", "#ff9f43").css;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        ctx.font = `12px ${font}`;
+        ctx.textBaseline = "top";
+        ctx.textAlign = "center";
+        const half = 13;
+        for (const change of report.changes) {
+          // A mover is drawn where it was during the visit nearest in time to the image on screen.
+          let east = change.east;
+          let north = change.north;
+          if (change.kind === "moved") {
+            let nearest = Infinity;
+            for (const place of change.places) {
+              if (place.east === null || place.north === null || Math.abs(place.mjd - item.mjd) >= nearest) continue;
+              nearest = Math.abs(place.mjd - item.mjd);
+              east = place.east;
+              north = place.north;
+            }
+          }
+          const x = w / 2 - (east - track[0] - state.view.east) / scale;
+          const y = h / 2 - (north - track[1] - state.view.north) / scale;
+          if (x < -30 || y < -30 || x > w + 30 || y > h + 30) continue;
+          ctx.beginPath();
+          ctx.moveTo(x, y - half);
+          ctx.lineTo(x + half, y);
+          ctx.lineTo(x, y + half);
+          ctx.lineTo(x - half, y);
+          ctx.closePath();
+          if (change.kind === "moved" && change.angle !== undefined) {
+            // A tail pointing the way it is going. North is up and east is left.
+            const angle = (change.angle * Math.PI) / 180;
+            const dx = -Math.sin(angle);
+            const dy = -Math.cos(angle);
+            ctx.moveTo(x + dx * half, y + dy * half);
+            ctx.lineTo(x + dx * (half + 18), y + dy * (half + 18));
+          }
+          ctx.stroke();
+          ctx.fillText(changeLabel(change), x, y + half + 3);
         }
       }
 

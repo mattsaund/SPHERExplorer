@@ -58,12 +58,39 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 - Saturated cores are counted at a level above the brightest measured pixel, so the core still anchors the position. Errors never go below 0.25 arcsec (1 arcsec when saturated), which reflects the coarse pixels.
 - Checked on the NASA targets: Epsilon Indi B 4.57 +/- 0.24 arcsec per year toward 123 degrees (catalog 4.68, 122). Barnard's Star 9.81 +/- 1.45 toward 358 (catalog 10.39, 356). WISE 0855 6.2 +/- 0.8 toward 275 (catalog 8.15, 275). The last is low because a faint star sits beside it. RW Aurigae, which barely moves, comes out as not moving.
 
-## 9. Color
+## 9. Finding what changed
+
+`changes.ts` checks every source in the loaded field for motion and for brightening or fading between visits. It is the "what changed here" tool.
+
+- **Like wavelengths only.** Each visit is summed from the spectral channels that every compared visit has. A visit with thin coverage is left out when it would cost the others most of their shared channels. In a deep field, months are joined for this until each group covers most wavelengths.
+- **Sources.** Peaks above 8 sigma in the sum of all visits and in each visit's own sum. A patch of saturated pixels is one star at the middle of the patch.
+- **Relative astrometry.** Each source is located in each visit's sum. The median shift of the steady sources in a visit is pointing error and is removed. Their remaining scatter is the position yardstick. A straight line is fitted through each source's positions. It counts as moved at 5 sigma and at least 1 arcsec.
+- **Relative photometry.** Each source is measured in a 12 arcsec circle on every frame. A visit is compared with all other visits channel by channel, so both sides see the same wavelengths with the same weights. The median ratio of the steady sources in a visit is calibration and is removed. Their scatter beyond measurement noise is the brightness yardstick. A change counts at 5 sigma and at least 5 percent. Brightness uses every visit on its own, months included, so a star that varies within a joined span is not blurred.
+- **By detector.** The comparison is repeated for each detector's wavelength range. A change confined to some wavelengths, or opposite at different wavelengths, is reported with its range.
+- **Stars too bright for the detector.** When the core is saturated, or flagged in over a quarter of the frames, the star is measured in a ring around it instead (its halo), starting just outside the bad core. Bad ring pixels are filled from good pixels at the same distance. Its position gets a 1 arcsec error floor.
+- **Glare.** The halo of such a star lands on its neighbors and changes when the star does. The halo's share inside each neighbor's circle is estimated from the star's ring, per wavelength range, taking the halo to fade as distance cubed. From 15 percent the neighbor needs twice the certainty. From 100 percent it is not judged.
+- **Seen in some visits only.** A source at 7 sigma in some visits and under 2.5 sigma in the rest is reported as appeared or vanished.
+
+Checked on NASA's five test targets, with a 5 arcmin field. Each is flagged once, and nothing else in its field is flagged.
+
+| Target | Result | Catalog |
+|---|---|---|
+| Barnard's Star | Moved 10.9 arcsec north in a year. 11.1 +/- 1.4 arcsec per year | 10.4 north |
+| Epsilon Indi B | Moved 6.3 arcsec southeast. 4.6 +/- 0.1 arcsec per year | 4.7 southeast |
+| WISE 0855-0714 (detectors 5 and 6) | Moved 2.8 arcsec west in six months. 6.0 +/- 0.9 arcsec per year | 8.2 west |
+| RW Aurigae | 55 percent brighter at 3.8 to 4.4 microns in Sep 2025, and 22 percent fainter at 1.1 to 1.65 microns. Measured from the halo | A young star known for dimming events in which dust hides the star while the warm dust glows brighter |
+| R Draconis | Monthly halo brightness swings between 0.5 and 1.5 times its average, with maxima about eight months apart | Mira variable, period 245.6 days |
+
+Two ordinary fields (RA 200, Dec +30 and RA 83, Dec -5) gave no changes among 16 and 22 sources. Their steady sources held position to 0.12 arcsec and brightness to about 1 percent between visits.
+
+Limits: an asteroid crossing the field appears in single frames at different places, so the sums do not hold it. Use the name search for solar system bodies. WISE 0855 is too faint to flag with all six detectors summed, because it shows only past 3.9 microns.
+
+## 10. Color
 
 - Frame viewer: three sums from three wavelength ranges become red, green, and blue. Brightness is stretched while the ratio between colors is kept. Saturated pixels show white.
 - Sky map: `colorhips.py` merges three channels of the IRSA all-sky cube into color tiles.
 
-## 10. Distance
+## 11. Distance
 
 - `distance.py` uses a parallax when it is at least five times its error, then a published distance from SIMBAD, then the redshift with Planck 2018 cosmology.
 

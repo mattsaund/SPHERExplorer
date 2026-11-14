@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { ApiError, getMeta, getMissions, getNeossat, getObjects, getSpacecraft, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
+import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
@@ -75,6 +76,10 @@ export interface AppState {
   exporting: number | null;
   /** The measured motion of the source at the target, from actions.measureMotion. Null until measured. */
   motion: MotionFit | null;
+  /** What moved or changed brightness anywhere in the field, from actions.findChanges. Null until searched. */
+  changes: ChangeReport | null;
+  /** Progress of a search for changes, from 0 to 1, or null when none is running. */
+  finding: number | null;
   /** Orbital elements and archive facts for the spacecraft view. Null until loaded. */
   spacecraft: SpacecraftInfo | null;
   /** Where the spacecraft is this second. Updated while the orbit view is on the page. */
@@ -115,6 +120,7 @@ const DEFAULT_DISPLAY: DisplaySettings = {
   showMarker: true,
   showObjects: true,
   showGaia: false,
+  showChanges: true,
 };
 
 export const useStore = create<AppState>(() => ({
@@ -147,6 +153,8 @@ export const useStore = create<AppState>(() => ({
   embed: openedEmbedded(),
   exporting: null,
   motion: null,
+  changes: null,
+  finding: null,
   spacecraft: null,
   spacecraftNow: null,
   map: {
@@ -270,6 +278,8 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     missions: null,
     partner: null,
     motion: null,
+    changes: null,
+    finding: null,
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -679,6 +689,30 @@ export const actions = {
     const target = get().target;
     const probe = position && target && !target.moving ? skyOffset(position, target) : null;
     set({ spectrum: { ...get().spectrum, probe } });
+  },
+
+  /**
+   * Search the whole loaded field for sources that moved or changed brightness between visits.
+   * The result lands in state.changes. state.finding holds the progress while the search runs.
+   */
+  async findChanges(): Promise<void> {
+    if (get().finding !== null) return;
+    const session = get().session;
+    set({ finding: 0, changes: null });
+    try {
+      const report = await findChanges(get(), (fraction) => {
+        if (get().session === session) set({ finding: fraction });
+      });
+      if (get().session === session) set({ changes: report, finding: null });
+    } catch {
+      if (get().session === session) set({ finding: null, error: "The search for changes did not finish. Try again." });
+    }
+  },
+
+  /** Center the image on a found change and pick that spot, so the UI can offer its spectrum or a closer study. */
+  showChange(change: FoundChange): void {
+    set({ view: { east: change.east, north: change.north, zoom: Math.max(get().view.zoom, 2.5) } });
+    actions.pick({ ra: change.ra, dec: change.dec });
   },
 
   /** Switch a family of spectral features on or off in the spectrum plot. */

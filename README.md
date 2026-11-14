@@ -18,6 +18,7 @@ Type a name or coordinates. SPHERExplorer finds every SPHEREx image of that spot
 - **Compare.** Gaia stars, 2MASS and WISE brightness, and NEOSSat images of the same field.
 - **Explore.** A sky map with the SPHEREx all-sky survey in every channel and in full color, other missions, seven map shapes, and clickable labels.
 - **Share.** Every view has a link. Save pictures, animations, and spectrum tables.
+- **Embed.** Put coordinates in the address and add `embed=1` to place the viewer inside any web page. See [docs/embedding.md](docs/embedding.md).
 
 ## Try these
 
@@ -28,6 +29,7 @@ Type a name or coordinates. SPHERExplorer finds every SPHEREx image of that spot
 | `?target=Epsilon Indi B` | A brown dwarf pair. Its spectrum shows water and methane |
 | `?target=3I/ATLAS&mode=visits` | An interstellar comet. Its spectrum shows carbon dioxide gas |
 | `?target=M 42&fov=1200&mode=deep&color=wide` | The Orion Nebula in full color |
+| `?ra=08h55m10.831s&dec=-7d14m42.53s&mode=visits&det=56&play=1&embed=1` | NASA's WISE 0855 coordinates, as a compact viewer for another page |
 
 ## How it works
 

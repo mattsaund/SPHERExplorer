@@ -31,6 +31,7 @@ import {
   type Stretch,
   type Subtract,
 } from "../core";
+import { Embed } from "./Embed";
 import "./styles/app.css";
 
 const MODES: { value: SequenceMode; label: string; hint: string }[] = [
@@ -146,6 +147,9 @@ function PlayerControls() {
         </button>
         <button onClick={() => actions.saveSpectrum()} disabled={!count}>Save spectrum table</button>
         <button onClick={() => void navigator.clipboard?.writeText(actions.shareLink())} disabled={!count}>Copy link</button>
+        <button onClick={() => void navigator.clipboard?.writeText(actions.embedCode())} disabled={!count} title="HTML that shows this view inside another web page">
+          Copy embed code
+        </button>
       </div>
       <div className="row" role="radiogroup" aria-label="What to play">
         {MODES.map((option) => (
@@ -557,7 +561,10 @@ function TimelinePanel() {
 
 export function App() {
   useEffect(() => actions.init(), []);
+  const embed = useStore((s) => s.embed);
   const hasTarget = useStore((s) => s.target !== null);
+  // A page opened with embed=1 sits inside another site, so it gets the compact layout.
+  if (embed) return <Embed />;
 
   return (
     <div className="app">

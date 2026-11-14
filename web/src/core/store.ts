@@ -8,7 +8,7 @@ import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
-import { buildLink, parseLink } from "./url";
+import { buildLink, embedSnippet, parseLink } from "./url";
 import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
@@ -69,7 +69,7 @@ export interface AppState {
   /** What is under the pointer in the frame view. */
   hover: Hover | null;
   spectrum: SpectrumSettings;
-  /** True when the page was opened with embed=1. The UI should use a compact layout. */
+  /** True when the page was opened with embed=1, to sit inside another site. The UI should use a compact layout. */
   embed: boolean;
   /** Progress of an animation being saved, from 0 to 1, or null when none is running. */
   exporting: number | null;
@@ -82,6 +82,11 @@ export interface AppState {
   map: MapState;
   /** A request to move the map. The map acts when `token` changes. */
   mapGoal: { ra: number; dec: number; fov: number | null; token: number };
+}
+
+/** True when the page address asks for the compact layout. Read before the first render, so the full layout never flashes. */
+function openedEmbedded(): boolean {
+  return typeof window !== "undefined" && parseLink(window.location.search).embed === true;
 }
 
 /** Most image pixels held for one target. About 120 MB as received, more once sums are built. */
@@ -139,7 +144,7 @@ export const useStore = create<AppState>(() => ({
   subtract: "none",
   hover: null,
   spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, aperture: null, probe: null, families: [], redshift: 0 },
-  embed: false,
+  embed: openedEmbedded(),
   exporting: null,
   motion: null,
   spacecraft: null,
@@ -300,8 +305,10 @@ async function load(target: Target, fieldSize: number): Promise<void> {
   );
 
   // Other missions. The cone is widened by how far the target has moved since 2MASS looked in 1999.
+  // The compact layout shows neither these nor partner images, so an embedded viewer skips both requests.
+  const compact = get().embed;
   const drift = (Math.hypot(target.pmRa ?? 0, target.pmDec ?? 0) / 1000) * 28;
-  if (!moving) getMissions(target.ra, target.dec, Math.min(1800, fieldSize * 0.75 + drift), signal).then(
+  if (!moving && !compact) getMissions(target.ra, target.dec, Math.min(1800, fieldSize * 0.75 + drift), signal).then(
     (missions) => {
       if (mine === generation) set({ missions });
     },
@@ -309,7 +316,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
   );
 
   // Partner agency images of the same field.
-  if (!moving) getNeossat(target.ra, target.dec, signal).then(
+  if (!moving && !compact) getNeossat(target.ra, target.dec, signal).then(
     (partner) => {
       if (mine === generation) set({ partner });
     },
@@ -464,12 +471,21 @@ export const actions = {
       display: link.color ? { ...state.display, color: true, bands: COLOR_PRESETS.find((p) => p.id === link.color) ?? state.display.bands } : state.display,
       map: { ...state.map, layer: link.layer ?? state.map.layer, channel: link.channel ?? state.map.channel, projection: link.projection ?? state.map.projection },
     });
+    if (link.subtract) actions.setSubtract(link.subtract);
+    if (link.play) {
+      // Start the little video once, as soon as every image of the first target is in.
+      const stop = useStore.subscribe((next) => {
+        if (next.framesState !== "ready") return;
+        stop();
+        if (next.sequence.length > 1) actions.play();
+      });
+    }
     if (link.target) void actions.search(link.target);
     else if (link.ra !== undefined && link.dec !== undefined) actions.goTo({ ra: link.ra, dec: link.dec, epoch: 2026.0 });
     // Keep the address in step with the view, without adding browser history entries.
     let pending: ReturnType<typeof setTimeout> | null = null;
     useStore.subscribe((next, before) => {
-      if (next.target === before.target && next.fieldSize === before.fieldSize && next.mode === before.mode && next.display === before.display && next.filters === before.filters && next.map.layer === before.map.layer && next.map.channel === before.map.channel && next.map.projection === before.map.projection) return;
+      if (next.target === before.target && next.fieldSize === before.fieldSize && next.mode === before.mode && next.display === before.display && next.filters === before.filters && next.subtract === before.subtract && next.map.layer === before.map.layer && next.map.channel === before.map.channel && next.map.projection === before.map.projection) return;
       if (pending) clearTimeout(pending);
       pending = setTimeout(() => {
         const address = window.location.pathname + buildLink(get()) + window.location.hash;
@@ -478,9 +494,17 @@ export const actions = {
     });
   },
 
-  /** A full link that reopens the current view. */
+  /** A full link that reopens the current view in the whole tool, never in the compact layout. */
   shareLink(): string {
-    return window.location.origin + window.location.pathname + buildLink(get());
+    return window.location.origin + window.location.pathname + buildLink(get(), { embed: false });
+  },
+
+  /**
+   * HTML that shows the current view inside another web page, in the compact layout.
+   * Width and height are in CSS pixels. The frame starts playing if the view is playing now.
+   */
+  embedCode(width?: number, height?: number): string {
+    return embedSnippet(get(), window.location.origin + window.location.pathname, width, height);
   },
 
   /** Study a target: search for its images, then download them. The map moves there too. */

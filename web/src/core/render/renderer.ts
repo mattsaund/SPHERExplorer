@@ -214,6 +214,8 @@ interface Texture {
 
 const STRETCH_CODE: Record<Stretch, number> = { linear: 0, sqrt: 1, log: 2, asinh: 3 };
 const MAX_TEXTURES = 4000;
+/** Texture unit used only while uploading, so uploads never disturb the units the shader reads (0 to 4). */
+const SCRATCH_UNIT = 7;
 
 export class FrameRenderer {
   private gl: WebGL2RenderingContext;
@@ -357,10 +359,15 @@ export class FrameRenderer {
     gl.uniform1f(this.uniform("uScale"), options.scale / ratio);
 
     const showFlags = options.showFlags && !!first.flags;
+    // Fetch every texture before binding any. A first-time upload binds the new texture to the
+    // unit in use, so an upload between two binds would put the wrong image under an earlier layer.
+    gl.activeTexture(gl.TEXTURE0 + SCRATCH_UNIT);
     const textureA = this.texture(first, showFlags);
+    const textureB = second ? this.texture(second, false) : textureA;
+    const textureC = third ? this.texture(third, false) : textureA;
     this.bindLayer("A", 0, first, textureA);
-    this.bindLayer("B", 1, second ?? first, second ? this.texture(second, false) : textureA);
-    this.bindLayer("C", 4, third ?? first, third ? this.texture(third, false) : textureA);
+    this.bindLayer("B", 1, second ?? first, textureB);
+    this.bindLayer("C", 4, third ?? first, textureC);
 
     const mode = second ? (options.mode ?? "single") : "single";
     const code = mode === "difference" ? 1 : mode === "blend" ? 2 : mode === "rgb" && third ? 3 : 0;

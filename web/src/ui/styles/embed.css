@@ -1,0 +1,20 @@
+/* Compact layout for a viewer inside another web page. Austin's side owns this file.
+   Written with Claude Code (Anthropic) assistance. */
+.embed { display: flex; flex-direction: column; height: 100%; background: #000; }
+
+/* The image fills whatever the host page gives the frame. */
+.embed-view { position: relative; flex: 1; min-height: 0;
+  --frame-ink: rgba(255, 255, 255, 0.92); --frame-marker: #ffd24a; --frame-label: #9be8ff; --frame-flag: #e5484d; --frame-empty: #5b2a86; }
+
+.embed-top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); padding: var(--space-2); pointer-events: none; font-size: 0.85rem; }
+.embed-top > * { pointer-events: auto; background: rgba(15, 18, 21, 0.82); border-radius: var(--radius); padding: 2px var(--space-2); white-space: nowrap; }
+.embed-title { overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+
+.embed-status { position: absolute; left: var(--space-2); right: var(--space-2); top: 50%; transform: translateY(-50%); margin: 0 auto; max-width: 420px; background: rgba(15, 18, 21, 0.9); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-3); text-align: center; }
+.embed-status p { margin: 0 0 var(--space-2); }
+.embed-status progress { width: 100%; height: 6px; }
+
+.embed-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--color-surface); border-top: 1px solid var(--color-border); }
+.embed-bar button { min-height: 34px; padding: 0 var(--space-3); }
+.embed-bar input[type="range"] { flex: 1; min-width: 80px; }
+.embed-note { flex-basis: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 var(--space-3); margin: 0; font-size: 0.78rem; color: var(--color-text-muted); }

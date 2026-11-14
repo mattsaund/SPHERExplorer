@@ -82,3 +82,5 @@ The working example of every row is the starter UI in `web/src/ui/App.tsx`.
 | Save animation | Save the sequence as a GIF, with progress | `actions.saveAnimation`, `exporting` |
 | Save spectrum | Save the spectrum table | `actions.saveSpectrum` |
 | Share | Copy a link that reopens the view | `actions.shareLink` |
+| Embed code | Copy HTML that shows the view inside another web page | `actions.embedCode` |
+| Embedded view | Get a compact viewer when the address holds `embed=1` | `embed`, `Embed` |

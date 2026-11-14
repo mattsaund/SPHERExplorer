@@ -1,4 +1,5 @@
-# Checks every push and pull request: writing rules, API tests, web typecheck, tests, and build.
+# Checks every push and pull request: writing rules, API tests, web typecheck, tests, and build,
+# and that the production container builds and serves the site.
 # Written with Claude Code (Anthropic) assistance.
 name: CI
 
@@ -46,3 +47,11 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  container:
+    name: Production container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the container and check that it serves the site and the API
+        run: scripts/smoke_container.sh

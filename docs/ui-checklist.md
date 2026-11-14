@@ -50,6 +50,7 @@ The working example of every row is the starter UI in `web/src/ui/App.tsx`.
 | Spectrum options | Compare visits, show every measurement, use a log scale, show 2MASS and WISE | `perVisit`, `showPoints`, `log`, `showSurveys` |
 | Measuring shape | Measure a point or a circle of chosen size | `aperture` |
 | Features | Mark hydrogen, water, and the other families, and slide the redshift | `LINE_FAMILIES`, `actions.toggleFamily`, `redshift` |
+| Feature finder | Read which known features stand out in the spectrum, and mark them on the plot | `spectrumFeatures`, `describeFeature`, `actions.markFound` |
 | Change finder | Search the whole field for anything that moved, brightened, or faded, with progress | `actions.findChanges`, `finding`, `changes` |
 | Found changes | Read what each source did in plain words, and jump to it | `describeChange`, `actions.showChange` |
 | Motion | Measure how fast the source crosses the sky | `actions.measureMotion`, `motion` |

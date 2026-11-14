@@ -115,8 +115,10 @@ export function binSpectrum(points: SpectrumPoint[], perSeason: boolean): Spectr
     }
     const mean = flux / weight;
     let err = Math.sqrt(1 / weight);
-    if (group.length > 2) {
+    if (group.length > 1) {
       // When measurements disagree by more than their errors say, report the larger spread.
+      // This holds for a pair too: a comet ten times brighter on its second visit must not
+      // come out as one tidy average.
       let chi = 0;
       for (const p of group) chi += ((p.flux - mean) / p.err) ** 2;
       err *= Math.max(1, Math.sqrt(chi / (group.length - 1)));

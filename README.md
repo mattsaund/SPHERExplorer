@@ -15,7 +15,7 @@ Type a name or coordinates. SPHERExplorer finds every SPHEREx image of that spot
 - **See change.** Follow a moving star or comet, subtract one visit from another, measure how fast a source moves, and track brightness over time.
 - **Find change.** One button checks every source in the field and reports what moved, brightened, or faded between visits. It finds all five of NASA's test targets on its own, including stars too bright for the detector.
 - **Use all 102 colors.** Sum any of the six detectors, view full color, and read the spectrum of anything you point at.
-- **Identify.** Mark hydrogen, water, carbon dioxide, methane, and more on the spectrum. Slide the redshift for galaxies.
+- **Identify.** Mark hydrogen, water, carbon dioxide, methane, and more on the spectrum. Slide the redshift for galaxies. The tool also measures which of them actually stand out, and says so in plain words.
 - **Compare.** Gaia stars, 2MASS and WISE brightness, and NEOSSat images of the same field.
 - **Explore.** A sky map with the SPHEREx all-sky survey in every channel and in full color, other missions, seven map shapes, and clickable labels.
 - **Share.** Every view has a link. Save pictures, animations, and spectrum tables.

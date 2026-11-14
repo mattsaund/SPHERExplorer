@@ -33,6 +33,7 @@ import {
 } from "../core";
 import { ChangesPanel } from "./ChangesPanel";
 import { Embed } from "./Embed";
+import { FeaturesList } from "./FeaturesList";
 import { SearchBox } from "./SearchBox";
 import "./styles/app.css";
 
@@ -412,6 +413,7 @@ function SpectrumPanel() {
           </button>
         ))}
       </div>
+      <FeaturesList />
     </section>
   );
 }

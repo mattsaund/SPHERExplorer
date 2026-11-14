@@ -6,6 +6,7 @@ import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
+import { spectrumFeatures } from "./features";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
@@ -767,6 +768,12 @@ export const actions = {
   toggleFamily(id: string): void {
     const families = get().spectrum.families;
     actions.setSpectrum({ families: families.includes(id) ? families.filter((f) => f !== id) : [...families, id] });
+  },
+
+  /** Switch on the plot marks for every family the feature finder found in the spectrum on screen, and only those. */
+  markFound(): void {
+    const found = spectrumFeatures(get()).findings.map((finding) => finding.familyId);
+    actions.setSpectrum({ families: [...new Set(found)] });
   },
 
   /** Show one exposure in the frame view, whatever the current playback mode. */

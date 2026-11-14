@@ -85,12 +85,35 @@ Two ordinary fields (RA 200, Dec +30 and RA 83, Dec -5) gave no changes among 16
 
 Limits: an asteroid crossing the field appears in single frames at different places, so the sums do not hold it. Use the name search for solar system bodies. WISE 0855 is too faint to flag with all six detectors summed, because it shows only past 3.9 microns.
 
-## 10. Color
+## 10. Finding spectral features
+
+`features.ts` checks the spectrum on screen against the library of features in `lines.ts` and lists the ones that stand out.
+
+- **Close comparison.** The brightness at a feature is compared with a curve fitted through the spectrum on either side. The fit is done on logarithms, where a smooth spectrum is nearly straight. A narrow line is compared with a curve that can bend, and must stand clear of the channel on each side of it.
+- **Wide comparison.** The feature must also differ, the same way, from a trend line through the spectrum within about 22 percent in wavelength. The line is a repeated median, so features on up to half the points do not bend it. This tells a real dip from the plain gap between two bright bands.
+- **Thresholds.** Five times the uncertainty, which includes 1 percent for the instrument's channel-to-channel ripple. At least 5 percent for a wide band and 10 percent for a narrow line.
+- **What a band can do.** A wide band counts as a bump only for the few that glow, such as carbon dioxide and water in a comet. In a spectrum shaped by deep molecular bands, narrow lines are not judged, because the peaks between bands look like lines.
+- **One dip, one finding.** Overlapping library features are reported once, named by the widest that fits, with the others listed as things it could also be. SPHEREx can't separate them.
+- **Changing sources.** A source whose brightness changed by half or more between visits is judged visit by visit, with a 30 percent threshold, and each finding names its visit.
+- **Too bright.** When under 60 percent of the measurements are trusted, nothing is reported. A saturated source loses its brightest channels first, which carves false dips.
+
+Checked on known objects.
+
+| Object | Found | Known |
+|---|---|---|
+| Epsilon Indi B (T dwarfs) | Methane at 3.32 and 2.30 microns, water at 1.40 and 2.70, carbon monoxide at 4.67, carbon dioxide at 4.27 | The molecules that define T dwarfs |
+| TRAPPIST-1 (M8 dwarf) | Water at 1.40 and 1.90 microns | Steam bands of a late M dwarf |
+| Comet 3I/ATLAS, Dec 2025 | Carbon dioxide at 4.27 microns, 41 times the light beside it. Water at 2.70. Organic molecules at 3.40 | A coma rich in carbon dioxide, with water and organics |
+| HD 209458 (Sun-like star) | Nothing | A smooth spectrum at this resolution |
+| WISE 0855-0714 | Nothing | Too faint per channel to judge |
+| NGC 7027, Mira | Not judged | Too bright for the detector |
+
+## 11. Color
 
 - Frame viewer: three sums from three wavelength ranges become red, green, and blue. Brightness is stretched while the ratio between colors is kept. Saturated pixels show white.
 - Sky map: `colorhips.py` merges three channels of the IRSA all-sky cube into color tiles.
 
-## 11. Distance
+## 12. Distance
 
 - `distance.py` uses a parallax when it is at least five times its error, then a published distance from SIMBAD, then the redshift with Planck 2018 cosmology.
 

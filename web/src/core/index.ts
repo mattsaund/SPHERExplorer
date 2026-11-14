@@ -66,3 +66,5 @@ export type { MotionFit, MotionPoint } from "./motion";
 export { changeLabel, describeChange } from "./changes";
 export type { BandChange, ChangeKind, ChangeLevel, ChangePlace, ChangeReport, CheckedSource, FoundChange } from "./changes";
 export type { Suggestion } from "./suggest";
+export { describeFeature, spectrumFeatures } from "./features";
+export type { FeatureFinding, FeatureReport } from "./features";

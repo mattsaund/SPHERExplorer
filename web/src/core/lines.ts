@@ -12,6 +12,11 @@ export interface SpectralFeature {
   wavelength: number;
   /** Full width in microns for broad bands. Omitted for narrow lines. */
   width?: number;
+  /**
+   * True for a band that can also show as a bump: gas glowing in a comet's coma, or soot-like
+   * grains glowing in nebulae and galaxies. Other bands only ever take light away.
+   */
+  emits?: boolean;
 }
 
 export interface LineFamily {
@@ -82,7 +87,7 @@ export const LINE_FAMILIES: LineFamily[] = [
     features: [
       { label: "H₂O", wavelength: 1.4, width: 0.12 },
       { label: "H₂O", wavelength: 1.9, width: 0.16 },
-      { label: "H₂O", wavelength: 2.7, width: 0.25 },
+      { label: "H₂O", wavelength: 2.7, width: 0.25, emits: true },
       { label: "H₂O ice", wavelength: 3.05, width: 0.45 },
     ],
   },
@@ -92,7 +97,7 @@ export const LINE_FAMILIES: LineFamily[] = [
     about: "Carbon dioxide ice and gas. A sharp, deep dip near 4.27 microns.",
     features: [
       { label: "CO₂", wavelength: 2.7, width: 0.08 },
-      { label: "CO₂", wavelength: 4.27, width: 0.1 },
+      { label: "CO₂", wavelength: 4.27, width: 0.1, emits: true },
       { label: "¹³CO₂", wavelength: 4.39, width: 0.04 },
     ],
   },
@@ -104,7 +109,7 @@ export const LINE_FAMILIES: LineFamily[] = [
       { label: "CO 2-0", wavelength: 2.2935 },
       { label: "CO 3-1", wavelength: 2.3227 },
       { label: "CO 4-2", wavelength: 2.3525 },
-      { label: "CO", wavelength: 4.67, width: 0.5 },
+      { label: "CO", wavelength: 4.67, width: 0.5, emits: true },
     ],
   },
   {
@@ -132,8 +137,8 @@ export const LINE_FAMILIES: LineFamily[] = [
     name: "Organic molecules and dust",
     about: "Carbon-rich molecules and ices in space, including the 3.3 micron glow of soot-like grains.",
     features: [
-      { label: "PAH", wavelength: 3.29, width: 0.06 },
-      { label: "C-H", wavelength: 3.4, width: 0.08 },
+      { label: "PAH", wavelength: 3.29, width: 0.06, emits: true },
+      { label: "C-H", wavelength: 3.4, width: 0.08, emits: true },
       { label: "CH₃OH", wavelength: 3.53, width: 0.06 },
       { label: "OCN⁻", wavelength: 4.62, width: 0.05 },
       { label: "OCS", wavelength: 4.9, width: 0.05 },

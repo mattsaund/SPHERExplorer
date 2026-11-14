@@ -1,0 +1,28 @@
+[project]
+name = "spherex-api"
+version = "0.1.0"
+description = "SPHERExplorer API. SPHEREx search, cutouts, spectra, and service relays. Written with Claude Code (Anthropic) assistance."
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx[http2]>=0.27",
+    "numpy>=2.0",
+    "astropy>=7.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio>=0.24"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+filterwarnings = ["ignore::DeprecationWarning:fastapi.testclient", "ignore::DeprecationWarning:starlette.testclient"]
+testpaths = ["tests"]
+markers = ["live: needs network access to IRSA and AWS"]
+addopts = "-m 'not live'"
+
+[tool.uv]
+package = false

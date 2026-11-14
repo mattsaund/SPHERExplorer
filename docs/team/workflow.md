@@ -18,6 +18,8 @@
 - Work on short-lived branches named `matt/<topic>` and `austin/<topic>`.
 - Run `git pull --rebase origin main` before pushing. Merge to `main` often. Never force-push `main`.
 - Commits written with Claude end with the Co-Authored-By trailer.
+- Austin's side opens pull requests. Matt's Claude reviews and merges them. Matt's side may push small, checked commits straight to `main`.
+- CI runs the text check, the API tests, and the web typecheck, tests, and build on every pull request.
 - Avoid editing the same file at the same time, especially shared config such as `package.json`. Announce changes to shared contracts first.
 
 ## Parallel sessions on one machine

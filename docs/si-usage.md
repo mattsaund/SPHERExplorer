@@ -24,3 +24,4 @@ Claude gathered the notes in `docs/research/`: SPHEREx data access, test target 
 | Date | Who | What Claude did | Human role |
 |---|---|---|---|
 | 2026-11-14 | Matt | Set up this repo: CLAUDE.md, README, docs, license, .gitignore, and the writing-rule hook. Moved the research into `docs/research/`. | Matt requested the setup and the public repo |
+| 2026-11-14 | Matt | Wrote the architecture, the project skeleton (API, web app, CI, text check), and merged Austin's first pull request. | Matt and Austin set the concept and feature list. Matt named Claude the build lead |

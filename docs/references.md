@@ -59,7 +59,17 @@ Add the license and version when a library goes into the build.
 
 | Name | License | Credit | In use |
 |---|---|---|---|
-| Astropy | BSD-3-Clause | Astropy Collaboration 2013, 2018, 2022 | Not yet |
+| Astropy 8 | BSD-3-Clause | Astropy Collaboration 2013, 2018, 2022 | Yes (API) |
+| NumPy 2 | BSD-3-Clause | Harris et al. 2020 | Yes (API) |
+| FastAPI, Starlette, Uvicorn | MIT, BSD-3-Clause | | Yes (API) |
+| HTTPX | BSD-3-Clause | | Yes (API) |
+| pytest, pytest-asyncio | MIT, Apache-2.0 | | Yes (tests) |
+| uv | MIT or Apache-2.0 | Astral | Yes (tooling) |
+| React 19, React DOM | MIT | | Yes (web) |
+| Zustand 5 | MIT | | Yes (web) |
+| Vite 8, @vitejs/plugin-react | MIT | | Yes (build) |
+| TypeScript 7 | Apache-2.0 | | Yes (build) |
+| Vitest 5 | MIT | | Yes (tests) |
 | astroquery | BSD-3-Clause | Ginsburg et al. 2019 | Not yet |
 | Aladin Lite v3 (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Keep the Aladin logo and link in the view | Not yet |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |

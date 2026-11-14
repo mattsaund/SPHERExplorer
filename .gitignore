@@ -34,3 +34,6 @@ Thumbs.db
 .claude/settings.local.json
 .claude/worktrees/
 CLAUDE.local.md
+
+# Local API cache of calibration tables and file layouts
+server/.cache/

@@ -98,8 +98,13 @@ Details in `docs/research/`.
 
 - Matt's Claude: data access, backend, science logic, heavy lifting.
 - Austin's Claude: UI, styling, fonts, buttons, polish.
-- Directory ownership: record it here once the architecture is decided. Each side edits only its own directories, except shared contracts.
-- Shared contracts (API shapes, types) live in one place. Change them only after telling the other person.
+- Matt's Claude leads the build. It reviews and merges every pull request.
+- Directory ownership. Each side edits only its own directories.
+  - Matt: `server/`, `web/src/core/`, `scripts/`, `.github/`.
+  - Austin: `web/src/ui/`.
+  - Shared: `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts`, `docs/`. Say so in the pull request before changing them.
+- The shared contract is `web/src/core/index.ts`. UI code imports from `../core` only. Title a pull request that changes an exported name or type with the prefix `contract:`.
+- Read `docs/architecture.md` before starting. Pull `main` often, because the contract grows as features land.
 - Branches: `matt/<topic>` and `austin/<topic>`. Small commits. `git pull --rebase` before pushing. Merge to `main` often. Never force-push `main`.
 - Personal settings go in `.claude/settings.local.json` and `CLAUDE.local.md`. Both are gitignored.
 - More in `docs/team/workflow.md`.
@@ -109,6 +114,7 @@ Details in `docs/research/`.
 | File | Purpose |
 |---|---|
 | `docs/concept.md` | The team's concept and Matt's original notes (human-written) |
+| `docs/architecture.md` | Technical plan, stack, ownership, the frontend contract, and how to run it |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |

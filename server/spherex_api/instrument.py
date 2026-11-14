@@ -63,4 +63,7 @@ FLAG_BITS = [
     {"bit": 29, "name": "SATELLITE_HALO", "text": "Halo around a satellite streak", "mask": True},
 ]
 BAD_MASK = sum(1 << flag["bit"] for flag in FLAG_BITS if flag["mask"])
+# Summing frames also drops pixels touched by passing artifacts, as the IRSA Mosaic Tool does.
+STACK_EXTRA = ("TRANSIENT", "DICHROIC", "PHANMISS", "OUTLIER", "CROSSTALK", "GHOST", "GHOST_EXT", "STREAK")
+STACK_MASK = BAD_MASK | sum(1 << flag["bit"] for flag in FLAG_BITS if flag["name"] in STACK_EXTRA)
 SOURCE_MASK = 1 << 21

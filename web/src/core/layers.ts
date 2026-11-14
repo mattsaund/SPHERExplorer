@@ -86,7 +86,7 @@ export function sceneFor(item: SequenceItem, state: AppState): Scene | null {
   }
   if (!members.length) return null;
   if (!stack) {
-    stack = stackFrames(members, { size: state.fieldSize, scale, method: "mean", badMask: state.meta?.badMask ?? 0 });
+    stack = stackFrames(members, { size: state.fieldSize, scale, method: "clipped", badMask: state.meta?.stackMask ?? 0 });
     remember(cacheKey, stack);
   }
   return {

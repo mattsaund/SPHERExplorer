@@ -11,7 +11,7 @@ Every external resource goes here with its license and required credit. Set "In 
 | SPHEREx QR3 Spectral Images | Same | Same | DOI 10.26131/IRSA662 | Yes |
 | Gaia DR3 | ESA Gaia, DPAC (via MAST, ESA, or VizieR) | Gaia credit required | Gaia Collaboration 2016, 2023 | Not yet |
 | NEOSSat astronomy data | Canadian Space Agency (CSA), CADC | Open Government Licence - Canada | Credit line below | Not yet |
-| SIMBAD | CDS, Strasbourg (or CfA and IDIA mirrors) | Credit required | Wenger et al. 2000 | Not yet |
+| SIMBAD | CDS, Strasbourg (or CfA and IDIA mirrors) | Credit required | Wenger et al. 2000 | Yes (name lookup) |
 | VizieR | CDS, Strasbourg (or mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Not yet |
 | UltracoolSheet | Best et al. | CC-BY-4.0 | DOI 10.5281/zenodo.15802304 | Not yet |
 
@@ -52,6 +52,9 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - Gagné et al. 2026 (arXiv 2604.22012). SPHEREx spectra of ultracool dwarfs (SPIFF).
 - Rustamkulov et al. 2026 (arXiv 2607.00543). SPHEREx view of WISE 0855.
 - Chen et al. 2022 (arXiv 2205.08077). Epsilon Indi Ba and Bb orbit.
+- NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. Atomic line wavelengths in `web/src/core/lines.ts`.
+- Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
+- Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
 
 ## Software and services
 
@@ -81,6 +84,7 @@ Add the license and version when a library goes into the build.
 | NEOSSat tutorial (CSA) | MIT, Crown copyright 2023 | | Reference only |
 | IRSA SIA and the AWS S3 bucket `nasa-irsa-spherex` | Public | IRSA acknowledgment | Yes (search and pixels) |
 | IRSA TAP and cutout service | Public | IRSA acknowledgment | Not used. The API reads S3 directly |
+| Sesame name resolver (CDS), through the CfA and IDIA mirrors | Credit required | SIMBAD and VizieR acknowledgments | Yes (name lookup) |
 | MAST (Gaia DR3) | Public | MAST | Not yet |
 | IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
 | JPL Horizons and SBDB | Public | JPL Solar System Dynamics | Not yet |

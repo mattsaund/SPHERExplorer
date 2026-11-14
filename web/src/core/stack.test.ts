@@ -57,6 +57,17 @@ describe("stackFrames", () => {
     expect(stack.image[stack.cy * stack.nx + stack.cx]).toBeCloseTo(7, 5);
   });
 
+  it("clipped mean drops a one-frame artifact but keeps honest scatter", () => {
+    const steady = [4.8, 5.1, 5.0, 4.9, 5.2, 5.0].map((v) => member([6, 0, 0, 6], 0, 0, v));
+    const hit = member([6, 0, 0, 6], 0, 0, 900);
+    const clipped = stackFrames([...steady, hit], { ...options, method: "clipped" });
+    expect(clipped.image[clipped.cy * clipped.nx + clipped.cx]).toBeCloseTo(5.0, 5);
+    // A source whose brightness really varies from frame to frame is not clipped away.
+    const varied = [10, 60, 25, 90, 40, 75, 15].map((v) => member([6, 0, 0, 6], 0, 0, v));
+    const kept = stackFrames(varied, { ...options, method: "clipped" });
+    expect(kept.image[kept.cy * kept.nx + kept.cx]).toBeCloseTo(45, 5);
+  });
+
   it("median rejects a one-frame artifact", () => {
     const frames = [0, 0, 0, 0].map(() => member([6, 0, 0, 6], 0, 0, 5));
     frames.push(member([6, 0, 0, 6], 0, 0, 500));

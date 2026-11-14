@@ -51,6 +51,10 @@ export interface Meta {
   flags: FlagBit[];
   /** All flag bits with mask = true, combined. */
   badMask: number;
+  /** Flag bits that exclude a pixel when frames are summed. */
+  stackMask: number;
+  /** Facts about the exposure index behind the search, or null when IRSA is searched live. */
+  index: { exposures: number; built: string; newest: number | null; releases: string[] } | null;
 }
 
 /** PSF-fit brightness of the target in one frame. */

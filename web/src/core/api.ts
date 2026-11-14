@@ -1,6 +1,6 @@
 // Talks to the SPHERExplorer API: metadata, search, and the binary frame stream.
 // Written with Claude Code (Anthropic) assistance.
-import type { Meta, Photometry } from "./types";
+import type { Meta, Photometry, Target } from "./types";
 
 /** Base path of the API. Same origin by default. Set VITE_API_BASE to point elsewhere. */
 const BASE: string = import.meta.env.VITE_API_BASE ?? "/api";
@@ -25,6 +25,11 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 export function getMeta(signal?: AbortSignal): Promise<Meta> {
   return getJson<Meta>("/meta", signal);
+}
+
+/** Look up an object by name. Rejects with a plain-language ApiError when it is not found. */
+export function resolveName(name: string, signal?: AbortSignal): Promise<Target> {
+  return getJson<Target>(`/resolve?name=${encodeURIComponent(name.trim())}`, signal);
 }
 
 /** The search result as the server sends it: one array per column, rows sorted by time. */

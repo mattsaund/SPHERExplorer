@@ -25,8 +25,13 @@ export interface StackOptions {
   size: number;
   /** Output pixel size in arcseconds. */
   scale: number;
-  /** "mean" weights frames by their noise. "median" rejects anything that is not in most frames. */
-  method: "mean" | "median";
+  /**
+   * "mean" weights frames by their noise.
+   * "clipped" does the same after dropping samples far from the pixel's median, which removes
+   * cosmic rays and hot pixels that the flags missed.
+   * "median" keeps only what most frames agree on.
+   */
+  method: "mean" | "clipped" | "median";
   /** Flag bits that exclude a pixel. */
   badMask: number;
 }
@@ -45,6 +50,11 @@ export interface Stack {
   /** Frames that contributed. */
   count: number;
 }
+
+/** Samples further than this many robust sigmas from a pixel's median are dropped by "clipped". */
+const CLIP_SIGMA = 4.5;
+/** Clipping needs at least this many samples to judge the scatter. */
+const CLIP_MIN = 5;
 
 /** Median of the first n entries of a scratch array. Reorders the scratch array. */
 function medianOf(values: Float32Array, n: number): number {
@@ -69,9 +79,9 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
   const total = n * n;
   const sum = new Float32Array(total);
   const weight = new Float32Array(total);
-  const median = options.method === "median";
-  // For the median, keep every sample: one row per member.
-  const samples = median ? new Float32Array(total * members.length).fill(NaN) : null;
+  // The median and the clipped mean need every sample: one row per member.
+  const samples = options.method === "mean" ? null : new Float32Array(total * members.length).fill(NaN);
+  const weights = members.map((member) => (member.rms > 0 ? 1 / (member.rms * member.rms) : 0));
 
   members.forEach((member, index) => {
     const [a, b, c, d] = member.m;
@@ -105,14 +115,41 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
 
   const image = new Float32Array(total);
   if (samples) {
+    const values = new Float32Array(members.length);
     const scratch = new Float32Array(members.length);
+    const which = new Int32Array(members.length);
+    const clip = options.method === "clipped";
     for (let out = 0; out < total; out++) {
       let count = 0;
       for (let k = 0; k < members.length; k++) {
         const value = samples[k * total + out];
-        if (value === value) scratch[count++] = value;
+        if (value === value) {
+          values[count] = value;
+          which[count++] = k;
+        }
       }
-      image[out] = count ? medianOf(scratch, count) : NaN;
+      if (!count) {
+        image[out] = NaN;
+        continue;
+      }
+      scratch.set(values.subarray(0, count));
+      const middle = medianOf(scratch, count);
+      if (!clip) {
+        image[out] = middle;
+        continue;
+      }
+      // Scatter of this pixel across frames. A bright star varies a lot from frame to frame
+      // (each frame is a different wavelength), so its own scatter sets the limit, not the sky noise.
+      for (let k = 0; k < count; k++) scratch[k] = Math.abs(values[k] - middle);
+      const limit = count >= CLIP_MIN ? CLIP_SIGMA * 1.4826 * medianOf(scratch, count) : Infinity;
+      let top = 0;
+      let bottom = 0;
+      for (let k = 0; k < count; k++) {
+        if (Math.abs(values[k] - middle) > limit) continue;
+        top += weights[which[k]] * values[k];
+        bottom += weights[which[k]];
+      }
+      image[out] = bottom > 0 ? top / bottom : middle;
     }
   } else {
     for (let out = 0; out < total; out++) image[out] = weight[out] > 0 ? sum[out] / weight[out] : NaN;

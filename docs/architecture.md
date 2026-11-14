@@ -18,7 +18,8 @@ The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this
 - The IRSA cutout service returns 4 to 5 MB per frame and throttles. The server reads only the needed rows from S3 and crops them. A 5 arcmin frame comes back in about 6 KB.
 - The PSF and wavelength tables in every Level 2 file are per-detector calibration products. The server caches them once.
 - Pixels stay in native detector geometry. The browser places each frame on the sky with its own transform, so nothing is resampled twice.
-- New data releases need no code change. The server reads the collection list from the IRSA SIA self-description.
+- Search does not depend on IRSA being up. The server keeps an index of every exposure (time and pointing), built from the S3 bucket alone. A search is a few matrix products and takes about 20 ms. IRSA SIA is the fallback when no index is present.
+- New data needs no code change. A scheduled job extends the index twice a week and publishes it as a release asset, which servers download. The list of active releases comes from the IRSA SIA self-description.
 
 ## Stack
 
@@ -36,7 +37,7 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 ## Data flow
 
 1. The user gives a name or coordinates. `GET /api/resolve` returns a position, proper motion, and parallax.
-2. `GET /api/search` asks IRSA SIA for every SPHEREx image that covers the position, across all live collections. It returns one row per image with time, detector, and an estimated wavelength at the target.
+2. `GET /api/search` looks up every SPHEREx image that covers the position in the exposure index. It returns one row per image with time, detector, and an estimated wavelength at the target.
 3. `POST /api/cutouts` streams the frames. For each one the server reads the needed rows of IMAGE, FLAGS, and VARIANCE from S3, crops them, and measures the target with the cached PSF.
 4. The browser shows frames as they arrive. It groups them by time and wavelength, stacks them, subtracts them, and plots the spectrum.
 5. The sky map loads HiPS tiles directly from IRSA and ESA. Catalog overlays come through `/api/catalog/*`.
@@ -78,7 +79,7 @@ NASA's stated objectives come first. Each step lands on `main` working.
 ## Run it
 
 ```sh
-# API on port 8000
+# API on port 8000. On first start it downloads the exposure index (12 MB).
 cd server && uv sync && uv run uvicorn spherex_api.main:app --reload --port 8000
 
 # Web on port 5173. It proxies /api to port 8000.

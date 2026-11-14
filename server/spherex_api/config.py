@@ -16,6 +16,12 @@ FALLBACK_COLLECTIONS = ("spherex_dr1", "spherex_dr1_deep", "spherex_qr3", "spher
 # Where calibration tables and file layouts are kept between runs.
 CACHE_DIR = Path(os.environ.get("SPX_CACHE_DIR", Path(__file__).resolve().parent.parent / ".cache"))
 
+# A prebuilt exposure index to download when none is on disk. Empty disables the download.
+INDEX_URL = os.environ.get(
+    "SPX_INDEX_URL",
+    "https://github.com/mattsaund/SPHERExplorer/releases/download/exposure-index/exposures.npz",
+)
+
 # Upper bounds on parallel work. S3 handles far more, so these protect our own memory.
 S3_CONCURRENCY = int(os.environ.get("SPX_S3_CONCURRENCY", "128"))
 FRAME_CONCURRENCY = int(os.environ.get("SPX_FRAME_CONCURRENCY", "48"))

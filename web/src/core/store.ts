@@ -1,8 +1,8 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, searchFrames, streamCutouts, type WireFrame } from "./api";
-import { assignSeasons, positionAt } from "./astro";
+import { ApiError, getMeta, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
+import { assignSeasons, parseCoordinates, positionAt } from "./astro";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
 import type { DisplaySettings, Filters, Frame, Hover, LoadState, Meta, Player, SequenceItem, SequenceMode, Target } from "./types";
@@ -285,6 +285,28 @@ export const actions = {
   /** Study a target: search for its images, then download them. */
   goTo(target: Target): void {
     void load(target, get().fieldSize);
+  },
+
+  /**
+   * Study whatever a person typed: coordinates in any common form, or an object name.
+   * Resolves to true when a target was found. On failure, state.error holds the reason.
+   */
+  async search(text: string): Promise<boolean> {
+    const query = text.trim();
+    if (!query) return false;
+    const position = parseCoordinates(query);
+    if (position) {
+      actions.goTo({ ...position, epoch: 2026.0 });
+      return true;
+    }
+    set({ targetState: "loading", error: null, notice: null });
+    try {
+      actions.goTo(await resolveName(query));
+      return true;
+    } catch (error) {
+      set({ targetState: "failed", error: error instanceof ApiError ? error.message : "The name lookup failed. Try coordinates instead." });
+      return false;
+    }
   },
 
   /** Change the field width in arcseconds and reload. */

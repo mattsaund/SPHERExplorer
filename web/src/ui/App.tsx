@@ -11,7 +11,6 @@ import {
   formatDec,
   formatRa,
   formatWavelength,
-  parseCoordinates,
   useStore,
   type ColorMap,
   type SequenceMode,
@@ -33,23 +32,22 @@ function SearchBar() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    const position = parseCoordinates(text);
-    if (!position) {
-      setProblem('Enter coordinates such as "133.76 -7.24" or "08h55m10.8s -07d14m42s".');
+    if (!text.trim()) {
+      setProblem('Enter a name such as "Vega", or coordinates such as "133.76 -7.24".');
       return;
     }
     setProblem(null);
-    actions.goTo({ ...position, epoch: 2026.0, name: text.trim() });
+    void actions.search(text);
   }
 
   return (
     <form className="search" onSubmit={submit} role="search">
-      <label htmlFor="search-input">Sky position</label>
+      <label htmlFor="search-input">Find</label>
       <input
         id="search-input"
         value={text}
         onChange={(event) => setText(event.target.value)}
-        placeholder="RA and Dec, for example 133.76 -7.24"
+        placeholder="Object name or coordinates, for example Vega or 133.76 -7.24"
         autoComplete="off"
         spellCheck={false}
       />

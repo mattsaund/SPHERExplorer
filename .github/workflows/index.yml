@@ -1,0 +1,33 @@
+# Keeps the exposure index current. Each run lists the SPHEREx S3 bucket, reads the headers of
+# exposures it has not seen, and republishes the index file that the API downloads.
+# Written with Claude Code (Anthropic) assistance.
+name: Refresh exposure index
+
+on:
+  schedule:
+    - cron: "17 9 * * 2,5" # Tuesdays and Fridays, 09:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - name: Fetch the current index
+        run: |
+          mkdir -p .cache/index
+          gh release download exposure-index --pattern exposures.npz --dir .cache/index || echo "No index yet. Building from scratch."
+      - name: Add new exposures
+        run: uv run python -m spherex_api.index_build
+      - name: Publish
+        run: gh release upload exposure-index .cache/index/exposures.npz --clobber

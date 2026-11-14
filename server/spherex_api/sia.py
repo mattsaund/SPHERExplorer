@@ -130,8 +130,73 @@ async def _wave_grids(rows: list[dict], detectors: np.ndarray) -> dict:
     return grids
 
 
+def _parallax_factors(mjd: np.ndarray, ra: float, dec: float):
+    """Sky shift in arcseconds per arcsecond of parallax, east and north, at each time."""
+    earth = get_body_barycentric("earth", Time(mjd, format="mjd", scale="utc"))
+    ex, ey, ez = (earth.x.to_value("au"), earth.y.to_value("au"), earth.z.to_value("au"))
+    a, d = ra * D2R, dec * D2R
+    east = ex * np.sin(a) - ey * np.cos(a)
+    north = ex * np.cos(a) * np.sin(d) + ey * np.sin(a) * np.sin(d) - ez * np.cos(d)
+    return east, north
+
+
+def _rounded(values: np.ndarray, places: int) -> list:
+    """Round for the wire and turn NaN into null."""
+    return [None if not np.isfinite(v) else round(float(v), places) for v in values]
+
+
+async def search_index(index, ra: float, dec: float) -> dict:
+    """Search with the exposure index. Same result shape as the IRSA search."""
+    rows, detectors, x, y = index.find(ra, dec)
+    keys = [index.key(int(row), int(det)) for row, det in zip(rows, detectors)]
+    records = index.rows[rows]
+    mjd = records["mjd"]
+    size = config.DETECTOR_SIZE
+
+    grids = await _wave_grids([{"key": key} for key in keys], detectors) if len(keys) else {}
+    wavelength = np.full(len(keys), np.nan)
+    bandwidth = np.full(len(keys), np.nan)
+    for detector, grid in grids.items():
+        pick = detectors == detector
+        wavelength[pick], bandwidth[pick] = grid.at(np.clip(x[pick], 0, size - 1), np.clip(y[pick], 0, size - 1))
+    channel = np.where(np.isfinite(wavelength), channel_index(detectors, np.nan_to_num(wavelength)), -1) if len(keys) else np.zeros(0, int)
+    pf_ra, pf_dec = _parallax_factors(mjd, ra, dec) if len(keys) else (np.zeros(0), np.zeros(0))
+
+    return {
+        "ra": ra,
+        "dec": dec,
+        "source": "index",
+        "collections": index.collections,
+        "errors": [],
+        "count": len(keys),
+        "frames": {
+            "key": keys,
+            "coll": (records["release"].astype(int) * 2 + records["deep"].astype(int)).tolist(),
+            "obsid": [value.decode() for value in records["obsid"]],
+            "det": detectors.tolist(),
+            "mjd": np.round(mjd, 6).tolist(),
+            "x": np.round(x, 1).tolist(),
+            "y": np.round(y, 1).tolist(),
+            "wl": _rounded(wavelength, 5),
+            "bw": _rounded(bandwidth, 5),
+            "chan": channel.tolist(),
+            "pfra": np.round(pf_ra, 5).tolist(),
+            "pfdec": np.round(pf_dec, 5).tolist(),
+        },
+    }
+
+
 async def search(ra: float, dec: float, radius: float = 0.001) -> dict:
-    """All SPHEREx images covering (ra, dec), time-ordered, in a compact columnar form."""
+    """All SPHEREx images covering (ra, dec), time-ordered, in a compact columnar form.
+
+    Uses the exposure index when one is loaded. Falls back to IRSA SIA otherwise.
+    """
+    from .exposures import get_index  # imported here to keep module load order simple
+
+    index = await get_index()
+    if index is not None:
+        return await search_index(index, ra, dec)
+
     token = (round(ra, 6), round(dec, 6), round(radius, 5))
     now = time.monotonic()
     hit = _searches.get(token)
@@ -164,6 +229,7 @@ async def search(ra: float, dec: float, radius: float = 0.001) -> dict:
     result = {
         "ra": ra,
         "dec": dec,
+        "source": "irsa",
         "collections": names,
         "errors": errors,
         "count": 0,
@@ -184,12 +250,7 @@ async def search(ra: float, dec: float, radius: float = 0.001) -> dict:
             wavelength[pick], bandwidth[pick] = grid.at(np.clip(x[pick], 0, size - 1), np.clip(y[pick], 0, size - 1))
         channel = np.where(np.isfinite(wavelength), channel_index(detectors, np.nan_to_num(wavelength)), -1)
 
-        # Parallax factors: sky shift in arcseconds per arcsecond of parallax, at each exposure time.
-        earth = get_body_barycentric("earth", Time(mjd, format="mjd", scale="utc"))
-        ex, ey, ez = (earth.x.to_value("au"), earth.y.to_value("au"), earth.z.to_value("au"))
-        a, d = ra * D2R, dec * D2R
-        pf_ra = ex * np.sin(a) - ey * np.cos(a)
-        pf_dec = ex * np.cos(a) * np.sin(d) + ey * np.sin(a) * np.sin(d) - ez * np.cos(d)
+        pf_ra, pf_dec = _parallax_factors(mjd, ra, dec)
 
         keep = np.flatnonzero(inside)
         frames = result["frames"]
@@ -200,14 +261,15 @@ async def search(ra: float, dec: float, radius: float = 0.001) -> dict:
         frames["mjd"] = np.round(mjd[keep], 6).tolist()
         frames["x"] = np.round(x[keep], 1).tolist()
         frames["y"] = np.round(y[keep], 1).tolist()
-        frames["wl"] = [None if not np.isfinite(v) else round(float(v), 5) for v in wavelength[keep]]
-        frames["bw"] = [None if not np.isfinite(v) else round(float(v), 5) for v in bandwidth[keep]]
+        frames["wl"] = _rounded(wavelength[keep], 5)
+        frames["bw"] = _rounded(bandwidth[keep], 5)
         frames["chan"] = channel[keep].tolist()
         frames["pfra"] = np.round(pf_ra[keep], 5).tolist()
         frames["pfdec"] = np.round(pf_dec[keep], 5).tolist()
         result["count"] = int(keep.size)
 
-    _searches[token] = (now, result)
+    if not errors:
+        _searches[token] = (now, result)
     if len(_searches) > 500:
         # Drop the oldest entries.
         for old in sorted(_searches, key=lambda k: _searches[k][0])[:100]:

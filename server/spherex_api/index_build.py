@@ -179,37 +179,85 @@ def calibrate(sample: list[tuple[str, str, dict]]):
     return relative, scales
 
 
+def release_rank(release: str) -> tuple[int, int]:
+    """Order releases so the best processing of an exposure wins: data releases over quick ones, then newer."""
+    match = re.match(r"([a-z]+)(\d*)", release)
+    kind, number = (match.group(1), int(match.group(2) or 0)) if match else (release, 0)
+    return (1 if kind == "dr" else 0, number)
+
+
+def active_releases() -> tuple[list[str], bool]:
+    """Bucket prefixes of the releases IRSA serves now, and whether IRSA itself confirmed the list.
+
+    IRSA names collections like spherex_dr1 and spherex_qr3_deep. The bucket prefix is the middle part.
+    """
+    try:
+        response = httpx.get(config.IRSA_SIA, params={"MAXREC": 0}, timeout=30, headers={"User-Agent": config.USER_AGENT})
+        response.raise_for_status()
+        block = re.search(r'name="COLLECTION".*?</PARAM>', response.text, re.S)
+        names = re.findall(r'<OPTION[^>]*value="spherex_([a-z]+\d+)(?:_deep)?"', block.group(0)) if block else []
+        if names:
+            return sorted(set(names), key=release_rank), True
+    except httpx.HTTPError:
+        pass
+    fallback = sorted({name.replace("spherex_", "").replace("_deep", "") for name in config.FALLBACK_COLLECTIONS}, key=release_rank)
+    return fallback, False
+
+
 def build(fresh: bool = False) -> None:
     started = time.time()
     old = None
     if not fresh and INDEX_PATH.exists():
         with np.load(INDEX_PATH, allow_pickle=False) as data:
             old = {name: data[name] for name in data.files}
-    releases = list(old["releases"]) if old is not None else []
-    versions = list(old["versions"]) if old is not None else []
-    done_weeks = set(old["weeks"]) if old is not None else set()
+    releases = [str(v) for v in old["releases"]] if old is not None else []
+    versions = [str(v) for v in old["versions"]] if old is not None else []
+    done_weeks = {str(v) for v in old["weeks"]} if old is not None else set()
+    rows = old["rows"] if old is not None else np.zeros(0, dtype=ROW)
 
-    # Releases that IRSA currently serves, named like the bucket prefixes.
-    active = [name.replace("spherex_", "") for name in config.FALLBACK_COLLECTIONS if not name.endswith("_deep")]
-    listing: dict[str, dict] = {}
+    active, confirmed = active_releases()
+    print(f"active releases: {active} ({'from IRSA' if confirmed else 'fallback list'})", flush=True)
+
+    # List the bucket. Finished weeks are skipped, except the newest of each release, which may still grow.
+    best: dict[str, tuple[str, dict]] = {}
     new_weeks: list[str] = []
     for release in active:
-        # The newest week of each release may still be filling up, so always list it again.
         skip = {w.split("/", 1)[1] for w in done_weeks if w.startswith(release + "/")}
         skip -= {max(skip)} if skip else set()
         exposures, weeks = asyncio.run(list_release(release, skip))
-        listing[release] = exposures
         new_weeks += [f"{release}/{w}" for w in weeks]
-        print(f"{release}: {len(exposures)} exposures in {len(weeks)} week folders to read", flush=True)
+        print(f"{release}: {len(exposures)} exposures listed in {len(weeks)} week folders", flush=True)
+        for obsid, dets in exposures.items():
+            held = best.get(obsid)
+            if held is None or release_rank(release) > release_rank(held[0]):
+                best[obsid] = (release, dets)
 
-    known = set(old["rows"]["obsid"].tolist()) if old is not None else set()
-    todo = [
-        (release, obsid, dets)
-        for release, exposures in listing.items()
-        for obsid, dets in sorted(exposures.items())
-        if obsid.encode() not in known
-    ]
-    print(f"{len(todo)} new exposures", flush=True)
+    # Compare the listing with the rows already held.
+    position = {obsid.decode(): i for i, obsid in enumerate(rows["obsid"].tolist())}
+    drop = np.zeros(len(rows), dtype=bool)
+    if confirmed:
+        # A release IRSA no longer serves has been superseded. Its rows go.
+        for i, release in enumerate(releases):
+            if release not in active:
+                drop |= rows["release"] == i
+    todo = []
+    for obsid, (release, dets) in sorted(best.items()):
+        at = position.get(obsid)
+        if at is None:
+            todo.append((release, obsid, dets))
+            continue
+        held = releases[rows["release"][at]]
+        if held == release:
+            # Same release. New detector files may have appeared since the last run.
+            for det, version in dets.items():
+                if version not in versions:
+                    versions.append(version)
+                rows["vdir"][at][det - 1] = versions.index(version)
+        elif release_rank(release) > release_rank(held):
+            drop[at] = True
+            todo.append((release, obsid, dets))
+    rows = rows[~drop]
+    print(f"{len(todo)} new exposures, {int(drop.sum())} dropped", flush=True)
 
     if old is not None:
         relative, scales = old["relative"], old["scales"]
@@ -218,7 +266,6 @@ def build(fresh: bool = False) -> None:
         step = max(1, len(full) // CALIBRATION_SAMPLE)
         relative, scales = calibrate(full[::step][:CALIBRATION_SAMPLE])
 
-    rows = old["rows"] if old is not None else np.zeros(0, dtype=ROW)
     missed = 0
     for begin in range(0, max(len(todo), 1), BATCH):
         part = todo[begin:begin + BATCH]
@@ -250,11 +297,12 @@ def build(fresh: bool = False) -> None:
         rows = np.concatenate([rows, fresh_rows[keep]])
         rows = rows[np.argsort(rows["mjd"], kind="stable")]
         finished = begin + BATCH >= len(todo)
-        save(rows, releases, versions, sorted(done_weeks | set(new_weeks)) if finished else sorted(done_weeks), relative, scales)
+        # Weeks count as done only once every exposure in them was read.
+        save(rows, releases, versions, sorted(done_weeks | set(new_weeks)) if finished and not missed else sorted(done_weeks), relative, scales)
         print(f"saved {len(rows)} exposures ({min(begin + BATCH, len(todo))}/{len(todo)} read)", flush=True)
 
     size = INDEX_PATH.stat().st_size / 1e6
-    print(f"Index has {len(rows)} exposures, {size:.1f} MB, built in {time.time() - started:.0f} s. Missed headers: {missed}", flush=True)
+    print(f"Index has {len(rows)} exposures, {size:.1f} MB, updated in {time.time() - started:.0f} s. Missed headers: {missed}", flush=True)
 
 
 def save(rows, releases, versions, weeks, relative, scales) -> None:

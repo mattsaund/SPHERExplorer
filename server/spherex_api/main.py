@@ -13,7 +13,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, config, cutout, instrument, net, sia
+from . import __version__, config, cutout, exposures, instrument, net, resolve, sia
 
 
 @asynccontextmanager
@@ -58,14 +58,18 @@ async def health():
 @app.get("/api/meta")
 async def meta():
     """Instrument facts and the live data collections. The web app loads this once."""
+    index = await exposures.get_index()
     return {
         "version": __version__,
-        "collections": await sia.collections(),
+        # With an index, the collection list comes from it and IRSA is not contacted.
+        "collections": index.collections if index else await sia.collections(),
+        "index": index.summary() if index else None,
         "pixelScale": config.PIXEL_SCALE,
         "detectors": instrument.DETECTORS,
         "channels": instrument.CHANNELS.tolist(),
         "flags": instrument.FLAG_BITS,
         "badMask": instrument.BAD_MASK,
+        "stackMask": instrument.STACK_MASK,
     }
 
 
@@ -80,6 +84,15 @@ async def search(
         return await sia.search(ra, dec, radius)
     except net.UpstreamError as error:
         raise HTTPException(502, str(error)) from error
+
+
+@app.get("/api/resolve")
+async def resolve_name(name: str = Query(min_length=1, max_length=120)):
+    """Look up an object by name. Positions come back at epoch 2026.0 with motion."""
+    found = await resolve.resolve(name)
+    if found is None:
+        raise HTTPException(404, f'No object named "{name.strip()}" was found. Check the spelling, or enter coordinates.')
+    return found
 
 
 @app.get("/api/cutout")

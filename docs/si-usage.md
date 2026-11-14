@@ -25,3 +25,4 @@ Claude gathered the notes in `docs/research/`: SPHEREx data access, test target 
 |---|---|---|---|
 | 2026-11-14 | Matt | Set up this repo: CLAUDE.md, README, docs, license, .gitignore, and the writing-rule hook. Moved the research into `docs/research/`. | Matt requested the setup and the public repo |
 | 2026-11-14 | Matt | Wrote the architecture, the project skeleton (API, web app, CI, text check), and merged Austin's first pull request. | Matt and Austin set the concept and feature list. Matt named Claude the build lead |
+| 2026-11-14 | Matt | Wrote the API data layer (S3 range reader, WCS, wavelength, PSF photometry, cutout stream, exposure index, name lookup) and the browser engine (frame decoder, state, sums, WebGL renderer, spectrum tools). Checked results against Astropy and against 2MASS and WISE fluxes. | Matt and Austin own the concept. Matt directs the work |

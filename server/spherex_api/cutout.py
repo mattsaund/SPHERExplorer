@@ -44,9 +44,12 @@ def encode(header: dict, planes=()) -> bytes:
     return MAGIC + struct.pack("<I", len(text)) + text + b"".join(blobs)
 
 
-def failure(key: str, reason: str) -> bytes:
-    """A frame that could not be built. The stream carries on."""
-    return encode({"v": FORMAT_VERSION, "key": key, "ok": False, "error": reason})
+def failure(key: str, reason: str, code: str = "error") -> bytes:
+    """A frame that could not be built. The stream carries on.
+
+    code is "outside" when the position simply is not on this detector, "error" for real failures.
+    """
+    return encode({"v": FORMAT_VERSION, "key": key, "ok": False, "error": reason, "code": code})
 
 
 async def read_rows(key: str, data_off: int, nx: int, y0: int, y1: int, x0: int, x1: int) -> np.ndarray:
@@ -117,7 +120,7 @@ async def _make(key, ra, dec, size, phot, sigma_plane, dtype) -> bytes:
     wcs = head.wcs
     x, y = (float(v) for v in wcs.sky2pix(ra, dec))
     if not (-0.5 <= x < head.nx - 0.5 and -0.5 <= y < head.ny - 0.5):
-        return failure(key, "The position is off this detector")
+        return failure(key, "The position is off this detector", "outside")
 
     matrix = wcs.local_matrix(x, y, ra, dec, span=max(4.0, size / 2.0 / config.PIXEL_SCALE))
     x0, x1, y0, y1 = _window(head, x, y, matrix, size)

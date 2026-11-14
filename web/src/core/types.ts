@@ -77,8 +77,24 @@ export interface Photometry {
   y: number;
 }
 
-/** Where a frame stands. */
-export type FrameStatus = "pending" | "ready" | "failed";
+/**
+ * Where a frame stands. "outside" means the search expected the target on this detector
+ * but it fell just past the edge. Such frames are left out without counting as failures.
+ */
+export type FrameStatus = "pending" | "ready" | "failed" | "outside";
+
+/** One visit of the survey to the field. */
+export interface Visit {
+  /** Visit number, counting from 0. Matches Frame.season. */
+  season: number;
+  /** First and last exposure, Modified Julian Date. */
+  start: number;
+  end: number;
+  /** Short name, for example "May 2025". */
+  label: string;
+  /** Images taken during the visit. */
+  count: number;
+}
 
 /**
  * One SPHEREx exposure of the target on one detector.
@@ -205,4 +221,18 @@ export interface Hover extends SkyPosition {
   wavelength: number | null;
   /** Flag bits at that pixel. */
   bits: number;
+}
+
+/** How the spectrum plot is drawn. */
+export interface SpectrumSettings {
+  /** Logarithmic brightness axis. */
+  log: boolean;
+  /** One spectrum per visit instead of all visits combined. Shows brightness changes. */
+  perVisit: boolean;
+  /** Show every single measurement behind the averages. */
+  showPoints: boolean;
+  /** Ids of the feature families to mark, from LINE_FAMILIES. */
+  families: string[];
+  /** Redshift applied to the feature marks. 0 for nearby objects. */
+  redshift: number;
 }

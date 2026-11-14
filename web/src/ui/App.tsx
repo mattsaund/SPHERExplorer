@@ -5,7 +5,10 @@ import { useEffect, useState, type FormEvent } from "react";
 import {
   COLOR_MAPS,
   FrameView,
+  LINE_FAMILIES,
+  SpectrumPlot,
   TEST_TARGETS,
+  Timeline,
   actions,
   formatDate,
   formatDec,
@@ -233,6 +236,43 @@ function Readout() {
   );
 }
 
+function SpectrumPanel() {
+  const settings = useStore((s) => s.spectrum);
+  return (
+    <section className="panel" aria-label="Spectrum">
+      <h2>Spectrum</h2>
+      <p className="muted">Brightness of the target at each wavelength. Dips and bumps reveal what it is made of.</p>
+      <div className="plot"><SpectrumPlot /></div>
+      <div className="row wrap">
+        <label className="check"><input type="checkbox" checked={settings.perVisit} onChange={(e) => actions.setSpectrum({ perVisit: e.target.checked })} /> Compare visits</label>
+        <label className="check"><input type="checkbox" checked={settings.showPoints} onChange={(e) => actions.setSpectrum({ showPoints: e.target.checked })} /> Every measurement</label>
+        <label className="check"><input type="checkbox" checked={settings.log} onChange={(e) => actions.setSpectrum({ log: e.target.checked })} /> Log scale</label>
+        <label>
+          Redshift {settings.redshift.toFixed(2)}
+          <input type="range" min={0} max={8} step={0.01} value={settings.redshift} onChange={(e) => actions.setSpectrum({ redshift: Number(e.target.value) })} />
+        </label>
+      </div>
+      <div className="row wrap" aria-label="Mark features of">
+        {LINE_FAMILIES.map((family) => (
+          <button key={family.id} className={settings.families.includes(family.id) ? "on" : ""} aria-pressed={settings.families.includes(family.id)} title={family.about} onClick={() => actions.toggleFamily(family.id)}>
+            {family.name}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TimelinePanel() {
+  return (
+    <section className="panel" aria-label="Timeline">
+      <h2>When SPHEREx looked</h2>
+      <p className="muted">Each dot is one image. On every visit the telescope steps the target through all its colors.</p>
+      <div className="plot short"><Timeline /></div>
+    </section>
+  );
+}
+
 export function App() {
   useEffect(() => actions.init(), []);
   const hasTarget = useStore((s) => s.target !== null);
@@ -253,6 +293,8 @@ export function App() {
         <section className="stage" aria-label="Image viewer">
           <div className="frame">{hasTarget && <FrameView />}</div>
           <PlayerControls />
+          {hasTarget && <TimelinePanel />}
+          {hasTarget && <SpectrumPanel />}
         </section>
         <aside>
           <Readout />

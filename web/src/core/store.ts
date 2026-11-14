@@ -2,10 +2,10 @@
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
 import { ApiError, getMeta, resolveName, searchFrames, streamCutouts, type WireFrame } from "./api";
-import { assignSeasons, parseCoordinates, positionAt } from "./astro";
+import { assignSeasons, parseCoordinates, positionAt, summarizeVisits } from "./astro";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
-import type { DisplaySettings, Filters, Frame, Hover, LoadState, Meta, Player, SequenceItem, SequenceMode, Target } from "./types";
+import type { DisplaySettings, Filters, Frame, Hover, LoadState, Meta, Player, SequenceItem, SequenceMode, SpectrumSettings, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -33,6 +33,8 @@ export interface AppState {
   fieldSize: number;
   /** Every image of the target, in time order. */
   frames: Frame[];
+  /** The visits the images fall into. */
+  visits: Visit[];
   /** Progress of the pixel download. */
   framesState: LoadState;
   /** Frames whose pixels have arrived, and frames that failed. */
@@ -49,6 +51,7 @@ export interface AppState {
   follow: boolean;
   /** What is under the pointer in the frame view. */
   hover: Hover | null;
+  spectrum: SpectrumSettings;
 }
 
 const DEFAULT_FILTERS: Filters = { detectors: [true, true, true, true, true, true], wlMin: 0.7, wlMax: 5.1 };
@@ -73,6 +76,7 @@ export const useStore = create<AppState>(() => ({
   notice: null,
   fieldSize: 300,
   frames: [],
+  visits: [],
   framesState: "idle",
   loaded: 0,
   failed: 0,
@@ -84,6 +88,7 @@ export const useStore = create<AppState>(() => ({
   view: { east: 0, north: 0, zoom: 1 },
   follow: true,
   hover: null,
+  spectrum: { log: false, perVisit: true, showPoints: true, families: [], redshift: 0 },
 }));
 
 const set = useStore.setState;
@@ -115,7 +120,7 @@ let abort: AbortController | null = null;
 /** Rebuild the sequence, keeping the player on the same step when it still exists. */
 function resequence(frames = get().frames, mode = get().mode, filters = get().filters): Pick<AppState, "sequence" | "player"> {
   const { sequence: before, player } = get();
-  const sequence = buildSequence(frames, mode, filters);
+  const sequence = buildSequence(frames, mode, filters, get().visits);
   const current = before[player.index];
   let index = Math.min(player.index, Math.max(0, sequence.length - 1));
   if (current) {
@@ -135,8 +140,10 @@ function applyFrames(batch: WireFrame[], byKey: Map<string, number>): void {
     const id = byKey.get(header.key);
     if (id === undefined) continue;
     if (!header.ok || !image) {
-      frames[id] = { ...frames[id], status: "failed", error: header.error ?? "No image data" };
-      failed++;
+      // A target just past a detector edge is expected now and then. Only real failures count.
+      const outside = header.code === "outside";
+      frames[id] = { ...frames[id], status: outside ? "outside" : "failed", error: header.error ?? "No image data" };
+      if (!outside) failed++;
       continue;
     }
     setPixels(id, { nx: header.nx, ny: header.ny, half: image, flags: flags ?? null });
@@ -179,6 +186,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     targetState: "loading",
     framesState: "idle",
     frames: [],
+    visits: [],
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -212,6 +220,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     }));
     set({
       frames,
+      visits: summarizeVisits(f.mjd, seasons),
       targetState: "ready",
       framesState: frames.length ? "loading" : "ready",
       notice: result.errors.length ? "The NASA archive is busy, so some images may be missing. Try again in a minute." : null,
@@ -402,6 +411,28 @@ export const actions = {
 
   setFollow(follow: boolean): void {
     set({ follow });
+  },
+
+  setSpectrum(change: Partial<SpectrumSettings>): void {
+    const spectrum = { ...get().spectrum, ...change };
+    spectrum.redshift = Math.min(12, Math.max(0, spectrum.redshift));
+    set({ spectrum });
+  },
+
+  /** Switch a family of spectral features on or off in the spectrum plot. */
+  toggleFamily(id: string): void {
+    const families = get().spectrum.families;
+    actions.setSpectrum({ families: families.includes(id) ? families.filter((f) => f !== id) : [...families, id] });
+  },
+
+  /** Show one exposure in the frame view, whatever the current playback mode. */
+  showFrame(frameId: number): void {
+    pause();
+    const mode = "exposures";
+    const next = get().mode === mode ? { sequence: get().sequence } : resequence(undefined, mode);
+    const index = next.sequence.findIndex((item) => item.frameIds[0] === frameId);
+    if (index < 0) return;
+    set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false } });
   },
 
   /** Used by the frame view to publish what is under the pointer. */

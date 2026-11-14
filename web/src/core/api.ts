@@ -66,6 +66,8 @@ export interface WireHeader {
   key: string;
   ok: boolean;
   error?: string;
+  /** "outside" when the position is not on this detector, "error" for a real failure. */
+  code?: string;
   nx: number;
   ny: number;
   x0: number;

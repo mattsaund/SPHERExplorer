@@ -139,3 +139,22 @@ export function assignSeasons(mjds: number[], gapDays = 45): number[] {
   }
   return seasons;
 }
+
+/** Summarize the visits of a time-sorted list of exposures that already carry visit numbers. */
+export function summarizeVisits(mjds: number[], seasons: number[]): { season: number; start: number; end: number; label: string; count: number }[] {
+  const visits: { season: number; start: number; end: number; label: string; count: number }[] = [];
+  mjds.forEach((mjd, i) => {
+    const visit = visits[seasons[i]];
+    if (!visit) visits[seasons[i]] = { season: seasons[i], start: mjd, end: mjd, label: "", count: 1 };
+    else {
+      visit.end = Math.max(visit.end, mjd);
+      visit.count++;
+    }
+  });
+  // Name each visit by the month at its middle. Add the day when two visits share a month.
+  for (const visit of visits) visit.label = formatMonth((visit.start + visit.end) / 2);
+  for (const visit of visits) {
+    if (visits.filter((other) => other.label === visit.label).length > 1) visit.label = formatDate(visit.start);
+  }
+  return visits;
+}

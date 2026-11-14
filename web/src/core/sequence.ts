@@ -2,7 +2,7 @@
 // or one sum per spectral channel.
 // Written with Claude Code (Anthropic) assistance.
 import { formatDate, formatMonth } from "./astro";
-import type { Filters, Frame, SequenceItem, SequenceMode } from "./types";
+import type { Filters, Frame, SequenceItem, SequenceMode, Visit } from "./types";
 
 /** True when a frame takes part under the current filters. */
 export function passes(frame: Frame, filters: Filters): boolean {
@@ -43,10 +43,13 @@ function group(frames: Frame[], prefix: string, keyOf: (f: Frame) => number, lab
 }
 
 /** The steps to play, in order. Only frames whose pixels have arrived take part. */
-export function buildSequence(frames: Frame[], mode: SequenceMode, filters: Filters): SequenceItem[] {
+export function buildSequence(frames: Frame[], mode: SequenceMode, filters: Filters, visits: Visit[] = []): SequenceItem[] {
   const usable = frames.filter((f) => f.status === "ready" && passes(f, filters));
   if (mode === "visits") {
-    return group(usable, "v", (f) => f.season, (members) => `${formatMonth(mean(members.map((f) => f.mjd)))} (${members.length} images)`);
+    return group(usable, "v", (f) => f.season, (members) => {
+      const label = visits[members[0].season]?.label ?? formatMonth(mean(members.map((f) => f.mjd)));
+      return `${label} (${members.length} images)`;
+    });
   }
   if (mode === "channels") {
     return group(usable, "c", (f) => f.channel, (members) => `${formatWavelength(mean(members.map((f) => f.wavelength)))} (${members.length} images)`);

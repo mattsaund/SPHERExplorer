@@ -1,0 +1,28 @@
+# Settings for the SPHERExplorer API. Every value can be overridden with an environment variable.
+# Written with Claude Code (Anthropic) assistance.
+
+import os
+from pathlib import Path
+
+# Public SPHEREx bucket on AWS. Anonymous, CORS-enabled, supports Range requests.
+S3_BASE = os.environ.get("SPX_S3_BASE", "https://nasa-irsa-spherex.s3.us-east-1.amazonaws.com/")
+
+# IRSA Simple Image Access v2 endpoint.
+IRSA_SIA = os.environ.get("SPX_IRSA_SIA", "https://irsa.ipac.caltech.edu/SIA")
+
+# Collections to search if the IRSA self-description can't be read.
+FALLBACK_COLLECTIONS = ("spherex_dr1", "spherex_dr1_deep", "spherex_qr3", "spherex_qr3_deep")
+
+# Where calibration tables and file layouts are kept between runs.
+CACHE_DIR = Path(os.environ.get("SPX_CACHE_DIR", Path(__file__).resolve().parent.parent / ".cache"))
+
+# Upper bounds on parallel work. S3 handles far more, so these protect our own memory.
+S3_CONCURRENCY = int(os.environ.get("SPX_S3_CONCURRENCY", "128"))
+FRAME_CONCURRENCY = int(os.environ.get("SPX_FRAME_CONCURRENCY", "48"))
+
+# Sent to upstream services. Kept generic by default.
+USER_AGENT = os.environ.get("SPX_USER_AGENT", "spherex-viewer/0.1")
+
+# SPHEREx detector geometry.
+DETECTOR_SIZE = 2040
+PIXEL_SCALE = 6.15  # arcsec per pixel, nominal

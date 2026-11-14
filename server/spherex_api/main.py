@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, resolve, sia, solarsystem
+from . import __version__, catalogs, colorhips, config, cutout, exposures, instrument, missions, net, partners, resolve, sia, solarsystem
 
 
 async def _warm_up() -> None:
@@ -150,6 +150,18 @@ async def other_missions(
 ):
     """Gaia DR3 sources and 2MASS and WISE brightness near a position."""
     return await missions.nearby(ra, dec, radius)
+
+
+@app.get("/api/neossat")
+async def neossat(
+    ra: float = Query(ge=0, lt=360),
+    dec: float = Query(ge=-90, le=90),
+):
+    """Visible-light images of a position from Canada's NEOSSat, newest first."""
+    try:
+        return await partners.neossat(ra, dec)
+    except net.UpstreamError as error:
+        raise HTTPException(502, str(error)) from error
 
 
 @app.get("/api/hips/spherex-color/{recipe}/properties")

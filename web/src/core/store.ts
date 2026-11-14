@@ -1,14 +1,14 @@
 // Central app state. UI components read slices with useStore and change state through actions.
 // Written with Claude Code (Anthropic) assistance.
 import { create } from "zustand";
-import { ApiError, getMeta, getMissions, getObjects, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
+import { ApiError, getMeta, getMissions, getNeossat, getObjects, resolveName, searchFrames, searchMoving, streamCutouts, type WireFrame } from "./api";
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { buildSequence } from "./sequence";
 import { buildLink, parseLink } from "./url";
-import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Subtract, Target, Visit } from "./types";
+import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -47,6 +47,8 @@ export interface AppState {
   movers: SkyObject[];
   /** What Gaia, 2MASS, and WISE recorded in the field. Null until it arrives. */
   missions: MissionData | null;
+  /** Visible-light images of the field from NEOSSat (Canadian Space Agency). Null until it arrives. */
+  partner: PartnerData | null;
   /** Progress of the pixel download. */
   framesState: LoadState;
   /** Frames whose pixels have arrived, and frames that failed. */
@@ -111,6 +113,7 @@ export const useStore = create<AppState>(() => ({
   fieldObjects: [],
   movers: [],
   missions: null,
+  partner: null,
   framesState: "idle",
   loaded: 0,
   failed: 0,
@@ -245,6 +248,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     fieldObjects: [],
     movers: [],
     missions: null,
+    partner: null,
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -283,6 +287,14 @@ async function load(target: Target, fieldSize: number): Promise<void> {
   if (!moving) getMissions(target.ra, target.dec, Math.min(1800, fieldSize * 0.75 + drift), signal).then(
     (missions) => {
       if (mine === generation) set({ missions });
+    },
+    () => {},
+  );
+
+  // Partner agency images of the same field.
+  if (!moving) getNeossat(target.ra, target.dec, signal).then(
+    (partner) => {
+      if (mine === generation) set({ partner });
     },
     () => {},
   );

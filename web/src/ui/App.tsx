@@ -399,6 +399,35 @@ function LightCurvePanel() {
   );
 }
 
+/** Up to `count` items taken evenly across a list, so a long run of one night does not fill the row. */
+function spread<T>(items: T[], count: number): T[] {
+  if (items.length <= count) return items;
+  return Array.from({ length: count }, (_, i) => items[Math.round((i * (items.length - 1)) / (count - 1))]);
+}
+
+function PartnerPanel() {
+  const partner = useStore((s) => s.partner);
+  if (!partner || partner.count === 0) return null;
+  return (
+    <section className="panel" aria-label="Other telescopes">
+      <h2>Seen in visible light by {partner.mission}</h2>
+      <p className="muted">
+        {partner.agency}. {partner.count.toLocaleString("en-US")} images of this field
+        {partner.first != null && partner.last != null && `, from ${formatDate(partner.first)} to ${formatDate(partner.last)}`}. Each covers 0.85 degrees.
+      </p>
+      <div className="thumbs">
+        {spread(partner.images, 12).map((image) => (
+          <a key={image.id} href={image.preview} target="_blank" rel="noreferrer" title={`Open the full picture from ${formatDate(image.mjd)}`}>
+            <img src={image.thumbnail} alt={`NEOSSat image from ${formatDate(image.mjd)}`} loading="lazy" width={128} height={128} />
+            <span>{formatDate(image.mjd)}</span>
+          </a>
+        ))}
+      </div>
+      <p className="muted">{partner.credit}</p>
+    </section>
+  );
+}
+
 function TimelinePanel() {
   return (
     <section className="panel" aria-label="Timeline">
@@ -433,6 +462,7 @@ export function App() {
           {hasTarget && <TimelinePanel />}
           {hasTarget && <SpectrumPanel />}
           {hasTarget && <LightCurvePanel />}
+          {hasTarget && <PartnerPanel />}
         </section>
         <aside>
           <Readout />

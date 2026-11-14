@@ -51,3 +51,6 @@ button:disabled { opacity: 0.5; cursor: default; }
 .card { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--color-accent); border-radius: var(--radius); }
 a { color: var(--color-accent); }
 .hint { border-left: 3px solid var(--color-accent); padding-left: var(--space-2); }
+.thumbs { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.thumbs a { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.8rem; color: var(--color-text-muted); text-decoration: none; }
+.thumbs img { border: 1px solid var(--color-border); border-radius: var(--radius); background: #000; }

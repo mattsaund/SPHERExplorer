@@ -15,6 +15,8 @@ export type {
   MapState,
   Meta,
   MissionData,
+  PartnerData,
+  PartnerImage,
   Photometry,
   Player,
   SequenceItem,

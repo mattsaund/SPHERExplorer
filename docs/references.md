@@ -10,7 +10,7 @@ Every external resource goes here with its license and required credit. Set "In 
 | SPHEREx DR1 Spectral All-Sky Cube | Same | Same | DOI 10.26131/IRSA679 | Yes (map base layer) |
 | SPHEREx QR3 Spectral Images | Same | Same | DOI 10.26131/IRSA662 | Yes |
 | Gaia DR3 | ESA Gaia, DPAC, served by MAST (VizieR mirror as backup) | Gaia credit required | Gaia Collaboration 2016, 2023 | Yes (star positions and motions) |
-| NEOSSat astronomy data | Canadian Space Agency (CSA), CADC | Open Government Licence - Canada | Credit line below | Not yet |
+| NEOSSat astronomy data | Canadian Space Agency (CSA), served by CADC | Open Government Licence - Canada | Credit line below, shown in the app with the images | Yes (visible-light images of the field) |
 | SIMBAD | CDS, Strasbourg (or CfA and IDIA mirrors) | Credit required | Wenger et al. 2000 | Yes (name lookup) |
 | VizieR | CDS, Strasbourg (CfA and IDIA mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Yes (2MASS and AllWISE catalogs) |
 | 2MASS Point Source Catalog | UMass, IPAC/Caltech, NASA, NSF (VizieR II/246) | Public | Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003 | Yes (J, H, Ks brightness) |
@@ -102,4 +102,4 @@ Add the license and version when a library goes into the build.
 | IMCCE SkyBoT | Public | Berthier et al. 2006 | Not yet |
 | JPL Horizons and Small-Body Database APIs | Public | JPL Solar System Dynamics. Giorgini et al. 1996 | Yes (names and paths of planets, asteroids, and comets) |
 | CelesTrak | Public, rate limited | CelesTrak | Not yet |
-| CADC (NEOSSat) | Public | CADC | Not yet |
+| CADC TAP and file services (NEOSSat) | Public | Canadian Astronomy Data Centre, operated by the National Research Council of Canada with the support of the Canadian Space Agency | Yes |

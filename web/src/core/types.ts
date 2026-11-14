@@ -399,3 +399,32 @@ export interface SurveyPoint {
   /** Julian year of the measurement. */
   epoch: number;
 }
+
+/** One visible-light image from NEOSSat, the Canadian Space Agency satellite. */
+export interface PartnerImage {
+  id: string;
+  /** Start of the exposure, Modified Julian Date. */
+  mjd: number;
+  /** Exposure time in seconds. */
+  exposure: number | null;
+  /** What NEOSSat was aimed at, when recorded. */
+  target: string | null;
+  /** Small and full-size preview pictures, and the FITS file. */
+  thumbnail: string;
+  preview: string;
+  fits: string;
+}
+
+/** Images of the field from a partner space agency. */
+export interface PartnerData {
+  mission: string;
+  agency: string;
+  /** Licence line that must be shown with the images. */
+  credit: string;
+  count: number;
+  /** Dates of the first and last image, Modified Julian Date. */
+  first: number | null;
+  last: number | null;
+  /** Newest first. */
+  images: PartnerImage[];
+}

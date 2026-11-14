@@ -185,3 +185,15 @@ function sumOf(item: SequenceItem, state: AppState, range: [number, number] | nu
     stack,
   };
 }
+
+/**
+ * A sum of frames with the sky held still, for measuring where a source sits.
+ * Returns the summed image and where the target was expected, as a sky offset in arcseconds.
+ */
+export function fixedSum(frameIds: number[], label: string, state: AppState): { stack: Stack; expected: [number, number] } | null {
+  const frames = frameIds.map((id) => state.frames[id]);
+  if (!frames.length) return null;
+  const item: SequenceItem = { key: `fixed:${label}:${frameIds.length}:${frameIds[0]}-${frameIds[frameIds.length - 1]}`, label: "", frameIds, mjd: 0, wavelength: 0 };
+  const scene = sumOf(item, { ...state, follow: false, display: { ...state.display, color: false } }, null);
+  return scene?.stack ? { stack: scene.stack, expected: scene.marker } : null;
+}

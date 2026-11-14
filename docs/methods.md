@@ -49,12 +49,19 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 - `lightcurve.ts` divides each measurement by the target's average in the same spectral channel. The ratio can then be compared across exposures at different wavelengths.
 - Channels seen in only one visit, and channels detected at under 5 sigma on average, are left out.
 
-## 8. Color
+## 8. Measuring motion
+
+- `motion.ts` sums each visit with the sky held still, finds the source near its expected spot with a Gaussian-windowed centroid, and fits a straight line through the positions over time.
+- A known parallax is removed first, so the yearly wobble of a nearby object is not counted as motion.
+- Saturated cores are counted at a level above the brightest measured pixel, so the core still anchors the position. Errors never go below 0.25 arcsec (1 arcsec when saturated), which reflects the coarse pixels.
+- Checked on the NASA targets: Epsilon Indi B 4.57 +/- 0.24 arcsec per year toward 123 degrees (catalog 4.68, 122). Barnard's Star 9.81 +/- 1.45 toward 358 (catalog 10.39, 356). WISE 0855 6.2 +/- 0.8 toward 275 (catalog 8.15, 275). The last is low because a faint star sits beside it. RW Aurigae, which barely moves, comes out as not moving.
+
+## 9. Color
 
 - Frame viewer: three sums from three wavelength ranges become red, green, and blue. Brightness is stretched while the ratio between colors is kept. Saturated pixels show white.
 - Sky map: `colorhips.py` merges three channels of the IRSA all-sky cube into color tiles.
 
-## 9. Distance
+## 10. Distance
 
 - `distance.py` uses a parallax when it is at least five times its error, then a published distance from SIMBAD, then the redshift with Planck 2018 cosmology.
 

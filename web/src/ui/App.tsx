@@ -16,6 +16,7 @@ import {
   TEST_TARGETS,
   Timeline,
   actions,
+  compass,
   distanceMethod,
   formatAu,
   formatDate,
@@ -259,6 +260,7 @@ function Readout() {
   const flags = useStore((s) => s.meta?.flags);
   const movers = useStore((s) => s.movers);
   const chosen = useStore((s) => s.map.selected);
+  const picked = useStore((s) => s.map.picked);
   // The first image of the step on screen, for distances that change from image to image.
   const shown = useStore((s) => {
     const item = s.sequence[s.player.index];
@@ -288,6 +290,16 @@ function Readout() {
           <button onClick={() => actions.studyObject(mover)}>Follow {mover.name}</button>
         </p>
       ))}
+      {picked && (
+        <div className="card">
+          <strong>Selected spot</strong>
+          <span className="mono">{formatRa(picked.ra)} {formatDec(picked.dec)}</span>
+          <div className="row wrap">
+            <button onClick={() => actions.goTo({ ...picked, epoch: 2026.0 })}>Study this spot</button>
+            <button onClick={() => actions.pick(null)}>Close</button>
+          </div>
+        </div>
+      )}
       {chosen && (
         <div className="card">
           <strong>{chosen.name}</strong>
@@ -415,6 +427,41 @@ function SpectrumPanel() {
   );
 }
 
+function MotionPanel() {
+  const motion = useStore((s) => s.motion);
+  const visits = useStore((s) => s.visits);
+  const moving = useStore((s) => !!s.target?.moving);
+  const [tried, setTried] = useState(false);
+  if (moving || visits.length < 2) return null;
+  return (
+    <section className="panel" aria-label="Motion">
+      <h2>Is it moving?</h2>
+      <p className="muted">
+        Finds the source in each visit and measures how fast it crosses the sky. Uses the detectors that are switched on.
+      </p>
+      <div className="row wrap">
+        <button onClick={() => { actions.measureMotion(); setTried(true); }}>Measure motion</button>
+      </div>
+      {motion && (
+        <>
+          <p>
+            <strong>{motion.speed.toFixed(2)} ± {motion.speedErr.toFixed(2)} arcseconds per year</strong>, toward the {compass(motion.angle)} (direction {motion.angle.toFixed(0)}°).
+            {motion.speed < 3 * motion.speedErr && " That is too small to tell from standing still."}
+          </p>
+          {motion.catalog && (
+            <p className="muted">Catalog value: {motion.catalog.speed.toFixed(2)} arcseconds per year, direction {motion.catalog.angle.toFixed(0)}°.</p>
+          )}
+          {motion.saturated && <p className="muted">This source is too bright for the detector (saturated), so its position is less certain.</p>}
+          <p className="muted">
+            {motion.points.map((p) => `${visits[p.season]?.label ?? "Visit"}: ${p.east.toFixed(1)}″ east, ${p.north.toFixed(1)}″ north`).join(". ")}.
+          </p>
+        </>
+      )}
+      {tried && !motion && <p className="problem">The source was not found in two visits. Try other detectors or a brighter source.</p>}
+    </section>
+  );
+}
+
 function LightCurvePanel() {
   return (
     <section className="panel" aria-label="Brightness over time">
@@ -518,6 +565,7 @@ export function App() {
           <PlayerControls />
           {hasTarget && <TimelinePanel />}
           {hasTarget && <SpectrumPanel />}
+          {hasTarget && <MotionPanel />}
           {hasTarget && <LightCurvePanel />}
           {hasTarget && <PartnerPanel />}
         </section>

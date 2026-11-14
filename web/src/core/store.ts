@@ -6,6 +6,7 @@ import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAnimation, exportImage, exportSpectrum } from "./export";
 import { clearPixels, imageOf, setPixels } from "./pixels";
+import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
 import { buildLink, parseLink } from "./url";
 import type { DisplaySettings, Filters, Frame, Hover, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
@@ -72,6 +73,8 @@ export interface AppState {
   embed: boolean;
   /** Progress of an animation being saved, from 0 to 1, or null when none is running. */
   exporting: number | null;
+  /** The measured motion of the source at the target, from actions.measureMotion. Null until measured. */
+  motion: MotionFit | null;
   /** Orbital elements and archive facts for the spacecraft view. Null until loaded. */
   spacecraft: SpacecraftInfo | null;
   /** Where the spacecraft is this second. Updated while the orbit view is on the page. */
@@ -138,6 +141,7 @@ export const useStore = create<AppState>(() => ({
   spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, families: [], redshift: 0 },
   embed: false,
   exporting: null,
+  motion: null,
   spacecraft: null,
   spacecraftNow: null,
   map: {
@@ -260,6 +264,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     movers: [],
     missions: null,
     partner: null,
+    motion: null,
     sequence: [],
     loaded: 0,
     failed: 0,
@@ -332,6 +337,7 @@ async function load(target: Target, fieldSize: number): Promise<void> {
         channel: f.chan[i],
         season: seasons[i],
         track: own ?? positionAt(target, f.mjd[i], [f.pfra[i], f.pfdec[i]]),
+        parallaxFactor: [f.pfra[i], f.pfdec[i]] as [number, number],
         center: own ?? { ra: target.ra, dec: target.dec },
         earthDistance: f.delta?.[i],
         sunDistance: f.r?.[i],
@@ -716,6 +722,17 @@ export const actions = {
   /** Save the spectrum as a CSV table, one row per image. */
   saveSpectrum(): void {
     exportSpectrum(get());
+  },
+
+  /**
+   * Measure how the source at the target moves from visit to visit, using the detectors that are
+   * switched on. The result lands in state.motion. Returns false when there are not two visits
+   * in which the source can be found.
+   */
+  measureMotion(): boolean {
+    const motion = measureMotion(get());
+    set({ motion });
+    return motion !== null;
   },
 
   /** Fetch the spacecraft's orbital elements and the archive status. Safe to call more than once. */

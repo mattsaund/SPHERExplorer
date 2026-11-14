@@ -140,6 +140,8 @@ export interface Frame {
   season: number;
   /** Where the target is at this frame's time, after proper motion and parallax. */
   track: SkyPosition;
+  /** Sky shift [east, north] in arcseconds per arcsecond of parallax at this frame's time. */
+  parallaxFactor?: [number, number];
   /**
    * The sky position this frame is centered on. Normally the field center.
    * For a solar system body it is the body's own position at the time of the frame.

@@ -343,7 +343,17 @@ export function FrameView({ className }: { className?: string }) {
       const x = event.clientX - box.left;
       const y = event.clientY - box.top;
       const hit = labels.find((entry) => Math.hypot(entry.x - x, entry.y - y) <= 14);
-      if (hit) actions.selectObject(hit.object);
+      if (hit) {
+        actions.selectObject(hit.object);
+        return;
+      }
+      // A click on plain sky picks that spot, so the UI can offer to study it.
+      const state = useStore.getState();
+      if (!state.target || !scene) return;
+      const [east, north] = skyAt(x, y, state);
+      const item = state.sequence[state.player.index];
+      const origin = state.target.moving && item ? state.frames[item.frameIds[0]].center ?? state.target : state.target;
+      actions.pick(offsetToSky(east, north, origin));
     }
     function onWheel(event: WheelEvent) {
       event.preventDefault();

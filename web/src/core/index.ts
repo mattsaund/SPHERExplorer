@@ -59,3 +59,5 @@ export { formatChange, lightCurve } from "./lightcurve";
 export type { LightCurve, LightPoint, VisitChange } from "./lightcurve";
 export { DATA_CREDIT, spectrumCsv } from "./export";
 export { OrbitView } from "./OrbitView";
+export { compass } from "./motion";
+export type { MotionFit, MotionPoint } from "./motion";

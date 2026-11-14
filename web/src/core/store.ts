@@ -283,8 +283,8 @@ async function load(target: Target, fieldSize: number): Promise<void> {
         const [east, north] = skyOffset(object, target);
         return Math.abs(east) <= half && Math.abs(north) <= half;
       });
-      // Only a typed position needs the hint. A named target already carries its own motion.
-      const typed = target.pmRa === undefined && target.pmDec === undefined;
+      // Only a typed position needs the hint. A named target is already the object the person wants.
+      const typed = !target.name;
       const movers = typed
         ? objects.filter((object) => Math.hypot(object.pmRa ?? 0, object.pmDec ?? 0) >= FAST_MOTION).sort((a, b) => Math.hypot(b.pmRa ?? 0, b.pmDec ?? 0) - Math.hypot(a.pmRa ?? 0, a.pmDec ?? 0))
         : [];

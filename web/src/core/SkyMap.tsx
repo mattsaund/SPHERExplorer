@@ -156,12 +156,12 @@ export function SkyMap({ className }: { className?: string }) {
     }
 
     /**
-     * The selected area: one yellow square that can be moved and resized. It is the place just
-     * picked, or, with nothing picked, the field being studied while that is still shown.
-     * `studied` marks the second case, where a new size reloads the images.
+     * The selected area: one yellow square that can be moved and resized. It is the field
+     * being studied. While it is being dragged to a new place it follows the pointer, and its
+     * images load when it is let go. `studied` is false only during that drag.
      */
     function squares(state: AppState): { center: SkyPosition; studied: boolean }[] {
-      if (state.map.picked) return [{ center: state.map.picked, studied: false }];
+      if (state.map.picked && state.map.pickedIn === "map") return [{ center: state.map.picked, studied: false }];
       if (state.map.fieldShown && state.target && !state.target.moving) return [{ center: state.target, studied: true }];
       return [];
     }
@@ -213,6 +213,8 @@ export function SkyMap({ className }: { className?: string }) {
         // Small grips on the corners show that the square can be dragged to resize.
         for (const [ra, dec] of corners) marks.add(A.circle(ra, dec, 3.5 * pixel, { color: field, lineWidth: 2 }));
       }
+      // A spot picked in the images is a point, not an area, so it gets the crosshair.
+      if (state.map.picked && state.map.pickedIn === "images") crosshair(state.map.picked, CROSS_GAP);
       // The chosen object keeps its own ring. The crosshair goes around that.
       const selected = state.map.selected;
       if (selected) crosshair(selected, CROSS_GAP + 6);
@@ -338,7 +340,11 @@ export function SkyMap({ className }: { className?: string }) {
       return null;
     }
 
-    /** A click inside the square never reaches the map, so do what the map would have done with it. */
+    /**
+     * A click inside the square never reaches the map. If it landed on an object, choose that
+     * object, as the map would have. Otherwise do nothing: the square is already the field
+     * being studied, and loading it again a few pixels off would only waste the wait.
+     */
     function clickAt(x: number, y: number) {
       const state = useStore.getState();
       if (state.map.labels) {
@@ -353,13 +359,8 @@ export function SkyMap({ className }: { className?: string }) {
             reach = distance;
           }
         }
-        if (nearest) {
-          actions.selectObject(nearest);
-          return;
-        }
+        if (nearest) actions.selectObject(nearest);
       }
-      const sky = skyAt(x, y);
-      if (sky) actions.pick(sky);
     }
 
     /** Report where the pointer is on the sky, at most once per drawn frame. */
@@ -418,8 +419,8 @@ export function SkyMap({ className }: { className?: string }) {
       if (!drag.moved && Math.hypot(x - drag.startX, y - drag.startY) < CLICK_SLOP) return;
       drag.moved = true;
       if (drag.kind === "move") {
-        // The square keeps the same place under the pointer that it was grabbed by. A moved
-        // square is a picked area, so the field being studied stays loaded until "Study" is pressed.
+        // The square keeps the same place under the pointer that it was grabbed by. While it
+        // is dragged it is only a picked place. Its images load when it is let go.
         const sky = skyAt(x + drag.offsetX, y + drag.offsetY);
         if (sky) actions.pick(sky);
       } else {
@@ -437,12 +438,19 @@ export function SkyMap({ className }: { className?: string }) {
       drag = null;
       swallowClick = true;
       setTimeout(() => (swallowClick = false), 50);
-      if (event.type === "pointercancel") return;
+      if (event.type === "pointercancel") {
+        // A drag that was broken off leaves the square where it was.
+        if (done.kind === "move" && done.moved) actions.pick(null);
+        return;
+      }
       if (done.kind === "resize") {
         // The field being studied reloads at its new size once the drag ends.
         if (done.square.studied) actions.setFieldSize(useStore.getState().fieldSize, true);
       } else if (done.kind === "move") {
+        const place = useStore.getState().map.picked;
         if (!done.moved) clickAt(...point(event));
+        // Let go in a new place: that place becomes the field being studied. The map stays put.
+        else if (place) actions.goTo({ ra: place.ra, dec: place.dec, epoch: 2026.0 }, { fly: false });
       } else if (!done.moved) {
         // A click with the measure tool clears the last line.
         actions.mapReport({ measured: null });
@@ -635,7 +643,8 @@ export function SkyMap({ className }: { className?: string }) {
         if (event.isDragging) return;
         // A click on an object fires this too. Let the object win.
         setTimeout(() => {
-          if (Date.now() - lastObjectClick > 250) actions.pick({ ra: event.ra, dec: event.dec });
+          // A click on empty sky selects that area, and its images load at once. The map stays put.
+          if (Date.now() - lastObjectClick > 250) actions.goTo({ ra: event.ra, dec: event.dec, epoch: 2026.0 }, { fly: false });
         }, 0);
       });
 

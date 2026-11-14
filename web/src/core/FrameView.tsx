@@ -177,7 +177,7 @@ export function FrameView({ className }: { className?: string }) {
 
       // A spot picked by a click, until the UI acts on it or clears it.
       const picked = state.map.picked;
-      if (picked && state.target && !state.target.moving) {
+      if (picked && state.map.pickedIn === "images" && state.target && !state.target.moving) {
         const [east, north] = skyOffset(picked, state.target);
         const x = w / 2 - (east - state.view.east) / scale;
         const y = h / 2 - (north - state.view.north) / scale;
@@ -209,16 +209,21 @@ export function FrameView({ className }: { className?: string }) {
         for (const object of state.fieldObjects.slice(0, OBJECT_LABELS)) {
           const [x, y] = objectAt(object, item.mjd, state.target);
           if (x < -20 || y < -20 || x > w + 20 || y > h + 20) continue;
-          // The target already has its own marker. A second ring would hide a faint source.
+          // Two objects in almost the same place would print their names on top of each
+          // other. The better known one comes first in the list, and it keeps the label.
+          if (labels.some((entry) => Math.hypot(entry.x - x, entry.y - y) < 8)) continue;
+          // The target keeps its ring like any other object, so the ring does not vanish
+          // when an object is chosen for study. The ring sits inside the gap of the target
+          // marker, and the name moves out past the marker's arm.
           const markX = w / 2 - (scene.marker[0] - state.view.east) / scale;
           const markY = h / 2 - (scene.marker[1] - state.view.north) / scale;
-          if (state.display.showMarker && Math.hypot(x - markX, y - markY) < 6) continue;
+          const onTarget = state.display.showMarker && Math.hypot(x - markX, y - markY) < 6;
           ctx.strokeStyle = label;
           ctx.fillStyle = label;
           ctx.beginPath();
           ctx.arc(x, y, 9, 0, Math.PI * 2);
           ctx.stroke();
-          ctx.fillText(object.name, x + 13, y);
+          ctx.fillText(object.name, x + (onTarget ? Math.max(8, 9 / scale) + 14 : 13), y);
           labels.push({ x, y, object });
         }
       }

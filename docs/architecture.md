@@ -71,8 +71,8 @@ One full screen between a top bar and a bottom bar. Both bars expand. Austin's s
 - A new tool usually needs one component and one entry in `TOOLS` in `ui/tools.tsx`.
 - `ui/ChangesPanel.tsx`, `ui/FeaturesList.tsx`, and `ui/SearchBox.tsx` are self-contained pieces with their own style files.
 - `ui/Embed.tsx` is the compact layout used when the address holds `embed=1`.
-- A search keeps the current view, on every screen. The sky map moves to the target, its yellow square appears, and the images load behind. The view buttons, the player, and "Study" buttons bring the images up.
-- `ui/cards.tsx` holds the cards laid over the stage. On the map: the selected area (Select, Copy Coordinates, Close) or a chosen object. On the images: the details card, and under it one list of every object in the field. A spot clicked in the images gets its own card.
+- A new study, from a search or a click on the map, brings the images up beside the map on a wide screen (the Both view). The sky map centers on the target and shows its yellow square. A narrow screen keeps its view, and the status line says where the images are.
+- `ui/cards.tsx` holds the cards laid over the stage. On the map: the selected area (Copy Coordinates, Close) or an object chosen on the map. A click on the map selects an area and loads it at once. Close ends the study, removes the square, and puts the image study away. Along the top of the images: one list of every object in the field on the left, folded at first, and the details box on the right. A spot clicked in the images gets its own card.
 - The lower left of the map shows the coordinates under the pointer and at the center, with a Copy button, and the measured angle while the measure tool is on.
 - NASA's test targets are in the Find dropdown and in the image view before a target is chosen.
 - Space plays and pauses. The left and right arrows step.

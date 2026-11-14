@@ -151,8 +151,8 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 .stage.both .stage-label { max-width: calc(50% - 2 * var(--space-3)); }
 /* With both on screen there is less room, so the map's label is only the survey's name. */
 .stage.both .stage-label.layer .muted { display: none; }
-/* With both on screen, the image side's boxes sit low on the right, clear of its cards. */
-.stage.both .overlay { top: auto; bottom: var(--space-3); max-height: calc(100% - 2 * var(--space-3) - 96px); }
+/* Over the images, boxes for a picked spot and for messages sit low on the right, clear of the cards along the top. */
+.stage.images .overlay, .stage.both .overlay { top: auto; bottom: var(--space-3); max-height: calc(100% - 2 * var(--space-3) - 96px); }
 /* The map's own card sits in the upper right corner of the map's half. */
 .stage.both .overlay.beside-map { top: var(--space-3); bottom: auto; right: calc(50% + var(--space-3)); width: min(340px, calc(50% - 2 * var(--space-3) - 180px)); max-height: calc(100% - 2 * var(--space-3) - 110px); }
 
@@ -170,27 +170,35 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
   pointer-events: none;
 }
 
-/* The image side's column of cards, upper left of the images: the details of the target, then
-   the list of every object in its field. The column itself lets the pointer through. */
+/* The image side's cards, along the top of the images: the list of objects on the left, the
+   details of the target on the right. The row itself lets the pointer through to the image. */
 .image-cards {
   position: absolute;
   z-index: 1;
   top: var(--space-3);
   left: var(--space-3);
+  right: var(--space-3);
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-2);
-  width: min(52ch, calc(100% - 2 * var(--space-3)));
+  justify-content: space-between;
+  gap: var(--space-3);
   max-height: calc(100% - 2 * var(--space-3));
   pointer-events: none;
 }
-/* The cards fill the column. Their own width limits are for cards that stand alone on the stage. */
-.image-cards > .stage-label, .stage.both .image-cards > .stage-label { position: static; max-width: 100%; }
-.stage.both .image-cards { left: calc(50% + var(--space-3)); width: min(52ch, calc(50% - 2 * var(--space-3))); }
+/* The cards size themselves in the row. Their own width limits are for cards that stand alone on the stage. */
+.image-cards > .stage-label, .stage.both .image-cards > .stage-label { position: static; max-width: 100%; min-width: 0; }
+.stage.both .image-cards { left: calc(50% + var(--space-3)); }
+
+/* The details box wears the look of the map's coordinates box, and keeps to the right.
+   Its values may wrap, since some are sentences. */
+.stage-label.place.details { flex: 0 1 auto; margin-left: auto; grid-template-columns: auto minmax(0, 1fr) auto; width: fit-content; max-width: min(440px, 100%); }
+.details .place-row > span:nth-child(2) { display: block; min-height: 0; padding: 4px 0; white-space: normal; }
+.place a { pointer-events: auto; }
+.place button[aria-expanded="true"] { background: var(--color-bg); border-color: var(--color-border); color: inherit; }
 
 /* The list of objects. Unlike the labels, it takes clicks and scrolls. */
-.stage-label.objects { display: flex; flex-direction: column; gap: var(--space-1); width: min(100%, 400px); min-height: 0; pointer-events: auto; }
+.stage-label.objects { flex: 0 1 auto; display: flex; flex-direction: column; gap: var(--space-1); min-height: 0; pointer-events: auto; }
+.stage-label.objects.open { flex: 0 1 400px; }
 .object-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; max-height: min(300px, 34dvh); }
 .object-row {
   display: flex;
@@ -226,17 +234,13 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 }
 .objects-head[aria-expanded="true"] { background: transparent; border-color: transparent; color: inherit; }
 .objects-head .chevron { flex: none; }
+.objects-head strong { white-space: nowrap; }
 /* The word at the end reads as a small button, like the one on the details card. */
 .objects-word { margin-left: auto; padding: 3px var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.85rem; }
 .objects-head:hover { border-color: transparent; }
 .objects-head:hover .objects-word { border-color: var(--color-accent); }
 .objects-mark { min-height: 28px; padding-left: var(--space-2); font-size: 0.9rem; }
 
-/* The details card can be clicked: its link and its fold button. The rest lets the pointer through to the image. */
-.stage-label.details { display: flex; flex-direction: column; gap: 2px; }
-.details-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
-.details-head button { pointer-events: auto; flex: none; min-height: 28px; padding: 0 var(--space-2); font-size: 0.85rem; background: transparent; }
-.stage-label.details a { pointer-events: auto; }
 
 /* Lower left of the map: coordinates under the pointer and at the middle, and the measured angle.
    A grid of label, value, and button, so the values line up. Only its buttons take clicks. */
@@ -260,12 +264,14 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
   gap: var(--space-2);
 }
 .overlay:empty { display: none; }
+/* A box laid over the stage. The same dark, slightly see-through color as the labels and cards
+   beside it, so everything on the sky and on the images reads as one family. */
 .box {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  background: var(--color-surface);
+  background: var(--color-overlay);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
 }
@@ -409,9 +415,12 @@ button.play { min-width: 88px; }
   /* The map is small here, so its label is only the survey's name. */
   .stage-label.layer .muted { display: none; }
   /* Folded, the image side's two cards share one row. An open one takes the full width. */
-  .image-cards { flex-direction: row; flex-wrap: wrap; width: calc(100% - 2 * var(--space-3)); }
+  .image-cards { flex-wrap: wrap; gap: var(--space-2); }
   .image-cards > .open { flex-basis: 100%; }
-  .stage-label.objects:not(.open) { width: auto; }
+  .stage-label.place.details.open { max-width: 100%; width: auto; }
+  /* Folded, the details box drops its label, so it fits on the row beside the objects box. */
+  .stage-label.place.details:not(.open) { grid-template-columns: minmax(0, 1fr) auto; }
+  .stage-label.place.details:not(.open) .place-row > span:first-child { display: none; }
   .overlay { top: auto; bottom: var(--space-2); left: var(--space-2); right: var(--space-2); width: auto; max-height: 60%; }
   .overlay .box { gap: var(--space-1); padding: var(--space-2) var(--space-3); }
   .overlay .box .row button, .overlay .box .row .button { min-height: 36px; }

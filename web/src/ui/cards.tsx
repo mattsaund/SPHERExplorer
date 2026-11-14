@@ -34,22 +34,24 @@ export function coordinates(position: { ra: number; dec: number }): string {
   return `${formatRa(position.ra)} ${formatDec(position.dec)}`;
 }
 
-/** True while the sky map shows its yellow square: a place just picked, or the field being studied. */
+/** True while the sky map shows its yellow square: the field being studied, or that square being dragged. */
 export function useAreaShown(): boolean {
-  return useStore((s) => s.map.picked !== null || (s.map.fieldShown && s.target !== null && !s.target.moving));
+  return useStore((s) => (s.map.picked !== null && s.map.pickedIn === "map") || (s.map.fieldShown && s.target !== null && !s.target.moving));
 }
 
 /**
- * The selected area on the sky map, which is the yellow square. It is a place just picked, or
- * the field being studied, which appears with every search. "Select" loads the images of a
- * picked place. "Close" takes the square off the map until the next click or search.
+ * The selected area on the sky map, which is the yellow square: the field being studied.
+ * A click on the map, a search, or dropping the square in a new place selects an area, and
+ * its images load at once. While the square is dragged this card follows it.
+ * "Close" ends the study and takes the square away. `onClose` runs after that, so the page
+ * can put the image study away too.
  */
-export function AreaCard() {
-  const picked = useStore((s) => s.map.picked);
+export function AreaCard({ onClose }: { onClose: () => void }) {
+  const dragged = useStore((s) => (s.map.picked && s.map.pickedIn === "map" ? s.map.picked : null));
   const fieldShown = useStore((s) => s.map.fieldShown);
   const target = useStore((s) => s.target);
   const fieldSize = useStore((s) => s.fieldSize);
-  const area = picked ?? (fieldShown && target && !target.moving ? target : null);
+  const area = dragged ?? (fieldShown && target && !target.moving ? target : null);
   if (!area) return null;
   return (
     <section className="box" aria-label="Selected area">
@@ -57,17 +59,8 @@ export function AreaCard() {
       <p className="mono">{coordinates(area)}</p>
       <p>{Number((fieldSize / 60).toFixed(1))} arcminutes across</p>
       <div className="row wrap">
-        {/* With nothing newly picked, the square is the field whose images are already loaded. */}
-        <button
-          className="primary"
-          disabled={!picked}
-          onClick={() => picked && actions.goTo({ ...picked, epoch: 2026.0 })}
-          title={picked ? "Load the SPHEREx images of this area" : "The images of this area are the ones loaded"}
-        >
-          {picked ? "Select" : "Selected"}
-        </button>
         <CopyButton text={coordinates(area)} label="Copy Coordinates" />
-        <button onClick={() => actions.closeArea()}>Close</button>
+        <button onClick={() => { actions.closeStudy(); onClose(); }} title="Close the image study and take the square off the map">Close</button>
       </div>
     </section>
   );
@@ -180,9 +173,10 @@ function SolarBodies() {
  * Every object in the field being studied, in one card on the image side.
  * Everything in it can be hidden. The heading folds the whole list away. Each row opens to
  * show that object's facts and closes again. A checkbox takes the objects' marks off the image.
- * Fast movers come first, because they are why typed coordinates can miss their object. The
- * last row asks which asteroids, comets, and planets were in the field when the image on
- * screen was taken. A click on a labeled object in the image opens its row here.
+ * It starts folded. Fast movers come first in the list, because they are why typed
+ * coordinates can miss their object. The last row asks which asteroids, comets, and planets
+ * were in the field when the image on screen was taken. A click on a labeled object in the
+ * image opens its row here.
  *
  * The page keeps this card mounted while the sky map alone is showing, so what was hidden
  * stays hidden when the view changes.
@@ -205,12 +199,9 @@ export function ObjectsCard() {
   // An object chosen on the sky map gets the map's own card, so it does not open this list.
   const clickedHere = useStore((s) => s.map.selectedIn === "images");
 
-  // The list opens by itself only when something new calls for it: a search that finds a
-  // fast mover near the coordinates, or an object newly chosen by a click in the image.
-  // Once the person hides it, it stays hidden until one of those happens again.
-  useEffect(() => {
-    if (movers.length > 0) setOpen(true);
-  }, [movers]);
+  // The list always starts folded (Matt's decision). It opens by itself in one case only:
+  // an object newly chosen by a click on its label in the image, so its facts can be read.
+  // Once the person hides it, it stays hidden until that happens again.
   useEffect(() => {
     if (chosenId !== null && clickedHere) setOpen(true);
   }, [chosenId, clickedHere]);

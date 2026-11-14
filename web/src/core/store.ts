@@ -284,17 +284,12 @@ function applyFrames(batch: WireFrame[], byKey: Map<string, number>): void {
   set({ frames, loaded, failed, ...resequence(frames) });
 }
 
-async function load(target: Target, fieldSize: number): Promise<void> {
-  abort?.abort();
-  abort = new AbortController();
-  const signal = abort.signal;
-  const mine = ++generation;
-  pause();
-  clearPixels();
-  set({
-    session: mine,
-    target,
-    targetState: "loading",
+/**
+ * The parts of the state that belong to one study, emptied.
+ * A new study starts from this, and closing the study ends on it.
+ */
+function emptyStudy(): Partial<AppState> {
+  return {
     framesState: "idle",
     frames: [],
     visits: [],
@@ -314,11 +309,26 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     notice: null,
     hover: null,
     spectrum: { ...get().spectrum, probe: null, halo: false },
+    player: { ...get().player, index: 0, playing: false },
+    view: { east: 0, north: 0, zoom: 1 },
+  };
+}
+
+async function load(target: Target, fieldSize: number): Promise<void> {
+  abort?.abort();
+  abort = new AbortController();
+  const signal = abort.signal;
+  const mine = ++generation;
+  pause();
+  clearPixels();
+  set({
+    ...emptyStudy(),
+    session: mine,
+    target,
+    targetState: "loading",
     // The picked area has become the field being studied, or been left behind. The map now
     // shows the field's own square. A solar system body has no fixed field to draw.
     map: { ...get().map, picked: null, fieldShown: !target.moving },
-    player: { ...get().player, index: 0, playing: false },
-    view: { east: 0, north: 0, zoom: 1 },
   });
 
   // A solar system body has no fixed field, so there are no field objects or survey matches to fetch.
@@ -564,11 +574,14 @@ export const actions = {
     return embedSnippet(get(), window.location.origin + window.location.pathname, width, height);
   },
 
-  /** Study a target: search for its images, then download them. The map moves there too. */
-  goTo(target: Target): void {
+  /**
+   * Study a target: search for its images, then download them. The map moves there too,
+   * unless `fly` is false, which is for a place chosen on the map itself.
+   */
+  goTo(target: Target, options: { fly?: boolean } = {}): void {
     // Keep a wide map view wide enough to show context, but come in close from an all-sky view.
     // A solar system body's position is known only after its images are found.
-    if (!target.moving) actions.flyTo(target, Math.min(get().map.fov, 2));
+    if (!target.moving && options.fly !== false) actions.flyTo(target, Math.min(get().map.fov, 2));
     void load(target, get().fieldSize);
   },
 
@@ -860,10 +873,24 @@ export const actions = {
     set({ map: { ...map, picked: position, pickedIn: position ? from : map.pickedIn, selected: null }, known: spot ? null : known });
   },
 
-  /** Take the selected area off the map: the picked place, and the square of the field being studied. A search or a click brings one back. */
-  closeArea(): void {
-    actions.pick(null);
-    set({ map: { ...get().map, fieldShown: false } });
+  /**
+   * Close the study: stop any loading, let go of the target and its images, and take the
+   * selected area off the map. A search or a click on the map starts a new one.
+   */
+  closeStudy(): void {
+    abort?.abort();
+    abort = null;
+    knownAbort?.abort();
+    generation++; // answers still on their way for the old study are dropped
+    pause();
+    clearPixels();
+    set({
+      ...emptyStudy(),
+      session: generation,
+      target: null,
+      targetState: "idle",
+      map: { ...get().map, picked: null, fieldShown: false },
+    });
   },
 
   /**

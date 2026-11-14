@@ -5,7 +5,7 @@
 // Every setting, for the images and for the map, lives in the one settings drawer, and the player
 // is always in the bottom bar. Nothing changes place when the view changes.
 // Written with Claude Code (Anthropic) assistance.
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   FrameView,
   SKY_LAYERS,
@@ -22,7 +22,7 @@ import {
   useStore,
   type SequenceMode,
 } from "../core";
-import { AreaCard, Chevron, CopyButton, ObjectCard, ObjectsCard, SpotCard, useAreaShown } from "./cards";
+import { AreaCard, Chevron, CopyButton, ObjectCard, ObjectsCard, SpotCard, coordinates, useAreaShown } from "./cards";
 import { Embed } from "./Embed";
 import { SearchBox } from "./SearchBox";
 import { Examples, Settings } from "./settings";
@@ -88,9 +88,10 @@ function DrawerToggle({ open, onClick, children }: { open: boolean; onClick: () 
 }
 
 /**
- * The details card, first in the upper left corner of the image viewer: what the target is,
- * how far, where to read everything known about it, and which image is on screen.
- * It can be folded down to its first line.
+ * The details box, in the upper right corner of the image viewer: what the target is, where
+ * its field is centered, how far it is, which image is on screen, and where to read
+ * everything known about it. It has the look of the coordinates box on the sky map: each row
+ * is a label, a value, and a small button. It folds down to its first row.
  */
 function DetailsCard() {
   const target = useStore((s) => s.target);
@@ -100,45 +101,80 @@ function DetailsCard() {
     const step = s.sequence[s.player.index];
     return step && step.frameIds.length === 1 ? s.frames[step.frameIds[0]] : null;
   });
-  // The first image of the step on screen, for distances that change from image to image.
+  // The first image of the step on screen, for what changes from image to image.
   const shown = useStore((s) => {
     const step = s.sequence[s.player.index];
     return step ? s.frames[step.frameIds[0]] : null;
   });
-  // On a phone the image is small, so the card starts folded to its first line.
+  // On a phone the image is small, so the box starts folded to its first row.
   const [open, setOpen] = useState(() => window.innerWidth >= 720);
   if (!target) return null;
-  const facts = [`${Number((fieldSize / 60).toFixed(1))} arcmin field`];
+  // A planet or comet has a new place in every image. A fixed field has one center.
+  const center = target.moving ? shown?.center ?? null : target;
+  const facts = [`${Number((fieldSize / 60).toFixed(1))} arcmin`];
   if (frame) facts.push(`Detector ${frame.detector}`);
   if (frame?.phot?.flux != null && frame.phot.err != null) facts.push(`Brightness ${formatFlux(frame.phot.flux)} ± ${formatFlux(frame.phot.err)}`);
   return (
-    <section className={open ? "stage-label details open" : "stage-label details"} aria-label="Details">
-      <div className="details-head">
-        <p>
+    <section className={open ? "stage-label place details open" : "stage-label place details"} aria-label="Details">
+      <p className="place-row">
+        <span className="muted">Target</span>
+        <span>
           <strong>{target.name ?? "Custom position"}</strong>
-          {target.kind && <span className="muted kind">. {target.kind}</span>}
-        </p>
+          {target.kind && <span className="muted kind">, {target.kind}</span>}
+        </span>
         <button aria-expanded={open} onClick={() => setOpen((now) => !now)} title={open ? "Fold the details away" : "Show the details"}>
           {open ? "Hide" : "Details"}
         </button>
-      </div>
+      </p>
       {open && (
         <>
-          {target.distance && <p>Distance: {formatDistance(target.distance)}, {distanceMethod(target.distance.method)}.</p>}
+          {center && (
+            <p className="place-row">
+              <span className="muted">Center</span>
+              <span className="mono">{coordinates(center)}</span>
+              <CopyButton text={coordinates(center)} title="Copy the coordinates at the center of the images" />
+            </p>
+          )}
+          {target.distance && (
+            <p className="place-row">
+              <span className="muted">Distance</span>
+              <span>{formatDistance(target.distance)}, {distanceMethod(target.distance.method)}</span>
+              <span />
+            </p>
+          )}
           {target.moving && shown?.earthDistance != null && (
-            <p>
-              At this image: {formatAu(shown.earthDistance)} from Earth
-              {shown.sunDistance != null && `, ${formatAu(shown.sunDistance)} from the Sun`}.
+            <p className="place-row">
+              <span className="muted">Distance</span>
+              <span>
+                {formatAu(shown.earthDistance)} from Earth
+                {shown.sunDistance != null && `, ${formatAu(shown.sunDistance)} from the Sun`}, at this image
+              </span>
+              <span />
             </p>
           )}
+          {item && (
+            <p className="place-row">
+              <span className="muted">Image</span>
+              <span>{item.label}</span>
+              <span />
+            </p>
+          )}
+          <p className="place-row">
+            <span className="muted">Field</span>
+            <span>{facts.join(". ")}</span>
+            <span />
+          </p>
           {target.url && (
-            <p>
-              <a href={target.url} target="_blank" rel="noreferrer">Full details{target.moving ? " at NASA JPL" : " in the SIMBAD database"}</a>
-              <span className="muted">{target.moving ? " (orbit, size, and discovery)" : " (names, measurements, and research papers)"}</span>
+            <p className="place-row">
+              <span className="muted">More</span>
+              <span>
+                <a href={target.url} target="_blank" rel="noreferrer" title={target.moving ? "Orbit, size, and discovery" : "Names, measurements, and research papers"}>
+                  Full details{target.moving ? " at NASA JPL" : " in the SIMBAD database"}
+                </a>
+              </span>
+              <span />
             </p>
           )}
-          {item && <p>{item.label}</p>}
-          <p className="muted">{facts.join(". ")}</p>
         </>
       )}
     </section>
@@ -196,15 +232,13 @@ function MapPlace() {
 
 /**
  * The card for the sky map: an object chosen on the map, or else the selected area.
- * An object chosen on the image side is shown there, in the list of objects. With both views
- * up, a spot picked in the images is also the image side's to show.
+ * An object chosen on the image side is shown there, in the list of objects.
+ * `onClose` runs when the selected area is closed, which also closes the image study.
  */
-function MapCards({ both, showImages }: { both: boolean; showImages: () => void }) {
+function MapCards({ showImages, onClose }: { showImages: () => void; onClose: () => void }) {
   const chosen = useStore((s) => (s.map.selectedIn === "map" ? s.map.selected : null));
-  const fromImages = useStore((s) => s.map.picked !== null && s.map.pickedIn === "images");
   if (chosen) return <ObjectCard object={chosen} onStudy={showImages} />;
-  if (both && fromImages) return null;
-  return <AreaCard />;
+  return <AreaCard onClose={onClose} />;
 }
 
 /**
@@ -352,8 +386,8 @@ function StatusBar({ view }: { view: ViewId }) {
     text += failed ? `, ${count(failed)} could not be read.` : ".";
     // A very large field holds more pixels than a page can keep in memory. Said here, not in a message box.
     if (leftOut > 0) text += " A field this large is sampled evenly over time to keep the page fast. A smaller field loads every image.";
-    // A search leaves the view where it is, so say where the images are.
-    else if (view === "map" && loaded > 0) text += " Choose Images or Both to see them.";
+    // With the map alone on screen, say where the images are. A narrow screen has no Both view.
+    else if (view === "map" && loaded > 0) text += window.innerWidth >= WIDE ? " Choose Images or Both to see them." : " Choose Images to see them.";
   }
   const why = leftOut > 0 ? `Every image is kept in memory so that playing, summing, and measuring are instant. ${count(leftOut)} images were left out. Choose a smaller field to load them all.` : undefined;
 
@@ -368,8 +402,8 @@ function StatusBar({ view }: { view: ViewId }) {
       ) : (
         <p className="hint-text">
           {areaShown
-            ? "Drag the square to move it, or drag its edge to resize it. Click anywhere else to select a new area."
-            : "Drag to move, scroll to zoom. Click a label to learn about an object, or click anywhere to select that area."}
+            ? "Drag the square to move it, or drag its edge to resize it. Click anywhere else to load a new area."
+            : "Drag to move, scroll to zoom. Click a label to learn about an object, or click anywhere to load that area."}
         </p>
       )}
     </div>
@@ -457,6 +491,9 @@ function Dock({ tool, open, tall, onTool, onTall, onClose, showMap, showImages }
 
 export function App() {
   const [view, setView] = useState<ViewId>("map");
+  // The view as the engine's listeners see it, without waiting for a render.
+  const viewNow = useRef(view);
+  viewNow.current = view;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tool, setTool] = useState(TOOLS[0].id);
   const [dockOpen, setDockOpen] = useState(false);
@@ -468,10 +505,19 @@ export function App() {
     actions.init();
     // A link that names a target opens on its images.
     if (useStore.getState().targetState === "loading") setView("images");
-    // A search made on the page is different. The engine moves the sky map to the target and
-    // loads its images, whichever view is showing, and the view itself stays put (Matt's
-    // decision). The images come up only when asked for: with the view buttons, a Study
-    // button, or the player.
+    // A new study, from a search or a click on the map, brings the image study up beside the
+    // map (Matt's decision): on a wide screen the view goes from the map alone to both.
+    // Closing the selected area puts the image study away again. A narrow screen has no room
+    // for both, so its view stays put and the status line says where the images are.
+    // `session` counts studies, so a name that is not found changes nothing.
+    return useStore.subscribe((next, before) => {
+      if (next.session === before.session || next.target === null) return;
+      if (window.innerWidth < WIDE || viewNow.current !== "map") return;
+      // The map is about to shrink to the left half of the page. Center it on the new field,
+      // so the selected area is still in sight. The zoom is left as it is.
+      if (!next.target.moving) actions.flyTo(next.target);
+      setView("both");
+    });
   }, []);
 
   // Side by side needs room. If the window is made narrow, fall back to the images alone.
@@ -530,24 +576,24 @@ export function App() {
 
       {/* Both views stay mounted and keep their size. The hidden one is only made invisible,
           so the map keeps its place and "Save picture" works from either view. */}
-      <main className={view === "both" ? "stage both" : "stage"} aria-label={view === "map" ? "Sky map" : view === "images" ? "Image viewer" : "Sky map and image viewer"}>
+      <main className={`stage ${view}`} aria-label={view === "map" ? "Sky map" : view === "images" ? "Image viewer" : "Sky map and image viewer"}>
         <div className={view === "images" ? "view map off" : "view map"}><SkyMap /></div>
         <div className={view === "map" ? "view images off" : "view images"}>{hasTarget ? <FrameView /> : <EmptyImages />}</div>
         {view !== "images" && <MapLabel />}
         {view !== "images" && <MapPlace />}
-        {/* The image side's own column: what the target is, then every object in its field.
-            It stays mounted while the map alone is showing, so a card the person folded away
-            is still folded when the images come back. */}
+        {/* The image side's own cards, along its top: every object in the field on the left,
+            the details of the target on the right. They stay mounted while the map alone is
+            showing, so a card the person folded away is still folded when the images come back. */}
         <div className="image-cards" hidden={view === "map"}>
-          <DetailsCard />
           <ObjectsCard />
+          <DetailsCard />
         </div>
         {/* With both views up, the map's card sits over the map and the image side's over the images. */}
         {view === "both" && (
-          <div className="overlay beside-map"><MapCards both showImages={showImages} /></div>
+          <div className="overlay beside-map"><MapCards showImages={showImages} onClose={() => setView("map")} /></div>
         )}
         <div className="overlay">
-          {view === "map" && <MapCards both={false} showImages={showImages} />}
+          {view === "map" && <MapCards showImages={showImages} onClose={() => setView("map")} />}
           {view !== "map" && <ImageCards both={view === "both"} openTool={(id) => { setTool(id); setDockOpen(true); }} showImages={showImages} />}
           <Messages view={view} />
         </div>

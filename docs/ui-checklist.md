@@ -70,7 +70,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Labels and grid | Switch object labels and the coordinate grid | `labels`, `grid` |
 | Go to | Jump to the whole sky or to a place | `actions.flyTo` |
 | Object card | See a clicked object's facts, distance, and details link | `selected` |
-| Selected area | See the selected area and its size, move it by dragging inside it, resize it by dragging its edge, load its images, copy its coordinates, and close it | `picked`, `fieldSize`, `fieldShown`, `actions.closeArea` |
+| Selected area | Click the map to select an area and load its images, see its size, move it by dragging inside it, resize it by dragging its edge, copy its coordinates, and close the study | `picked`, `fieldSize`, `fieldShown`, `actions.closeStudy` |
 | Coordinates | Read the coordinates under the pointer and at the center of the map, and copy the center | `mapHover`, `center` |
 | Coverage | Show where SPHEREx spectral images exist, and where the deep fields are | `coverage`, `deepFields` |
 | Tile grid | Show the HEALPix tiles that all-sky maps are cut into | `tiles` |

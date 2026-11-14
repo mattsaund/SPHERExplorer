@@ -4,6 +4,12 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | The blue circle of an object stays in the image study when that object is selected as the target | Matt | It used to be dropped under the yellow target marker. Names that would print over each other now show once |
+| 2026-11-14 | The selected area box on the sky map has the same color as the other boxes | Matt | Every box over the map and the images now shares one color |
+| 2026-11-14 | The objects box always starts collapsed | Matt | It opens by itself only when an object's label is clicked in the image |
+| 2026-11-14 | The Both screen comes up when there is a selected area | Matt | On a wide screen, from the map view. This replaces the earlier choice that a search never changes the view |
+| 2026-11-14 | The details box moves to the upper right of the image study and takes the look of the pointer and center box on the sky map | Matt | Rows of label, value, and button. It gained a Center row with Copy |
+| 2026-11-14 | A selected area loads at once, with no Select button. Its card keeps Copy Coordinates and Close. Close also closes the image study and removes the square | Matt | A click on the map, or dropping the square, starts the load |
 | 2026-11-14 | In the objects card, all the objects can be hidden, and so can the facts of each one. The orange "fast mover" pill goes | Matt | The heading folds the whole list. A checkbox takes the marks off the image. What is hidden stays hidden when the view changes. A fast mover is said in plain words beside its kind |
 | 2026-11-14 | Austin's Claude moves to the hosting side. Matt's Claude stays the lead, checks every push, and checks compliance with the hackathon rules | Matt | Roles updated in `CLAUDE.md` |
 | 2026-11-14 | One card on the image side lists every object in the field. Each row opens and closes. It replaces the "Known asteroid or comet?" button and the fast-mover pop-ups | Matt | Fast movers come first. The last row asks which asteroids, comets, and planets were in the image on screen |

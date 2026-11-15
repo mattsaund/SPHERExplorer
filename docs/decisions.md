@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | The deploy freeze moves to 11:00 pm Eastern on Nov 15, an hour before the submission deadline | Austin | To be safe. It leaves an hour to check the last deploy. Replaces the 11:59 pm freeze below |
 | 2026-11-14 | Deploys freeze at the submission deadline, Nov 15, 11:59 pm Eastern. The live site stays as submitted through judging | Austin | Built into `deploy.yml`. Commits pushed before the deadline still deploy when their CI passes |
 | 2026-11-14 | Continuous deployment: a push to `main` deploys to Cloud Run on its own, but only after CI passes on that commit | Austin | GitHub Actions with Workload Identity Federation, so no key is stored. Claude rejected a Cloud Build trigger because it cannot wait for the GitHub CI result |
 | 2026-11-14 | A click on an object's label loads its images at once, with the view box around it, the same as a click on empty sky | Matt | Chosen over keeping the card first. Planets, asteroids, and comets keep the card first, because their images are elsewhere on the sky |

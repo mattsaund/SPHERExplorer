@@ -6,7 +6,7 @@ How SPHERExplorer is built and why: its parts, the data flow, and the contract b
 
 | Part | What it is |
 |---|---|
-| `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. |
+| `server/` | Python API. Searches its own index of SPHEREx exposures, reads SPHEREx pixels from AWS S3 with byte-range requests, measures brightness, and relays services that browsers can't call. |
 | `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. |
 | `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. |
 | `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. |

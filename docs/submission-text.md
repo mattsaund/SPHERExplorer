@@ -32,18 +32,18 @@ The live site, not the repository. Judges can use the tool directly, and its Abo
 
 ## Project details
 
-No length limit is shown. Now about 600 words, trimmed on Nov 15 from about 1,030.
+No length limit is shown. Now about 640 words, trimmed on Nov 15 from about 1,030.
 
 ### What it does
 
 SPHERExplorer is a free web tool for NASA's SPHEREx all-sky infrared survey. Enter a name or coordinates, and it plays every public SPHEREx image of that position in time order, so moving objects step across the frame. Each image is taken in a different one of 102 infrared bands, so the same images also give a spectrum.
 
 - Search by name, by coordinates, or by planet, asteroid, or comet.
-- Play every exposure, each visit, each wavelength, or the deepest sum, over a field 1 to 50 arcminutes wide.
+- Play every exposure, each visit, each wavelength, or the deepest sum, over a field 1 to 50 arcminutes wide. Sum any of the six detectors, subtract one visit from another, or view three bands as color.
 - Measure Changes checks every source in the field and reports what moved, brightened, or faded.
 - Read the spectrum of any point, with water, methane, and other features marked.
 - Compare with Gaia, 2MASS, WISE, and NEOSSat from the Canadian Space Agency, and blink against surveys decades older.
-- Save FITS files, data tables, and animations. Every view has a link that can be shared or embedded.
+- Save FITS files with flags and variance, data tables, and animations. Every view has a link that carries its coordinates and can be shared or embedded.
 
 ### How it works
 
@@ -74,7 +74,7 @@ SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, ci
 
 ### Factors we considered
 
-Scientific validity came first: positions carried forward in time, matching wavelengths, and every result checked against published catalogs. Then ease of use for a child or an older adult, and speed and cost, with small transfers and a server that scales to zero.
+Scientific validity came first: positions carried forward in time, matching wavelengths, and results checked against published catalogs. Then ease of use for a child or an older adult, and speed and cost, with small transfers and a server that scales to zero.
 
 SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
@@ -244,7 +244,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | Blink against surveys decades older: WISE, 2MASS, and the Digitized Sky Survey | Details | `docs/methods.md` section 13 |
 | Water, methane, and other features are marked on the spectrum | Summary, details | `docs/methods.md` section 10 |
 | The tool names Measure Changes and Blink | Details | The app's Studies tab and image study |
-| FITS files can be saved | Summary, details | `docs/methods.md` section 14 |
+| FITS files with flags and variance can be saved | Summary, details | `docs/methods.md` section 14 |
 | The main stack: Python with FastAPI, NumPy, and Astropy, TypeScript with React and WebGL2, and Aladin Lite | Details | `docs/architecture.md`, `docs/references.md` |
 | Deploys run only after every test passes | Details | `.github/workflows/deploy.yml` |
 | No account is needed | Details | `docs/deploy.md`, Security |

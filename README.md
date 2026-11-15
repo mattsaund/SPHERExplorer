@@ -4,6 +4,8 @@ A public web tool for exploring NASA SPHEREx images of the sky and how they chan
 
 Built by team Turing Complete (Matt and Austin) for the [NASA Space Apps Challenge 2026](https://www.spaceappschallenge.org/2026/), challenge [Planet X and SPHEREx](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/).
 
+**Live site.** https://spherexplorer.earth
+
 **Status.** In development during the hackathon (Nov 14 to 15, 2026).
 
 ## What it does

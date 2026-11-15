@@ -14,7 +14,7 @@ Deadline: click "Submit for Judging" before Sun Nov 15, 11:59 pm, local time of 
 - [ ] Project name.
 - [ ] High-level summary: what we built, how it addresses the challenge, why it matters.
 - [ ] Demo link (public, no login).
-- [ ] Final project link (public, no login): the live site and this repo.
+- [ ] Final project link (public, no login): the live site (https://spherexplorer.earth) and this repo.
 - [ ] Project details: what it does, how it works, benefits, goals, tools, languages, hardware, software.
 - [ ] NASA data and resources used.
 - [ ] Space Agency Partner and other data used.

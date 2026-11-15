@@ -158,31 +158,34 @@ interface Source {
 }
 
 /**
- * The output is built a band of rows at a time, and this is about how many bytes of samples
- * one band may hold. A band several rows thick lets each frame be read in one compact strip,
- * which is what keeps the processor's cache useful. A band of the whole image would need
- * hundreds of megabytes for a deep sum of a wide field.
+ * The output is built a small square tile at a time, and this is about how many bytes of
+ * samples one tile may hold. A tile maps to one compact patch of each frame, and its samples
+ * fit in the processor's cache, so both reading the frames and gathering each pixel's
+ * samples stay quick. A tile is also a small enough piece of work to pause between.
  */
-const BAND_BYTES = 32 << 20;
+const TILE_BYTES = 1 << 20;
+/** A tile is at least this many pixels on a side, however many frames there are. */
+const MIN_TILE = 8;
 
 /**
- * Put a member's samples for output rows j0 to j1 into `into`, starting at `base`.
+ * Put a member's samples for one tile of the output (columns i0 to i1, rows j0 to j1) into
+ * `into`, row by row, starting at `base`.
  * An entry is the frame's own value where the frame has a usable pixel, and NaN elsewhere.
  * `covered` counts the frames that reach each output pixel, usable or not.
  */
-function resample(source: Source, n: number, scale: number, badMask: number, j0: number, j1: number, into: Float32Array, base: number, covered: Uint16Array): void {
+function resample(source: Source, n: number, scale: number, badMask: number, i0: number, i1: number, j0: number, j1: number, into: Float32Array, base: number, covered: Uint16Array): void {
   const { member, ia, ib, ic, id } = source;
   const { image, flags, nx, ny, cx, cy } = member;
   const shiftEast = member.shift[0];
   const shiftNorth = member.shift[1];
   const center = (n - 1) / 2;
   let at = base;
-  let out = j0 * n;
   for (let j = j0; j < j1; j++) {
     const north = (j - center) * scale + shiftNorth;
     const rowX = ib * north;
     const rowY = id * north;
-    for (let i = 0; i < n; i++, at++, out++) {
+    let out = j * n + i0;
+    for (let i = i0; i < i1; i++, at++, out++) {
       // Output x grows to the right, which is west on the sky.
       const east = -(i - center) * scale + shiftEast;
       const px = Math.round(cx + ia * east + rowX);
@@ -199,8 +202,21 @@ function resample(source: Source, n: number, scale: number, badMask: number, j0:
   }
 }
 
-/** Sum frames onto one north-up grid: each is resampled to the grid, its background removed, and outliers dropped. */
-export function stackFrames(members: StackMember[], options: StackOptions): Stack {
+/**
+ * A sum under way. It is set up once and then worked one tile at a time, so that a long sum
+ * can be done in pieces and leave the page free to answer in between.
+ */
+export interface StackJob {
+  /** How many tiles there are to work. */
+  tiles: number;
+  /** Work tile number `index`. Each tile is worked once, in any order. */
+  work(index: number): void;
+  /** The summed image, once every tile has been worked. */
+  finish(): Stack;
+}
+
+/** Set up a sum of frames on one north-up grid. See stackFrames for what the sum is. */
+export function startStack(members: StackMember[], options: StackOptions): StackJob {
   const n = Math.max(3, Math.round(options.size / options.scale) | 1); // odd, so the center is a pixel
   const center = (n - 1) / 2;
   const scale = options.scale;
@@ -228,33 +244,69 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
   const keepSamples = options.method === "median" || (options.method === "clipped" && members.length <= SORT_LIMIT);
   const clip = options.method === "clipped";
 
-  // Every member is resampled once into the band. Each output pixel then gathers its own
+  // Every member is resampled once into the tile. Each output pixel then gathers its own
   // samples into a short list, and all the passes run over that list.
-  const rows = Math.max(1, Math.min(n, Math.floor(BAND_BYTES / (4 * n * room))));
-  const band = rows * n;
-  const samples = new Float32Array(band * room);
+  const side = Math.max(MIN_TILE, Math.min(n, Math.floor(Math.sqrt(TILE_BYTES / (4 * room)))));
+  const across = Math.ceil(n / side);
+  const tile = side * side;
+  const samples = new Float32Array(tile * room);
   // One pixel's usable samples, background removed, and the weight of the frame each came from.
   const values = new Float64Array(room);
   const single = new Float32Array(room);
   const scratch = new Float32Array(room);
   const worth = new Float64Array(room);
 
-  for (let j0 = 0; j0 < n; j0 += rows) {
-    const j1 = Math.min(n, j0 + rows);
-    const size = (j1 - j0) * n;
-    const first = j0 * n;
-    for (let k = 0; k < count; k++) resample(sources[k], n, scale, options.badMask, j0, j1, samples, k * band, covered);
+  function work(index: number): void {
+    const i0 = (index % across) * side;
+    const j0 = Math.floor(index / across) * side;
+    const i1 = Math.min(n, i0 + side);
+    const j1 = Math.min(n, j0 + side);
+    for (let k = 0; k < count; k++) resample(sources[k], n, scale, options.badMask, i0, i1, j0, j1, samples, k * tile, covered);
 
-    for (let p = 0; p < size; p++) {
-      const out = first + p;
-      let have = 0;
+    let p = 0;
+    for (let j = j0; j < j1; j++) {
+      for (let i = i0; i < i1; i++, p++) {
+        const out = j * n + i;
+        let have = 0;
 
-      if (keepSamples) {
-        for (let k = 0, at = p; k < count; k++, at += band) {
-          // Rounded to single precision, the form these samples have always been kept in.
-          const value = Math.fround(samples[at] - backgrounds[k]);
+        if (keepSamples) {
+          for (let k = 0, at = p; k < count; k++, at += tile) {
+            // Rounded to single precision, the form these samples have always been kept in.
+            const value = Math.fround(samples[at] - backgrounds[k]);
+            if (value === value) {
+              single[have] = value;
+              worth[have++] = weights[k];
+            }
+          }
+          if (!have) {
+            image[out] = covered[out] ? Infinity : NaN;
+            continue;
+          }
+          for (let k = 0; k < have; k++) scratch[k] = single[k];
+          const middle = medianOf(scratch, have);
+          if (!clip) {
+            image[out] = middle;
+            continue;
+          }
+          // Scatter of this pixel across frames. A bright star varies a lot from frame to frame
+          // (each frame is a different wavelength), so its own scatter sets the limit, not the sky noise.
+          for (let k = 0; k < have; k++) scratch[k] = Math.abs(single[k] - middle);
+          const bound = have >= CLIP_MIN ? CLIP_SIGMA * 1.4826 * medianOf(scratch, have) : Infinity;
+          let top = 0;
+          let bottom = 0;
+          for (let k = 0; k < have; k++) {
+            if (Math.abs(single[k] - middle) > bound) continue;
+            top += worth[k] * single[k];
+            bottom += worth[k];
+          }
+          image[out] = bottom > 0 ? top / bottom : middle;
+          continue;
+        }
+
+        for (let k = 0, at = p; k < count; k++, at += tile) {
+          const value = samples[at] - backgrounds[k];
           if (value === value) {
-            single[have] = value;
+            values[have] = value;
             worth[have++] = weights[k];
           }
         }
@@ -262,84 +314,64 @@ export function stackFrames(members: StackMember[], options: StackOptions): Stac
           image[out] = covered[out] ? Infinity : NaN;
           continue;
         }
-        for (let k = 0; k < have; k++) scratch[k] = single[k];
-        const middle = medianOf(scratch, have);
-        if (!clip) {
-          image[out] = middle;
-          continue;
+        // The mean and the limit are rounded to single precision after each round, as they always were.
+        let mean = 0;
+        let limit = Infinity;
+        let kept = have;
+        if (clip) {
+          // Find the mean and spread of the pixel across frames, then repeat using only the samples
+          // inside the limit. One round is not enough: a single huge outlier widens the spread so
+          // much that smaller ones hide behind it.
+          for (let round = 0; round < CLIP_ROUNDS; round++) {
+            let plain = 0;
+            let squares = 0;
+            kept = 0;
+            for (let k = 0; k < have; k++) {
+              const value = values[k];
+              if (Math.abs(value - mean) > limit) continue;
+              plain += value;
+              squares += value * value;
+              kept++;
+            }
+            if (kept) {
+              mean = Math.fround(plain / kept);
+              limit = Math.fround(MEAN_CLIP_SIGMA * Math.sqrt(Math.max(0, squares / kept - mean * mean)));
+            }
+          }
         }
-        // Scatter of this pixel across frames. A bright star varies a lot from frame to frame
-        // (each frame is a different wavelength), so its own scatter sets the limit, not the sky noise.
-        for (let k = 0; k < have; k++) scratch[k] = Math.abs(single[k] - middle);
-        const bound = have >= CLIP_MIN ? CLIP_SIGMA * 1.4826 * medianOf(scratch, have) : Infinity;
-        let top = 0;
-        let bottom = 0;
+        // Weighted mean of the samples that sit within the final limit.
+        let sum = 0;
+        let weight = 0;
         for (let k = 0; k < have; k++) {
-          if (Math.abs(single[k] - middle) > bound) continue;
-          top += worth[k] * single[k];
-          bottom += worth[k];
+          const value = values[k];
+          if (Math.abs(value - mean) > limit) continue;
+          sum += worth[k] * value;
+          weight += worth[k];
         }
-        image[out] = bottom > 0 ? top / bottom : middle;
-        continue;
+        image[out] = weight > 0 ? sum / weight : kept ? mean : covered[out] ? Infinity : NaN;
       }
-
-      for (let k = 0, at = p; k < count; k++, at += band) {
-        const value = samples[at] - backgrounds[k];
-        if (value === value) {
-          values[have] = value;
-          worth[have++] = weights[k];
-        }
-      }
-      if (!have) {
-        image[out] = covered[out] ? Infinity : NaN;
-        continue;
-      }
-      // The mean and the limit are rounded to single precision after each round, as they always were.
-      let mean = 0;
-      let limit = Infinity;
-      let kept = have;
-      if (clip) {
-        // Find the mean and spread of the pixel across frames, then repeat using only the samples
-        // inside the limit. One round is not enough: a single huge outlier widens the spread so
-        // much that smaller ones hide behind it.
-        for (let round = 0; round < CLIP_ROUNDS; round++) {
-          let plain = 0;
-          let squares = 0;
-          kept = 0;
-          for (let k = 0; k < have; k++) {
-            const value = values[k];
-            if (Math.abs(value - mean) > limit) continue;
-            plain += value;
-            squares += value * value;
-            kept++;
-          }
-          if (kept) {
-            mean = Math.fround(plain / kept);
-            limit = Math.fround(MEAN_CLIP_SIGMA * Math.sqrt(Math.max(0, squares / kept - mean * mean)));
-          }
-        }
-      }
-      // Weighted mean of the samples that sit within the final limit.
-      let sum = 0;
-      let weight = 0;
-      for (let k = 0; k < have; k++) {
-        const value = values[k];
-        if (Math.abs(value - mean) > limit) continue;
-        sum += worth[k] * value;
-        weight += worth[k];
-      }
-      image[out] = weight > 0 ? sum / weight : kept ? mean : covered[out] ? Infinity : NaN;
     }
   }
 
   return {
-    nx: n,
-    ny: n,
-    cx: center,
-    cy: center,
-    m: [-scale, 0, 0, scale],
-    image,
-    rms: robustNoise(image).rms,
-    count: members.length,
+    tiles: across * across,
+    work,
+    finish: () => ({
+      nx: n,
+      ny: n,
+      cx: center,
+      cy: center,
+      m: [-scale, 0, 0, scale],
+      image,
+      rms: robustNoise(image).rms,
+      count: members.length,
+    }),
   };
+}
+
+/** Sum frames onto one north-up grid: each is resampled to the grid, its background removed, and outliers dropped. */
+export function stackFrames(members: StackMember[], options: StackOptions): Stack {
+  const job = startStack(members, options);
+  for (let index = 0; index < job.tiles; index++) job.work(index);
+  return job.finish();
 }

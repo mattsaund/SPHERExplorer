@@ -58,6 +58,9 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 
 - `stack.ts` puts frames on a north-up grid with half-size pixels and averages them, weighted by each frame's noise. Each frame's median background is removed first.
 - Outliers are rejected per pixel: against the median and its spread for up to 48 frames, and by repeated clipping around the mean beyond that.
+- The sum is worked a small tile at a time. Each frame is resampled once into the tile, and each pixel's samples are then clipped and averaged. A unit test holds this code to a plain one-pixel-at-a-time definition, to the last bit, for all three methods and on awkward input (turned, shifted, flagged, and partly off the field).
+- A large sum for the picture on screen is made in the background, in slices of about 10 milliseconds, so the page keeps answering. The status line says "Adding up" with the number of images. Until the sum is there, the newest finished sum of the same step stays on screen, so the picture grows as images arrive. A picture that is being saved never uses a stand-in. Its sum is made at once.
+- Measured in the page on a 15 arcminute field of 356 images: the deepest sum held the page for 1.9 s before this work and for 0.06 s after. Measure Changes held it for 4.1 s and now for no stretch longer than 0.05 s. The sum itself takes a third of the time it did.
 - Sums can follow a moving target, which keeps it sharp while the background smears.
 - Subtraction shows a step minus another step, or minus the sum of the others. A single exposure is compared only with exposures within one spectral channel, because brightness changes with wavelength.
 

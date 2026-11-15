@@ -10,7 +10,7 @@
 import { HALO_STARTS, HALO_WIDTH, chooseRing, measureAperture, measureRing } from "./aperture";
 import { mjdToYear, offsetToSky, positionAt, skyOffset } from "./astro";
 import { halfIsNaN } from "./half";
-import { fixedSum } from "./layers";
+import { fixedSumInSlices } from "./layers";
 import { formatChange } from "./lightcurve";
 import { compass, locate } from "./motion";
 import { getPixels } from "./pixels";
@@ -669,16 +669,17 @@ export async function findChanges(state: AppState, onProgress: (fraction: number
   const ids: number[] = [];
   for (const epoch of epochs) {
     const members = epoch.frames.filter((frame) => shared.has(frame.channel));
-    const sum = fixedSum(members.map((frame) => frame.id), `changes:${epoch.seasons.join("-")}`, state);
+    const sum = await fixedSumInSlices(members.map((frame) => frame.id), `changes:${epoch.seasons.join("-")}`, state);
     if (!sum) return empty("The images of this spot could not be summed.");
     sums.push(sum.stack);
     times.push(members.reduce((total, frame) => total + frame.mjd, 0) / members.length);
     ids.push(...members.map((frame) => frame.id));
     await pause();
   }
-  const all = fixedSum(ids.sort((a, b) => a - b), "changes:all", state);
+  const all = await fixedSumInSlices(ids.sort((a, b) => a - b), "changes:all", state);
   if (!all) return empty("The images of this spot could not be summed.");
   onProgress(0.15);
+  await pause();
   const labels = epochs.map((epoch) => epoch.label);
 
   // Sources: everything in the sum of all visits, plus anything that stands out in one visit alone.
@@ -689,7 +690,10 @@ export async function findChanges(state: AppState, onProgress: (fraction: number
     }
   };
   add(detectSources(all.stack));
-  for (const sum of sums) add(detectSources(sum));
+  for (const sum of sums) {
+    await pause();
+    add(detectSources(sum));
+  }
   found.sort((a, b) => b.snr - a.snr);
 
   // Flags that mark glints and streaks count as bad here, as they do when frames are summed.

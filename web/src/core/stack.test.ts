@@ -2,7 +2,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
 import { buildSequence } from "./sequence";
-import { robustNoise, stackFrames, type StackMember } from "./stack";
+import { robustNoise, stackFrames, startStack, type StackMember } from "./stack";
 import type { Filters, Frame } from "./types";
 
 /** A frame-sized member with a single bright pixel at a sky offset, drawn through a given matrix. */
@@ -244,11 +244,27 @@ describe("stackFrames against the plain definition", () => {
     });
   }
 
-  it("gives the same image whatever the size of the bands it works in", () => {
-    // Many frames on a field wide enough that the work is split into several bands.
+  it("gives the same image when the work is split into many tiles", () => {
+    // Many frames on a field wide enough that the sum is worked in dozens of tiles.
     const members = awkwardMembers(60, 7);
     const settings = { size: 400, scale: 0.5, method: "clipped" as const, badMask: 0b1101 };
+    expect(startStack(members, settings).tiles).toBeGreaterThan(30);
     expect(differing(stackFrames(members, settings).image, plainStack(members, settings))).toBe(0);
+  });
+
+  it("can be worked a tile at a time, in any order", () => {
+    // A sum made in the background is worked in pieces. The order of the pieces must not matter.
+    const members = awkwardMembers(80, 11);
+    const settings = { size: 300, scale: 1, method: "clipped" as const, badMask: 0b1101 };
+    const whole = stackFrames(members, settings);
+    const job = startStack(members, settings);
+    expect(job.tiles).toBeGreaterThan(4);
+    for (let index = job.tiles - 1; index >= 0; index -= 2) job.work(index);
+    for (let index = job.tiles - 2; index >= 0; index -= 2) job.work(index);
+    const pieced = job.finish();
+    expect(differing(pieced.image, whole.image)).toBe(0);
+    expect(pieced.rms).toBe(whole.rms);
+    expect(pieced.count).toBe(80);
   });
 });
 

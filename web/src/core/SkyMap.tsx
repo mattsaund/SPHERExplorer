@@ -9,7 +9,7 @@ import { apiUrl, coverageUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
 import { solarPlaces } from "./solar";
 import { formatDate, separation, skyOffset, skyPath } from "./astro";
-import { bodyNow, fieldCenter, fieldDate, isStudied } from "./field";
+import { fieldCenter, fieldDate, fieldIsNow, isStudied } from "./field";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
 
@@ -352,14 +352,14 @@ export function SkyMap({ className }: { className?: string }) {
 
     /**
      * The name to write beside the studied field's square, or "" for none: a named target
-     * gets its name. A moving body that the map does not mark also gets the date of the
-     * image on screen, because its square is where it was on that date and not where it is now.
+     * gets its name. A moving body's square also gets the date of the image on screen when it
+     * is where the body was on that date, and not on the body's marker.
      */
     function captionText(state: AppState): string {
       const target = state.target;
       if (!target?.name || (state.map.picked && state.map.pickedIn === "map")) return "";
       // A star, or a body whose square sits on its own marker, where it is today.
-      if (!target.moving || bodyNow(target)) return target.name;
+      if (!target.moving || fieldIsNow(state)) return target.name;
       const date = fieldDate(state);
       return date === null ? target.name : `${target.name}, ${formatDate(date)}`;
     }
@@ -952,8 +952,8 @@ export function SkyMap({ className }: { className?: string }) {
       moved();
       unsubscribe = useStore.subscribe((next, before) => {
         // A planet or comet has a new place in every image, so its square also follows the film.
-        const filmMoved = next.target?.moving !== undefined && (next.player.index !== before.player.index || next.sequence !== before.sequence || next.frames !== before.frames);
-        if (next.map !== before.map || next.mapGoal !== before.mapGoal || next.target !== before.target || next.fieldSize !== before.fieldSize || filmMoved) sync(next);
+        const filmChanged = next.target?.moving !== undefined && (next.player.index !== before.player.index || next.filmMoved !== before.filmMoved || next.sequence !== before.sequence || next.frames !== before.frames);
+        if (next.map !== before.map || next.mapGoal !== before.mapGoal || next.target !== before.target || next.fieldSize !== before.fieldSize || filmChanged) sync(next);
       });
     })();
 

@@ -161,8 +161,9 @@ Checked on known objects.
 - The orbits drift from the truth over months, mostly for bodies that pass close to planets. Running the script again renews them.
 - Clicking a body follows it through the images at once, with the exact path from JPL Horizons, as for any moving target (section 5). Its card says what it is and how far it is from the Earth and the Sun right now. The Sun and the Moon have no SPHEREx images, so a click only shows their card.
 - The Sun and the Moon are drawn as discs of their true size, from their radius (695,700 km and 1,737.4 km) and their distance at that moment. The Moon shows its lit share and the bright edge faces the Sun (Meeus, Astronomical Algorithms, chapter 48). Checked against JPL Horizons at three moments, which the unit test repeats: the widths agree to half a percent, the lit share to one point in a hundred, and the Sun's direction to one degree. The discs are drawings over the map, not survey images.
-- A body the map marks keeps its yellow square on its green marker, where the body is now, and the map stays put when the marker is clicked (Matt's decision, Nov 15). The images in the viewer are of the places the body was, and the details box gives the place and date of each. Searching a marked body by name sends the map to its marker.
-- A body the map does not mark has no place on the map today. Its square is where the image on screen was taken, with the name and that date written on it. That square moves along the body's path as the film plays, and the map follows it when it leaves the view.
+- A study of a body the map marks opens with its yellow square on its green marker, where the body is now, and the map stays put when the marker is clicked (Matt's decisions, Nov 15). Searching the body by name sends the map to its marker.
+- Once the film is played or stepped, the square goes to where the image on screen was taken, with the name and that date written on it. It then moves along the body's path as the film plays, and the map follows it when it leaves the view. Changing the way of viewing starts the film over, and the square is on the marker again.
+- A body the map does not mark has no place on the map today, so its square is always where the image on screen was taken.
 
 ## 16. The sky map's overlays and measure tool
 

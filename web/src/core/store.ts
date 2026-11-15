@@ -65,6 +65,12 @@ export interface AppState {
   leftOut: number;
   failed: number;
   /**
+   * True once the film of this study has been played, stepped, or moved to an image. It is
+   * false when a study opens and after the way of viewing is changed, which both start the
+   * film over. A marked body's square leaves its marker for the body's path when this turns true.
+   */
+  filmMoved: boolean;
+  /**
    * How many images are being added up in the background for the picture on screen, or null
    * when none are. A large sum takes a moment, and the page stays free meanwhile.
    */
@@ -177,6 +183,7 @@ export const useStore = create<AppState>(() => ({
   framesState: "idle",
   loaded: 0,
   leftOut: 0,
+  filmMoved: false,
   summing: null,
   failed: 0,
   filters: DEFAULT_FILTERS,
@@ -341,6 +348,7 @@ function emptyStudy(): Partial<AppState> {
     loaded: 0,
     leftOut: 0,
     failed: 0,
+    filmMoved: false,
     error: null,
     notice: null,
     hover: null,
@@ -865,7 +873,8 @@ export const actions = {
 
   setMode(mode: SequenceMode): void {
     filmMoves++;
-    set({ mode, ...resequence(undefined, mode), player: { ...get().player, index: 0 } });
+    // A new way of viewing starts the film over, at rest on its first step.
+    set({ mode, ...resequence(undefined, mode), player: { ...get().player, index: 0 }, filmMoved: false });
   },
 
   setFilters(change: Partial<Filters>): void {
@@ -883,7 +892,7 @@ export const actions = {
   play(): void {
     if (get().player.playing) return;
     filmMoves++;
-    set({ player: { ...get().player, playing: true } });
+    set({ player: { ...get().player, playing: true }, filmMoved: true });
     ticker = setTimeout(tick, 1000 / get().player.fps);
   },
 
@@ -899,7 +908,7 @@ export const actions = {
     const count = get().sequence.length;
     if (!count) return;
     filmMoves++;
-    set({ player: { ...get().player, index: ((Math.round(index) % count) + count) % count } });
+    set({ player: { ...get().player, index: ((Math.round(index) % count) + count) % count }, filmMoved: true });
   },
 
   /** Move forward or back by a number of steps. Pauses playback. */
@@ -1030,7 +1039,7 @@ export const actions = {
     const next = get().mode === mode ? { sequence: get().sequence } : resequence(undefined, mode);
     const index = next.sequence.findIndex((item) => item.frameIds[0] === frameId);
     if (index < 0) return;
-    set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false } });
+    set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false }, filmMoved: true });
   },
 
   /** Change map settings: projection, layer, channel, grid, labels, the coverage overlays, the tile grid, the solar system, or the measure tool. */

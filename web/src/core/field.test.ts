@@ -2,7 +2,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
 import { separation } from "./astro";
-import { bodyNow, fieldCenter, isStudied, mapHome } from "./field";
+import { bodyNow, fieldCenter, fieldIsNow, isStudied, mapHome } from "./field";
 import { solarPlaces } from "./solar";
 import type { Frame, SkyObject, Target } from "./types";
 
@@ -39,42 +39,58 @@ describe("isStudied", () => {
 });
 
 describe("fieldCenter", () => {
-  const player = { index: 0 } as never;
+  const player = { index: 0, playing: false } as never;
+  const filmMoved = false;
   // A body the sky map marks (Vesta, known by the page about it), and one it does not.
   const marked = { name: "4 Vesta (A807 FA)", ra: 0, dec: 0, epoch: 2026, url: vesta.url, moving: { command: "DES=20000004;" } } as Target;
   const unmarked = { ...marked, name: "C/1995 O1 (Hale-Bopp)", url: "https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=1995%20O1" } as Target;
   const frames = [{ id: 0, center: { ra: 95.1, dec: 18.2 } }, { id: 1, center: { ra: 96.4, dec: 18.5 } }] as unknown as Frame[];
+  const first = { key: "e0", label: "", frameIds: [0], mjd: 0, wavelength: 0 };
   const second = { key: "e1", label: "", frameIds: [1], mjd: 0, wavelength: 0 };
 
   it("is the target's own place for a star or a patch of sky", () => {
     const target = { name: "Vega", ra: 279.2347, dec: 38.7837, epoch: 2000 } as Target;
-    expect(fieldCenter({ target, frames: [], sequence: [], player })).toBe(target);
-    expect(mapHome({ target, frames: [], sequence: [], player })).toBe(target);
-    expect(fieldCenter({ target: null, frames: [], sequence: [], player })).toBeNull();
+    expect(fieldCenter({ target, frames: [], sequence: [], player, filmMoved })).toBe(target);
+    expect(mapHome({ target, frames: [], sequence: [], player, filmMoved })).toBe(target);
+    expect(fieldCenter({ target: null, frames: [], sequence: [], player, filmMoved })).toBeNull();
     expect(bodyNow(target)).toBeNull();
   });
 
-  it("keeps a marked body's square on its marker, where the body is now", () => {
+  it("opens a marked body's study with the square on its marker, where the body is now", () => {
     const marker = solarPlaces(new Date()).find((body) => body.id === "vesta")!;
-    const place = fieldCenter({ target: marked, frames, sequence: [second], player })!;
+    const rest = { target: marked, frames, sequence: [first, second], player, filmMoved };
+    const place = fieldCenter(rest)!;
     // The same place the map draws the marker, to well within the marker's own size.
     expect(separation(place, marker).arcsec).toBeLessThan(30);
-    // Before any image is found, and whatever image is on screen, the square does not move.
-    expect(fieldCenter({ target: marked, frames: [], sequence: [], player })).toEqual(place);
-    expect(fieldCenter({ target: marked, frames, sequence: [], player })).toEqual(place);
-    // The map goes to the same place when the body is searched by name.
-    expect(mapHome({ target: marked, frames, sequence: [], player })).toEqual(place);
+    expect(fieldIsNow(rest)).toBe(true);
+    // The same while its images are still being found.
+    expect(fieldCenter({ target: marked, frames: [], sequence: [], player, filmMoved })).toEqual(place);
+    // The map goes to the marker when the body is searched by name.
+    expect(mapHome(rest)).toEqual(place);
     expect(bodyNow(marked)).toEqual(place);
+  });
+
+  it("lets the square cross the map along the body's path once the film moves", () => {
+    const study = { target: marked, frames, sequence: [first, second], player };
+    // Not moved yet: on the marker, whatever step the film happens to rest on. The step
+    // number drifts while earlier images arrive, so it says nothing about the person's wish.
+    expect(fieldIsNow({ ...study, filmMoved: false, player: { index: 1, playing: false } as never })).toBe(true);
+    // Played or stepped: the square is where the image on screen was taken.
+    const moved = { ...study, filmMoved: true };
+    expect(fieldCenter(moved)).toEqual({ ra: 95.1, dec: 18.2 });
+    expect(fieldCenter({ ...moved, player: { index: 1, playing: false } as never })).toEqual({ ra: 96.4, dec: 18.5 });
+    expect(fieldIsNow(moved)).toBe(false);
   });
 
   it("puts any other moving body's square where the image on screen was taken", () => {
     expect(bodyNow(unmarked)).toBeNull();
     // Nothing to show until its images are found.
-    expect(fieldCenter({ target: unmarked, frames: [], sequence: [], player })).toBeNull();
-    expect(mapHome({ target: unmarked, frames: [], sequence: [], player })).toBeNull();
-    expect(fieldCenter({ target: unmarked, frames, sequence: [], player })).toEqual({ ra: 95.1, dec: 18.2 });
-    expect(fieldCenter({ target: unmarked, frames, sequence: [second], player })).toEqual({ ra: 96.4, dec: 18.5 });
+    expect(fieldCenter({ target: unmarked, frames: [], sequence: [], player, filmMoved })).toBeNull();
+    expect(mapHome({ target: unmarked, frames: [], sequence: [], player, filmMoved })).toBeNull();
+    expect(fieldCenter({ target: unmarked, frames, sequence: [], player, filmMoved })).toEqual({ ra: 95.1, dec: 18.2 });
+    expect(fieldCenter({ target: unmarked, frames, sequence: [second], player, filmMoved })).toEqual({ ra: 96.4, dec: 18.5 });
+    expect(fieldIsNow({ target: unmarked, frames, sequence: [second], player, filmMoved })).toBe(false);
     // The map goes to its first image.
-    expect(mapHome({ target: unmarked, frames, sequence: [second], player })).toEqual({ ra: 95.1, dec: 18.2 });
+    expect(mapHome({ target: unmarked, frames, sequence: [second], player, filmMoved })).toEqual({ ra: 95.1, dec: 18.2 });
   });
 });

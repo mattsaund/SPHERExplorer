@@ -2,7 +2,7 @@
 
 The text for each field of the Space Apps project page, kept here so it can be checked against the app before the final submission. Claude drafted it from the repository docs. Austin and Matt approve it, and the project page is the copy judges see.
 
-Status, Nov 14: the summary and the project details are pasted into the form. The project link is chosen. The demo link, the two data fields, and the SI question are still to do. Our Local Event needs the project submitted by Sun Nov 15, 4:20 pm Eastern.
+Status, Nov 15: the summary and the project details were pasted into the form on Nov 14, and both have changed since (see the claims table), so they need pasting again. The project link is chosen. The two data fields, the References field, and the SI answer are drafted below and wait for approval. The demo link is still to do. Our Local Event needs the project submitted by Sun Nov 15, 4:20 pm Eastern.
 
 To paste the project details with their formatting, copy them from a rendered view of this file (GitHub's file view works), not from a terminal.
 
@@ -95,9 +95,128 @@ SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, ci
 
 Source code, methods, and every reference: [https://github.com/mattsaund/SPHERExplorer](https://github.com/mattsaund/SPHERExplorer)
 
-## NASA data, Space Agency Partner and other data, and the SI question
+## NASA data and resources
 
-To do. The data fields come from `docs/references.md`. The SI question must say that Claude drafted this text too.
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`.
+
+- SPHEREx Spectral Images, Data Release 1 and Quick Release 3 (Level 2). NASA SPHEREx, through the NASA/IPAC Infrared Science Archive (IRSA). DOI [10.26131/IRSA678](https://doi.org/10.26131/IRSA678) and [10.26131/IRSA662](https://doi.org/10.26131/IRSA662). Every image the tool shows is read from these files, in IRSA's public bucket on AWS.
+- SPHEREx Spectral All-Sky Cube, Data Release 1. DOI [10.26131/IRSA679](https://doi.org/10.26131/IRSA679). The base layer of the sky map, channel by channel and in color.
+- IRSA services. Image search as a fallback, the SPHEREx coverage maps, and the sky survey tiles from 2MASS, WISE, Spitzer, and other missions that the map layers and Blink use.
+- The SPHEREx Explanatory Supplement and the SPHEREx Archive User Guide. The file layout, the flags, and the calibration that the tool relies on.
+- JPL Horizons and the JPL Small-Body Database. The paths of planets, asteroids, and comets through the SPHEREx images, and the orbits behind the solar system markers on the sky map.
+- The 2MASS and AllWISE source catalogs, from two NASA-funded surveys. The brightness of the same sources, for comparison with SPHEREx.
+- The MAST catalog service at STScI. It serves the Gaia DR3 catalog that the tool uses for star positions and motions.
+
+## Space Agency Partner and other data
+
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`.
+
+- Canadian Space Agency (CSA). NEOSSat astronomy images, through the Canadian Astronomy Data Centre. Visible-light images of the same field, shown with the SPHEREx images where NEOSSat has observed it. Contains information licensed under the Open Government Licence - Canada.
+- European Space Agency (ESA). Gaia DR3: positions, proper motions, and parallaxes of the stars in each field.
+- CDS, Strasbourg. SIMBAD for object names and facts, VizieR for the 2MASS and AllWISE catalogs, and Aladin Lite for the sky map.
+- IMCCE, Paris Observatory. SkyBoT, which lists the known asteroids, comets, and planets in the field of an image.
+- CelesTrak. Orbital elements for the live positions of SPHEREx and the other telescopes.
+- Sky survey tiles from DSS2, SDSS, GALEX, IRAS, Herschel, and Planck, served by IRSA.
+- NIST Atomic Spectra Database. The wavelengths of the atomic lines marked on spectra.
+- Natural Earth. The land outlines on the map of telescope positions.
+
+## References
+
+Draft for Matt and Austin to approve. Built by Claude on Nov 15 from every row of `docs/references.md` that is marked as in use. Build it again if that file changes.
+
+Data
+
+- SPHEREx DR1 Spectral Images. NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA. Public, no restrictions. DOI 10.26131/IRSA678.
+- SPHEREx DR1 Spectral All-Sky Cube. NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA. Public, no restrictions. DOI 10.26131/IRSA679.
+- SPHEREx QR3 Spectral Images. NASA SPHEREx (JPL, Caltech) via NASA/IPAC IRSA. Public, no restrictions. DOI 10.26131/IRSA662.
+- Gaia DR3. ESA Gaia, DPAC, served by MAST (VizieR mirror as backup). Gaia credit required. Gaia Collaboration 2016, 2023.
+- NEOSSat astronomy data. Canadian Space Agency (CSA), served by CADC. Open Government Licence - Canada. Credit line below, shown in the app with the images.
+- SIMBAD. CDS, Strasbourg (or CfA and IDIA mirrors). Credit required. Wenger et al. 2000.
+- VizieR. CDS, Strasbourg (CfA and IDIA mirrors). Credit required. Ochsenbein et al. 2000, DOI 10.26093/cds/vizier.
+- 2MASS Point Source Catalog. UMass, IPAC/Caltech, NASA, NSF (VizieR II/246). Public. Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003.
+- AllWISE Source Catalog. NASA WISE, JPL, IPAC (VizieR II/328). Public. Wright et al. 2010. Cutri et al. 2013. Flux zero points from Jarrett et al. 2011.
+- Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck. Each survey team, HiPS built by CDS, ESA, and IPAC. Public. Layer credits in `web/src/core/skyLayers.ts`. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list.
+
+Papers and documents
+
+- Bock et al. 2026, ApJ 999, 139 (arXiv 2511.02985). SPHEREx mission.
+- Akeson et al. 2026, ApJS 285, 67. SPHEREx data pipeline.
+- Korngut et al. 2026 (arXiv 2603.29835). SPHEREx instrument and calibration.
+- SPHEREx Explanatory Supplement: https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp.pdf
+- SPHEREx Archive User Guide: https://caltech-ipac.github.io/spherex-archive-documentation/
+- Meisner et al. 2026 (arXiv 2608.00046). Undersampling limits SPHEREx coaddition and differencing.
+- Gagné et al. 2026 (arXiv 2604.22012). SPHEREx spectra of ultracool dwarfs (SPIFF).
+- Rustamkulov et al. 2026 (arXiv 2607.00543). SPHEREx view of WISE 0855.
+- Chen et al. 2022 (arXiv 2205.08077). Epsilon Indi Ba and Bb orbit.
+- NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. Atomic line wavelengths in `web/src/core/lines.ts`.
+- Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
+- Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
+- Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.
+
+Software and services
+
+- Astropy 8. BSD-3-Clause. Astropy Collaboration 2013, 2018, 2022.
+- NumPy 2. BSD-3-Clause. Harris et al. 2020.
+- FastAPI, Starlette, Uvicorn. MIT, BSD-3-Clause.
+- Pydantic 2. MIT.
+- HTTPX. BSD-3-Clause.
+- Pillow 13. MIT-CMU.
+- world-atlas 2 and topojson-client 3. ISC. Mike Bostock. Land outlines from Natural Earth (public domain).
+- pytest, pytest-asyncio. MIT, Apache-2.0.
+- uv. MIT or Apache-2.0. Astral.
+- React 19, React DOM. MIT.
+- Zustand 5. MIT.
+- Vite 8, @vitejs/plugin-react. MIT.
+- TypeScript 7. Apache-2.0.
+- Type definitions for Node, React, React DOM, and topojson-client (DefinitelyTyped). MIT.
+- Vitest 5. MIT.
+- matplotlib colormaps (viridis, magma, inferno, plasma, cividis). CC0. van der Walt and Smith 2015. Nunez et al. 2018 (cividis).
+- Aladin Lite 3.9.2-beta (CDS). LGPL-3.0-or-later. Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view.
+- satellite.js 7.2. MIT. Shashwat Kandadai and contributors. SGP4 orbit model by Vallado et al. 2006.
+- gifenc 1.0.3. MIT. Matt DesLauriers.
+- IRSA SIA and the AWS S3 bucket `nasa-irsa-spherex`. Public. IRSA acknowledgment.
+- Sesame name resolver (CDS), through the CfA and IDIA mirrors. Credit required. SIMBAD and VizieR acknowledgments.
+- MAST catalog API (Gaia DR3). Public. MAST, STScI.
+- IRSA coverage maps for SPHEREx (`spherex.obscore.moc.fits` and `spherex.deep_field.moc.fits`, in the IVOA MOC format). Public. IRSA acknowledgment.
+- IMCCE SkyBoT (Paris Observatory). Public. Berthier et al. 2006, ASP Conf. Ser. 351, 367.
+- JPL Horizons and Small-Body Database APIs. Public. JPL Solar System Dynamics. Giorgini et al. 1996.
+- Illuminated fraction of the Moon and position angle of its bright limb. Published formulae. Jean Meeus, Astronomical Algorithms, 2nd edition, chapter 48. Radii: IAU 2015 Resolution B3 (nominal solar radius), NASA Moon fact sheet (mean radius).
+- Low-precision formulae for the Moon. Public. The Astronomical Almanac, US Naval Observatory and HM Nautical Almanac Office, section D.
+- CelesTrak orbital elements (NORAD 63182 SPHEREx, 39089 NEOSSat, 27783 GALEX, 13777 IRAS). Public, rate limited. CelesTrak, T.S. Kelso.
+- Mission facts for the telescope list (launch and retirement dates, sites). Public. Each mission's own pages: NASA, ESA, CSA, IPAC (2MASS), SDSS, STScI (DSS).
+- CADC TAP and file services (NEOSSat). Public. Canadian Astronomy Data Centre, operated by the National Research Council of Canada with the support of the Canadian Space Agency.
+- Google Cloud Run, Cloud Build, Artifact Registry, and Workload Identity Federation, on the Google Cloud Free Trial from the Space Apps Global Offers. Google Cloud terms of service.
+- google-github-actions/auth 3 and setup-gcloud 3. Apache-2.0. Google.
+- GitHub Actions steps: actions/checkout 4, actions/setup-node 4, astral-sh/setup-uv 5. MIT. GitHub, Astral.
+- Node.js 22 and Python 3.13, as the official container images `node:22-slim` and `python:3.13-slim`. MIT (Node.js), PSF-2.0 (Python). OpenJS Foundation, Python Software Foundation.
+- GitHub: the repository, Actions, and Releases. GitHub terms of service.
+- Claude Code (Anthropic), with the model Claude Fable 5.2. Anthropic terms of service. Labeled in every commit, pull request, and file header. Logged in `docs/si-usage.md`.
+- Domain name from the GoDaddy Registry offer in the Space Apps Global Offers, registered through Porkbun. Porkbun terms of service.
+
+Acknowledgments
+
+- This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.
+- This research has made use of the NASA/IPAC Infrared Science Archive, which is funded by the National Aeronautics and Space Administration and operated by the California Institute of Technology.
+- This work has made use of data from the European Space Agency (ESA) mission Gaia (https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis Consortium (DPAC, https://www.cosmos.esa.int/web/gaia/dpac/consortium). Funding for the DPAC has been provided by national institutions, in particular the institutions participating in the Gaia Multilateral Agreement.
+- This publication makes use of data products from the Two Micron All Sky Survey, which is a joint project of the University of Massachusetts and the Infrared Processing and Analysis Center/California Institute of Technology, funded by the National Aeronautics and Space Administration and the National Science Foundation.
+- This publication makes use of data products from the Wide-field Infrared Survey Explorer, which is a joint project of the University of California, Los Angeles, and the Jet Propulsion Laboratory/California Institute of Technology, funded by the National Aeronautics and Space Administration.
+- This research has made use of the SIMBAD database, CDS, Strasbourg Astronomical Observatory, France.
+- This research has made use of the VizieR catalogue access tool, CDS, Strasbourg Astronomical Observatory, France.
+- Contains information licensed under the Open Government Licence - Canada.
+
+## The SI question
+
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/si-usage.md`. Judges do not see this answer. They do see the SI labels inside the project.
+
+Yes. We used Claude Code (Anthropic), with the models Claude Opus 5.5 and Claude Fable 5.2.
+
+What the team did. Matt and Austin chose the challenge and set the concept and the feature list, which are recorded as they wrote them in docs/concept.md. They made every product decision (docs/decisions.md), tried each change on the live site, and approved the text of this page.
+
+What SI did. Before kickoff, Claude gathered background notes on the SPHEREx data, the test targets, and the Space Apps rules. During the event, Claude wrote and tested the code, the documentation, and the deployment setup under the team's direction, and measured the results reported here. Claude also drafted the text of this project page, including this answer, and built the demo video from recordings of the live tool.
+
+How it is labeled. Every commit that Claude wrote carries a Co-Authored-By line. Every source file starts with a header that says it was written with Claude Code. Every pull request says the same, and docs/si-usage.md logs each use by date. The demo video carries a visible SI watermark on every frame.
+
+No image or data in the tool is generated by SI. Every picture comes from NASA SPHEREx and the other archives listed on this page, and the tool's code computes its sums, spectra, and measurements from them.
 
 ## Claims to recheck before the final submission
 
@@ -119,3 +238,5 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The stack and the data sources | Details | `docs/architecture.md`, `docs/references.md` |
 | Deploys run only after every test passes | Details | `.github/workflows/deploy.yml` |
 | No account is needed | Details | `docs/deploy.md`, Security |
+| The SI answer says Claude built the demo video from recordings of the live tool | SI question | True only if the submitted video is the one rendered from `video/`. Change the sentence if the demo is made another way |
+| The References field lists every resource in use | References | Build it again from `docs/references.md` after any change to that file |

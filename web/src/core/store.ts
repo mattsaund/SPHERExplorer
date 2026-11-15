@@ -1147,15 +1147,19 @@ export const actions = {
   },
 
   /**
-   * A click on an object on the sky map. A star, a galaxy, or anything else that stays put
-   * becomes the study at once, with its view box around it, as a click on empty sky does
-   * (Matt's decision). Its card shows its facts and the map stays put. A body of the solar
-   * system only shows its card, because its images are somewhere else on the sky.
+   * A click on an object on the sky map. It becomes the study at once, with its view box
+   * around it, as a click on empty sky does (Matt's decision), and its card shows its facts.
+   * A star or galaxy is where it was clicked, so the map stays put. A planet, asteroid, or
+   * comet was somewhere else when its images were taken, so the map goes to the first of them.
+   * The Sun and the Moon have no images, so their card is all there is.
    */
   chooseObject(object: SkyObject): void {
     actions.selectObject(object);
-    // Already the study, or a body that moves: the card is all there is to do.
-    if (object.solar || isStudied(get(), object)) return;
+    if (isStudied(get(), object)) return; // already the study
+    if (object.solar) {
+      if (object.solar.query) void actions.search(object.solar.query);
+      return;
+    }
     actions.studyObject(object, { fly: false });
   },
 

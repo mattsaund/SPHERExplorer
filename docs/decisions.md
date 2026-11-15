@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | A click on a planet, asteroid, or comet on the sky map loads its images at once, the same as a click on a star | Matt | Replaces the card-first rule for solar system bodies in the entry below. The map goes to where the body was in its first image. The Sun and the Moon keep the card, because SPHEREx has no images of them |
 | 2026-11-14 | The yellow square stays in sight while images load | Matt | A square wider than the map had all four sides off screen. The map now zooms out just enough to show it when a larger area is chosen or a corner is dragged past the edge |
 | 2026-11-14 | Run the live site on Google's second generation runtime with 4 processors and 4 GB, and at most 2 instances | Matt | Larger fields loaded slowly on the live site. Claude measured the instance as the limit and laid out the cost of each size. Two instances keep the worst-case cost at about $18 a day, the same as before. Session affinity is left off for now, because it sets a cookie. See `docs/deploy.md`, "Size" |
 | 2026-11-14 | Finish the video and the submission by 4:20 pm Eastern on Sunday, our Local Event's cutoff. Deploys still freeze at 11:00 pm | Austin | The Local Event set the earlier cutoff. The live site keeps improving after the local submission, until the freeze |

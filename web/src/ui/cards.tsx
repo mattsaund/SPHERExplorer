@@ -81,9 +81,11 @@ export function AreaCard({ onClose }: { onClose: () => void }) {
 }
 
 /**
- * Facts about an object chosen on the sky map. A click on a star or galaxy also makes it the
- * study at once, with the view box around it. Then "Close" ends that study, and `onClose`
- * runs so the page can put the image study away. `onStudy` runs after images are asked for.
+ * Facts about an object chosen on the sky map. A click on it also makes it the study at once,
+ * with the view box around it. Then "Close" ends that study, and `onClose` runs so the page
+ * can put the image study away. `onStudy` runs after images are asked for.
+ * "Study in SPHEREx" is left for an object that is not the study: one whose images are still
+ * being looked up, or could not be found.
  */
 export function ObjectCard({ object, onStudy, onClose }: { object: SkyObject; onStudy: () => void; onClose: () => void }) {
   const studied = useStore((s) => isStudied(s, object));
@@ -92,6 +94,7 @@ export function ObjectCard({ object, onStudy, onClose }: { object: SkyObject; on
   if (solar) {
     // A body of the solar system. Its place on the map is where it is right now, and studying
     // it means following it through the SPHEREx images, not loading one fixed patch of sky.
+    // The Sun and the Moon have no query, because SPHEREx has no images of them.
     const query = solar.query;
     return (
       <section className="box" aria-label={`About ${object.name}`}>
@@ -103,9 +106,13 @@ export function ObjectCard({ object, onStudy, onClose }: { object: SkyObject; on
           {solar.lit !== undefined && ` ${Math.round(solar.lit * 100)}% of its face is lit.`}
         </p>
         <div className="row wrap">
-          {query && <button className="primary" onClick={() => { void actions.search(query); onStudy(); }}>Study in SPHEREx</button>}
+          {query && !studied && <button className="primary" onClick={() => { void actions.search(query); onStudy(); }}>Study in SPHEREx</button>}
           <a className="button" href={object.url} target="_blank" rel="noreferrer">Full details</a>
-          <button onClick={() => actions.selectObject(null)}>Close</button>
+          {studied ? (
+            <button onClick={() => { actions.closeStudy(); onClose(); }} title="Close the image study and take the square off the map">Close</button>
+          ) : (
+            <button onClick={() => actions.selectObject(null)}>Close</button>
+          )}
         </div>
       </section>
     );

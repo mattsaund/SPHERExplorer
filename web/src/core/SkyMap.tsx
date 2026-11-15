@@ -893,7 +893,7 @@ export function SkyMap({ className }: { className?: string }) {
 
       const labelColor = cssVariable(host, "--map-label", "#9be8ff");
       const font = getComputedStyle(host).fontFamily || "sans-serif";
-      // A click on an object. A star or galaxy becomes the study at once. A planet shows its card.
+      // A click on an object makes it the study at once. The Sun and the Moon only show their card.
       const onClick = (source: { data: { object: SkyObject } }) => {
         lastObjectClick = Date.now();
         actions.chooseObject(source.data.object);

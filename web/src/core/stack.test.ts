@@ -2,7 +2,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
 import { buildSequence } from "./sequence";
-import { robustNoise, stackFrames, type StackMember } from "./stack";
+import { robustNoise, stackFrames, startStack, type StackMember } from "./stack";
 import type { Filters, Frame } from "./types";
 
 /** A frame-sized member with a single bright pixel at a sky offset, drawn through a given matrix. */
@@ -97,7 +97,194 @@ describe("stackFrames", () => {
   });
 });
 
+// ---- The fast code against the plain definition ------------------------------------------------
+// stackFrames is written for speed: it works a band of rows at a time and sorts by hand.
+// plainStack below says the same thing in the most direct way, one output pixel at a time.
+// The two must agree to the last bit, on awkward input too.
+
+/** A small repeatable random source, so a failure can be run again. */
+function randomSource(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Frames with random turns, offsets, noise, empty pixels, flags, and a few frames that cannot be used. */
+function awkwardMembers(count: number, seed: number): StackMember[] {
+  const random = randomSource(seed);
+  const nx = 31;
+  return Array.from({ length: count }, (_, k) => {
+    const angle = random() * 2 * Math.PI;
+    const s = 6.15 * (0.98 + 0.04 * random());
+    const image = new Float32Array(nx * nx);
+    const flags = k % 5 === 4 ? null : new Uint32Array(nx * nx);
+    const bg = 0.2 + 0.2 * random();
+    for (let i = 0; i < image.length; i++) {
+      const r = random();
+      image[i] = r < 0.01 ? NaN : bg + (random() - 0.5) * 0.06 + (r > 0.99 ? 5 * random() : 0);
+      if (flags && r > 0.95) flags[i] = 1 << Math.floor(random() * 6);
+    }
+    return {
+      nx, ny: nx,
+      // Half the sets sit well off center, so parts of the field have no frame at all.
+      cx: 15 + (seed % 2 ? (random() - 0.5) * 24 : (random() - 0.5) * 3),
+      cy: 15 + (seed % 2 ? (random() - 0.5) * 24 : (random() - 0.5) * 3),
+      m: [-s * Math.cos(angle), s * Math.sin(angle), s * Math.sin(angle), s * Math.cos(angle)] as [number, number, number, number],
+      bg,
+      rms: k % 11 === 10 ? 0 : 0.01 + 0.02 * random(), // a frame with no noise estimate is left out
+      image, flags,
+      shift: [(random() - 0.5) * 30, (random() - 0.5) * 30] as [number, number],
+    };
+  });
+}
+
+/** Median by sorting a copy. */
+function sortedMedian(values: number[]): number {
+  const sorted = Float32Array.from(values).sort();
+  const n = sorted.length;
+  return n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+}
+
+/** The sum, written one output pixel at a time with nothing clever. */
+function plainStack(members: StackMember[], options: { size: number; scale: number; method: "mean" | "clipped" | "median"; badMask: number }): Float32Array {
+  const n = Math.max(3, Math.round(options.size / options.scale) | 1);
+  const center = (n - 1) / 2;
+  const image = new Float32Array(n * n);
+  const keepSamples = options.method === "median" || (options.method === "clipped" && members.length <= 48);
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      const values: number[] = [];
+      const weights: number[] = [];
+      let covered = 0;
+      for (const member of members) {
+        const [a, b, c, d] = member.m;
+        const det = a * d - b * c;
+        if (!det || !(member.rms > 0)) continue;
+        const north = (j - center) * options.scale + member.shift[1];
+        const east = -(i - center) * options.scale + member.shift[0];
+        const px = Math.round(member.cx + (d / det) * east + (-b / det) * north);
+        const py = Math.round(member.cy + (-c / det) * east + (a / det) * north);
+        if (px < 0 || py < 0 || px >= member.nx || py >= member.ny) continue;
+        covered++;
+        const value = member.image[py * member.nx + px];
+        if (Number.isNaN(value) || (member.flags && member.flags[py * member.nx + px] & options.badMask)) continue;
+        values.push(value - member.bg);
+        weights.push(1 / (member.rms * member.rms));
+      }
+      const out = j * n + i;
+      if (!values.length) {
+        image[out] = covered ? Infinity : NaN;
+      } else if (keepSamples) {
+        const single = values.map(Math.fround);
+        const middle = sortedMedian(single);
+        if (options.method === "median") {
+          image[out] = middle;
+          continue;
+        }
+        const limit = single.length >= 5 ? 4.5 * 1.4826 * sortedMedian(single.map((v) => Math.abs(v - middle))) : Infinity;
+        let top = 0;
+        let bottom = 0;
+        single.forEach((v, k) => {
+          if (Math.abs(v - middle) > limit) return;
+          top += weights[k] * v;
+          bottom += weights[k];
+        });
+        image[out] = bottom > 0 ? top / bottom : middle;
+      } else {
+        let mean = 0;
+        let limit = Infinity;
+        let kept = values.length;
+        for (let round = 0; options.method === "clipped" && round < 3; round++) {
+          const inside = values.filter((v) => !(Math.abs(v - mean) > limit));
+          kept = inside.length;
+          if (!kept) continue;
+          const plain = inside.reduce((sum, v) => sum + v, 0);
+          const squares = inside.reduce((sum, v) => sum + v * v, 0);
+          mean = Math.fround(plain / kept);
+          limit = Math.fround(3.5 * Math.sqrt(Math.max(0, squares / kept - mean * mean)));
+        }
+        let sum = 0;
+        let weight = 0;
+        values.forEach((v, k) => {
+          if (Math.abs(v - mean) > limit) return;
+          sum += weights[k] * v;
+          weight += weights[k];
+        });
+        image[out] = weight > 0 ? sum / weight : kept ? mean : Infinity;
+      }
+    }
+  }
+  return image;
+}
+
+/** How many values differ in their bits. Two NaNs count as the same. */
+function differing(a: Float32Array, b: Float32Array): number {
+  let count = 0;
+  for (let i = 0; i < a.length; i++) if (!Object.is(a[i], b[i])) count++;
+  return a.length === b.length ? count : Infinity;
+}
+
+describe("stackFrames against the plain definition", () => {
+  for (const method of ["mean", "clipped", "median"] as const) {
+    // 48 and 49 frames sit on either side of the switch between the two ways of clipping.
+    it(`${method}: the same bits for 1 to 80 frames, turned, shifted, flagged, and partly off the field`, () => {
+      for (const count of [1, 2, 5, 9, 48, 49, 80]) {
+        for (const seed of [1, 2]) {
+          const members = awkwardMembers(count, 100 * count + seed);
+          for (const size of [70, 190]) {
+            const settings = { size, scale: 3.075, method, badMask: seed === 2 ? 0 : 0b1101 };
+            expect(differing(stackFrames(members, settings).image, plainStack(members, settings))).toBe(0);
+          }
+        }
+      }
+    });
+  }
+
+  it("gives the same image when the work is split into many tiles", () => {
+    // Many frames on a field wide enough that the sum is worked in dozens of tiles.
+    const members = awkwardMembers(60, 7);
+    const settings = { size: 400, scale: 0.5, method: "clipped" as const, badMask: 0b1101 };
+    expect(startStack(members, settings).tiles).toBeGreaterThan(30);
+    expect(differing(stackFrames(members, settings).image, plainStack(members, settings))).toBe(0);
+  });
+
+  it("can be worked a tile at a time, in any order", () => {
+    // A sum made in the background is worked in pieces. The order of the pieces must not matter.
+    const members = awkwardMembers(80, 11);
+    const settings = { size: 300, scale: 1, method: "clipped" as const, badMask: 0b1101 };
+    const whole = stackFrames(members, settings);
+    const job = startStack(members, settings);
+    expect(job.tiles).toBeGreaterThan(4);
+    for (let index = job.tiles - 1; index >= 0; index -= 2) job.work(index);
+    for (let index = job.tiles - 2; index >= 0; index -= 2) job.work(index);
+    const pieced = job.finish();
+    expect(differing(pieced.image, whole.image)).toBe(0);
+    expect(pieced.rms).toBe(whole.rms);
+    expect(pieced.count).toBe(80);
+  });
+});
+
 describe("robustNoise", () => {
+  it("finds the same median and spread as sorting does", () => {
+    const random = randomSource(42);
+    for (const length of [1, 2, 3, 10, 11, 1000, 1001]) {
+      const values = Float32Array.from({ length }, () => (random() < 0.1 ? NaN : random() < 0.05 ? Infinity : Math.round(random() * 40) / 8));
+      const finite = Array.from(values).filter(Number.isFinite);
+      const { median, rms } = robustNoise(values);
+      if (!finite.length) {
+        expect(median).toBeNaN();
+        continue;
+      }
+      const middle = sortedMedian(finite);
+      expect(median).toBe(middle);
+      expect(rms).toBe(1.4826 * sortedMedian(finite.map((v) => Math.fround(Math.abs(v - middle)))));
+    }
+  });
+
   it("ignores outliers and empty pixels", () => {
     const values = new Float32Array(1001);
     for (let i = 0; i < 1000; i++) values[i] = (i % 2 ? 1 : -1) * 0.6745; // MAD of 0.6745 gives rms 1

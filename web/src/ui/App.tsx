@@ -401,6 +401,7 @@ function StatusBar({ view }: { view: ViewId }) {
   const loaded = useStore((s) => s.loaded);
   const failed = useStore((s) => s.failed);
   const leftOut = useStore((s) => s.leftOut);
+  const summing = useStore((s) => s.summing);
   // A planet, asteroid, or comet is named when no image caught it. A fixed spot may get images later.
   const body = useStore((s) => (s.target?.moving ? s.target.name ?? null : null));
   const areaShown = useAreaShown();
@@ -417,6 +418,10 @@ function StatusBar({ view }: { view: ViewId }) {
   } else if (framesState === "loading") {
     text = `Loading images ${count(loaded + failed)}/${count(total)}`;
     progress = total ? (loaded + failed) / total : 0;
+  } else if (framesState === "ready" && summing !== null && view !== "map") {
+    // A large sum is being made for the picture. The page stays free, and the picture follows.
+    text = `Adding up ${count(summing)} images…`;
+    progress = null;
   } else if (framesState === "ready") {
     text = leftOut > 0 ? `${count(loaded)} of ${count(loaded + failed + leftOut)} images loaded` : `${count(loaded)} images loaded`;
     text += failed ? `, ${count(failed)} could not be read.` : ".";
@@ -430,7 +435,7 @@ function StatusBar({ view }: { view: ViewId }) {
   return (
     <div className="statusbar">
       <p className="status" aria-live="polite" title={why}>
-        {progress !== undefined && <ProgressRing value={progress} label={progress === null ? "Searching" : "Images loaded"} />}
+        {progress !== undefined && <ProgressRing value={progress} label={progress !== null ? "Images loaded" : targetState === "loading" ? "Searching" : "Adding up images"} />}
         <span>{text}</span>
       </p>
       {view !== "map" ? (

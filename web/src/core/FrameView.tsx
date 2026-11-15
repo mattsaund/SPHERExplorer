@@ -7,7 +7,7 @@ import { offsetToSky, positionAt, skyOffset } from "./astro";
 import { BlinkLayer } from "./BlinkLayer";
 import { registerCapture } from "./capture";
 import { changeLabel } from "./changes";
-import { sceneFor, type Scene } from "./layers";
+import { onSumReady, sceneFor, sumsWaiting, type Scene } from "./layers";
 import { getPixels, imageOf } from "./pixels";
 import { FrameRenderer } from "./render/renderer";
 import { DEFAULT_APERTURE } from "./spectrum";
@@ -83,16 +83,23 @@ export function FrameView({ className }: { className?: string }) {
       paint(useStore.getState().player.index);
     }
 
-    /** Draw one step of the sequence: the image, then the overlay. */
-    function paint(index: number) {
+    /**
+     * Draw one step of the sequence: the image, then the overlay.
+     * A sum that takes a while is made in the background, and the picture on screen stays up
+     * until it is there. `wait` makes the sum at once instead, for a picture that is being saved.
+     */
+    function paint(index: number, wait = false) {
       const state = useStore.getState();
       if (state.session !== session) {
-        // A new target. Old textures belong to other frames.
+        // A new target. Old textures belong to other frames, and so does the old picture.
         renderer.clear();
         session = state.session;
+        scene = null;
       }
       const item = state.sequence[index];
-      scene = item ? sceneFor(item, state) : null;
+      const made = item ? sceneFor(item, state, !wait) : null;
+      // Nothing to show for this step yet, but its sum is on the way: keep what is on screen.
+      if (made || wait || !sumsWaiting()) scene = made;
       const scale = scaleOf(state);
       const flag = cssColor(wrap, "--frame-flag", "#e5484d");
       const empty = cssColor(wrap, "--frame-empty", "#5b2a86");
@@ -119,7 +126,7 @@ export function FrameView({ className }: { className?: string }) {
       const state = useStore.getState();
       const item = state.sequence[index];
       if (!item) return null;
-      paint(index);
+      paint(index, true);
       const strip = 30;
       const ratio = canvas.width / (wrap.clientWidth || 1);
       const out = document.createElement("canvas");
@@ -541,7 +548,7 @@ export function FrameView({ className }: { className?: string }) {
     // Redraw on any change except those that do not touch the picture: the pointer readouts,
     // the search dropdown, the telescopes' live places, and the sky map moving about.
     // Of the map's state, only the picked place and the chosen object are drawn here.
-    const unseen = new Set(["hover", "mapHover", "suggestions", "craftNow", "spacecraftNow", "map", "mapGoal", "blink"]);
+    const unseen = new Set(["hover", "mapHover", "suggestions", "craftNow", "spacecraftNow", "map", "mapGoal", "blink", "summing"]);
     const unsubscribe = useStore.subscribe((state, before) => {
       const now = state as unknown as Record<string, unknown>;
       const then = before as unknown as Record<string, unknown>;
@@ -550,11 +557,15 @@ export function FrameView({ className }: { className?: string }) {
       schedule();
     });
 
+    // A sum made in the background is drawn as soon as it is there.
+    const stopSums = onSumReady(schedule);
+
     return () => {
       cancelAnimationFrame(raf);
       registerCapture(null);
       observer.disconnect();
       unsubscribe();
+      stopSums();
       wrap.removeEventListener("pointerdown", onDown);
       wrap.removeEventListener("pointermove", onMove);
       wrap.removeEventListener("pointerup", onUp);

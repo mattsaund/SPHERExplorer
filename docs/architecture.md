@@ -52,6 +52,7 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 - Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
 - Helpers that read the state. `fieldCenter(state)` is where the studied field is on the sky (it moves with the film for a planet or comet), `fieldDate(state)` the date of the image on screen, and `isStudied(state, object)` whether an object from the map is the study's target.
 - Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, `Timeline`, and `OrbitView` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
+- Long work stays off the page's back. `core/layers.ts` makes a large sum in the background, a slice at a time, and `summing` in the state holds how many images are being added up, for the status line. `FrameView` keeps its picture until the sum is there.
 - Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
 - The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
 - Types. Everything exported from `core/types.ts`.

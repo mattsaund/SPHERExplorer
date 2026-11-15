@@ -6,6 +6,7 @@ import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits
 import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { isStudied } from "./field";
+import { watchSums } from "./layers";
 import { COLOR_PRESETS } from "./colorBands";
 import { BASE_PIXELS, pixelBudget, thisDevice } from "./device";
 import { exportAllFits, exportAnimation, exportChanges, exportFits, exportImage, exportLightCurve, exportSpectrum } from "./export";
@@ -63,6 +64,11 @@ export interface AppState {
   /** Images found but not loaded, to keep the page fast, when a field has more than the page can hold. Zero when all are loaded. */
   leftOut: number;
   failed: number;
+  /**
+   * How many images are being added up in the background for the picture on screen, or null
+   * when none are. A large sum takes a moment, and the page stays free meanwhile.
+   */
+  summing: number | null;
   filters: Filters;
   mode: SequenceMode;
   /** The steps the player moves through. Rebuilt as frames arrive and filters change. */
@@ -171,6 +177,7 @@ export const useStore = create<AppState>(() => ({
   framesState: "idle",
   loaded: 0,
   leftOut: 0,
+  summing: null,
   failed: 0,
   filters: DEFAULT_FILTERS,
   mode: "exposures",
@@ -225,6 +232,9 @@ export const useStore = create<AppState>(() => ({
 
 const set = useStore.setState;
 const get = useStore.getState;
+
+// The status line says when a large sum is being made for the picture on screen.
+watchSums((frames) => set({ summing: frames }));
 
 // ---- Loading -------------------------------------------------------------------------------
 

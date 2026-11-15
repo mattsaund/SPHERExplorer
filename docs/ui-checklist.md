@@ -15,7 +15,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Tour | Walk through the page step by step with a real example (Barnard's Star), on a first visit or from Help | `TEST_TARGETS`, `actions.goTo` |
 | Search suggestions | Pick from a dropdown: recent searches and NASA's targets at first, then matching names and typed coordinates | `actions.suggest`, `suggestions` |
 | Test targets | Open any of NASA's five test targets in one click | `TEST_TARGETS`, `actions.goTo` |
-| Status | See search and download progress as a count and a ring, and whether a very large field was sampled | `targetState`, `framesState`, `loaded`, `failed`, `leftOut` |
+| Status | See search and download progress as a count and a ring, whether a very large field was sampled, and when a large sum is being added up for the picture | `targetState`, `framesState`, `loaded`, `failed`, `leftOut`, `summing` |
 | Messages | Read notices and errors, and try again | `notice`, `error`, `actions.reload` |
 | Fast movers | See a fast-moving object near typed coordinates first in the objects list, and follow it | `movers`, `actions.studyObject` |
 

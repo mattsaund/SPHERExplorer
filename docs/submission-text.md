@@ -137,7 +137,7 @@ Data
 - VizieR. CDS, Strasbourg (CfA and IDIA mirrors). Credit required. Ochsenbein et al. 2000, DOI 10.26093/cds/vizier.
 - 2MASS Point Source Catalog. UMass, IPAC/Caltech, NASA, NSF (VizieR II/246). Public. Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003.
 - AllWISE Source Catalog. NASA WISE, JPL, IPAC (VizieR II/328). Public. Wright et al. 2010. Cutri et al. 2013. Flux zero points from Jarrett et al. 2011.
-- Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck. Each survey team, HiPS built by CDS, ESA, and IPAC. Public. Layer credits in `web/src/core/skyLayers.ts`. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list.
+- Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck. Each survey team, HiPS built by CDS, ESA, and IPAC. Public. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list.
 
 Papers and documents
 
@@ -150,7 +150,7 @@ Papers and documents
 - Gagné et al. 2026 (arXiv 2604.22012). SPHEREx spectra of ultracool dwarfs (SPIFF).
 - Rustamkulov et al. 2026 (arXiv 2607.00543). SPHEREx view of WISE 0855.
 - Chen et al. 2022 (arXiv 2205.08077). Epsilon Indi Ba and Bb orbit.
-- NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. Atomic line wavelengths in `web/src/core/lines.ts`.
+- NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. The wavelengths of the atomic lines marked on spectra.
 - Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
 - Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
 - Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.

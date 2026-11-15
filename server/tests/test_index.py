@@ -90,3 +90,39 @@ def test_a_new_instance_starts_from_the_index_shipped_with_it(tmp_path, monkeypa
     monkeypatch.setattr(config, "INDEX_SEED", str(tmp_path / "missing.npz"))
     target.unlink()
     assert exposures._seed() is False and not target.exists()
+
+
+def test_a_refresh_stops_before_it_shrinks_the_index():
+    """Adding exposures and swapping a release are fine. Losing a release with nothing in its place is not."""
+    import pytest
+
+    index_build.size_check(273_367, 273_367, 0)             # nothing new
+    index_build.size_check(273_367, 273_367, 1_500)          # new exposures
+    index_build.size_check(273_367, 150_000, 130_000)        # one release swapped for a better one
+    index_build.size_check(273_367, 270_000, 0)              # a few gone, under the limit
+    index_build.size_check(0, 0, 273_367)                    # the first build
+    with pytest.raises(SystemExit, match="nothing was saved"):
+        index_build.size_check(273_367, 120_000, 0)          # IRSA's list lost a release
+    index_build.size_check(273_367, 120_000, 0, allow_shrink=True)
+
+
+def test_a_damaged_index_file_leaves_the_loaded_index_in_place(tmp_path, monkeypatch):
+    """A file that is empty or cut short must not take search down. The index in memory stays."""
+    import asyncio
+    import zipfile
+
+    from spherex_api import exposures
+
+    target = tmp_path / "exposures.npz"
+    target.write_bytes(b"cut short")
+    held = object()
+    monkeypatch.setattr(exposures, "INDEX_PATH", target)
+    monkeypatch.setattr(exposures, "_index", held)
+    for error in (zipfile.BadZipFile("File is not a zip file"), EOFError("No data left in file")):
+        monkeypatch.setattr(exposures, "_checked", 0.0)
+
+        def broken(error=error):
+            raise error
+
+        monkeypatch.setattr(exposures, "ExposureIndex", broken)
+        assert asyncio.run(exposures.get_index()) is held

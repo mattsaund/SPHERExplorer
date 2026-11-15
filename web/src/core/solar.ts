@@ -45,6 +45,15 @@ export interface SolarBody extends SolarSource, SkyPosition {
   /** Distance from the Earth and from the Sun, in au. */
   earth: number;
   sun: number;
+  /**
+   * Radius of its disc on the sky, in degrees. Only for the Sun and the Moon, the two bodies
+   * wide enough to draw at their true size. A planet's disc is a few pixels at most.
+   */
+  disc?: number;
+  /** For the Moon: the share of its face that is lit, from 0 to 1. */
+  lit?: number;
+  /** For the Moon: the direction of the Sun from it on the sky, in degrees from north through east. */
+  sunward?: number;
 }
 
 const DEG = Math.PI / 180;
@@ -54,6 +63,9 @@ const TILT = 23.4392911 * DEG;
 const LIGHT_DAYS = 0.0057755183;
 const AU_KM = 149597870.7;
 const EARTH_RADIUS_KM = 6378.14;
+/** The Sun's radius (the IAU's nominal value) and the Moon's mean radius, in km. */
+const SUN_RADIUS_KM = 695700;
+const MOON_RADIUS_KM = 1737.4;
 
 type Vector = [number, number, number];
 
@@ -143,6 +155,28 @@ export function moonPlace(jd: number): SkyPosition & { distance: number } {
   return toSky([distance * flat * Math.cos(fixed), distance * flat * Math.sin(fixed), distance * Math.sin(latitude * DEG)]);
 }
 
+/** Radius on the sky, in degrees, of a ball of `radius` km seen from `distance` au. */
+function discRadius(radius: number, distance: number): number {
+  return Math.asin(radius / (distance * AU_KM)) / DEG;
+}
+
+/**
+ * How the Moon is lit, from where it and the Sun are in the sky and how far each is: the
+ * share of its face that is lit, and the direction of the Sun from it, in degrees from north
+ * through east. The bright edge faces that way. Formulae from Meeus, Astronomical Algorithms,
+ * chapter 48.
+ */
+export function moonLight(moon: SkyPosition & { distance: number }, sun: SkyPosition & { distance: number }): { lit: number; sunward: number } {
+  const turn = (sun.ra - moon.ra) * DEG;
+  const [sinSun, cosSun] = [Math.sin(sun.dec * DEG), Math.cos(sun.dec * DEG)];
+  const [sinMoon, cosMoon] = [Math.sin(moon.dec * DEG), Math.cos(moon.dec * DEG)];
+  // The angle between the two in the sky, then the angle at the Moon between the Sun and the Earth.
+  const apart = Math.acos(Math.min(1, Math.max(-1, sinSun * sinMoon + cosSun * cosMoon * Math.cos(turn))));
+  const phase = Math.atan2(sun.distance * Math.sin(apart), moon.distance - sun.distance * Math.cos(apart));
+  const sunward = Math.atan2(cosSun * Math.sin(turn), sinSun * cosMoon - cosSun * sinMoon * Math.cos(turn)) / DEG;
+  return { lit: (1 + Math.cos(phase)) / 2, sunward: (sunward + 360) % 360 };
+}
+
 const SUN: SolarSource = { id: "sun", name: "The Sun", kind: "Star", query: null, url: "https://science.nasa.gov/sun/", note: "Our star. SPHEREx never points near it." };
 const MOON: SolarSource = { id: "moon", name: "The Moon", kind: "Moon", query: null, url: "https://science.nasa.gov/moon/", note: "The Earth's own moon." };
 
@@ -152,9 +186,9 @@ export function solarPlaces(date: Date): SolarBody[] {
   const earth = heliocentric(EARTH_ORBIT, jd);
   const out: SolarBody[] = [];
   const sun = toSky([-earth[0], -earth[1], -earth[2]]);
-  out.push({ ...SUN, ra: sun.ra, dec: sun.dec, earth: sun.distance, sun: 0 });
+  out.push({ ...SUN, ra: sun.ra, dec: sun.dec, earth: sun.distance, sun: 0, disc: discRadius(SUN_RADIUS_KM, sun.distance) });
   const moon = moonPlace(jd);
-  out.push({ ...MOON, ra: moon.ra, dec: moon.dec, earth: moon.distance, sun: sun.distance });
+  out.push({ ...MOON, ra: moon.ra, dec: moon.dec, earth: moon.distance, sun: sun.distance, disc: discRadius(MOON_RADIUS_KM, moon.distance), ...moonLight(moon, sun) });
   for (const body of SOLAR_BODIES) {
     if (!body.orbit) continue;
     // Light takes time to arrive, so the body is seen where it was when the light left.

@@ -2,14 +2,14 @@
 // Built on Aladin Lite (CDS, Strasbourg), loaded on demand. All of Aladin's own buttons are
 // switched off, so the UI supplies the controls through actions.setMap and friends.
 // Colors come from CSS variables: --map-label, --map-field, --map-pick, --map-coverage,
-// --map-deep, --map-measure, --map-solar.
+// --map-deep, --map-measure, --map-solar, --map-sun, --map-moon.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef } from "react";
 import { apiUrl, coverageUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
 import { solarPlaces } from "./solar";
 import { formatDate, separation, skyOffset, skyPath } from "./astro";
-import { fieldCenter, fieldDate } from "./field";
+import { fieldCenter, fieldDate, isStudied } from "./field";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
 
@@ -39,6 +39,8 @@ const OBJECT_REACH = 10;
 const SIGHT_MARGIN = 24;
 /** The gap between the studied field's square and its name, in screen pixels. */
 const CAPTION_GAP = 6;
+/** The Sun and the Moon are drawn as discs once their radius is at least this many screen pixels. */
+const MIN_DISC = 5;
 
 /**
  * Coverage maps laid over the sky, the same two the IRSA SPHEREx Data Explorer offers.
@@ -87,6 +89,9 @@ export function SkyMap({ className }: { className?: string }) {
     // The solar system's marks, and the bodies they stand for, as they were last placed.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let planets: any = null;
+    // The Sun and the Moon again, as discs of their true size under their marks.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let discs: any = null;
     let solarNow: SkyObject[] = [];
     let solarTimer: ReturnType<typeof setInterval> | null = null;
     // Coverage maps already on the map, by their switch in the map state.
@@ -175,10 +180,82 @@ export function SkyMap({ className }: { className?: string }) {
       solarNow = solarPlaces(new Date()).map((body) => ({
         id: `solar:${body.id}`, name: body.name, ra: body.ra, dec: body.dec, epoch: year, kind: body.kind, code: null,
         pmRa: null, pmDec: null, parallax: null, redshift: null, spectralType: null, refs: null, vMag: null, kMag: null,
-        url: body.url, distance: null, solar: { query: body.query, earth: body.earth, sun: body.sun, note: body.note },
+        url: body.url, distance: null, solar: { query: body.query, earth: body.earth, sun: body.sun, note: body.note, disc: body.disc, lit: body.lit, sunward: body.sunward },
       }));
       planets.removeAll();
       planets.addSources(solarNow.map((object) => A.source(object.ra, object.dec, { name: object.name, object })));
+      discs.removeAll();
+      discs.addSources(solarNow.filter((object) => object.solar?.disc).map((object) => A.source(object.ra, object.dec, { name: object.name, object })));
+    }
+
+    /** How many screen pixels a length on the sky covers near the middle of the map. `degrees` is that length. */
+    function onScreen(degrees: number): number {
+      const [fovX] = aladin.getFov();
+      return (degrees * Math.max(host.clientWidth, 1)) / fovX;
+    }
+
+    /**
+     * Draw the Sun or the Moon as a disc of its true size on the sky, so there is something
+     * to see where its label is. Aladin calls this as the "shape" of the source. From far out
+     * the disc would be smaller than its mark, so nothing is drawn. The disc is a flat tint
+     * with an outline, like the other overlays. It is a drawing, not part of the survey image.
+     * The Moon shows how much of its face is lit, with the bright edge toward the Sun.
+     */
+    function drawDisc(source: { x: number; y: number; data: { object: SkyObject } }, ctx: CanvasRenderingContext2D) {
+      const body = source.data.object;
+      const solar = body.solar;
+      if (!solar?.disc) return;
+      const radius = onScreen(solar.disc);
+      if (radius < MIN_DISC) return;
+      const moon = solar.lit !== undefined && solar.sunward !== undefined;
+      const ink = moon ? cssVariable(host, "--map-moon", "#d9dde3") : cssVariable(host, "--map-sun", "#ffd76a");
+      ctx.save();
+      ctx.translate(source.x, source.y);
+      ctx.fillStyle = ink;
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+      if (!moon) {
+        ctx.globalAlpha = 0.35;
+        ctx.fill();
+      } else {
+        // The dark part of the Moon is a faint tint. The lit part goes over it.
+        ctx.globalAlpha = 0.12;
+        ctx.fill();
+        // Find where the Sun is from here on the screen, by stepping toward it on the sky.
+        const toward = (solar.sunward! * Math.PI) / 180;
+        const flat = Math.max(Math.cos((body.dec * Math.PI) / 180), 0.01);
+        const tip = aladin.world2pix(body.ra + (solar.disc * Math.sin(toward)) / flat, body.dec + solar.disc * Math.cos(toward)) as [number, number] | null;
+        if (tip) {
+          // Turn the drawing so that the Sun is to the right. The lit part is then the right
+          // half of the edge, closed by the line between light and dark, which is half an
+          // ellipse: bulging left when more than half is lit, right when less.
+          ctx.rotate(Math.atan2(tip[1] - source.y, tip[0] - source.x));
+          const more = solar.lit! > 0.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2);
+          ctx.ellipse(0, 0, radius * Math.abs(2 * solar.lit! - 1), radius, 0, Math.PI / 2, more ? 1.5 * Math.PI : -Math.PI / 2, !more);
+          ctx.closePath();
+          ctx.globalAlpha = 0.55;
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    /** The Sun or the Moon, when a place on the sky lies on its drawn disc. Otherwise null. */
+    function discAt(place: SkyPosition): SkyObject | null {
+      if (!useStore.getState().map.solar) return null;
+      for (const object of solarNow) {
+        const disc = object.solar?.disc;
+        if (disc && onScreen(disc) >= MIN_DISC && separation(place, object).arcsec / 3600 <= disc) return object;
+      }
+      return null;
     }
 
     /** Switch the solar system on or off. While on, the bodies are moved along once a minute. */
@@ -188,10 +265,12 @@ export function SkyMap({ className }: { className?: string }) {
       solarTimer = null;
       if (on) {
         planets.show();
+        discs.show();
         placeSolar();
         solarTimer = setInterval(placeSolar, SOLAR_MS);
       } else {
         planets.hide();
+        discs.hide();
       }
     }
 
@@ -255,7 +334,11 @@ export function SkyMap({ className }: { className?: string }) {
       ctx.lineWidth = 3;
       ctx.lineJoin = "round";
       ctx.strokeStyle = "rgba(0, 0, 0, 0.75)";
-      const [x, y] = 2 * half < TINY_PIXELS ? [source.x + CROSS_GAP + CROSS_ARM + 5, source.y + 4] : [source.x - half, source.y - half - CAPTION_GAP];
+      // Above the square, from its left edge. A square too small to see has the crosshair in
+      // its place, and the name goes above that, clear of the object's own label on the right.
+      const tiny = 2 * half < TINY_PIXELS;
+      const x = tiny ? source.x - ctx.measureText(source.data.name).width / 2 : source.x - half;
+      const y = tiny ? source.y - CROSS_GAP - CROSS_ARM - CAPTION_GAP : source.y - half - CAPTION_GAP;
       ctx.strokeText(source.data.name, x, y);
       ctx.fillText(source.data.name, x, y);
       ctx.restore();
@@ -322,9 +405,10 @@ export function SkyMap({ className }: { className?: string }) {
       }
       // A spot picked in the images is a point, not an area, so it gets the crosshair.
       if (state.map.picked && state.map.pickedIn === "images") crosshair(state.map.picked, CROSS_GAP);
-      // The chosen object keeps its own ring. The crosshair goes around that.
+      // The chosen object keeps its own ring. The crosshair goes around that. An object that
+      // is being studied has the square instead, so one mark says it all.
       const selected = state.map.selected;
-      if (selected) crosshair(selected, CROSS_GAP + 6);
+      if (selected && !isStudied(state, selected)) crosshair(selected, CROSS_GAP + 6);
       // The measured line follows the shortest path on the sky, so it is drawn as many short pieces.
       const measured = state.map.measured;
       if (measured) {
@@ -468,7 +552,7 @@ export function SkyMap({ className }: { className?: string }) {
             reach = distance;
           }
         }
-        if (nearest) actions.selectObject(nearest);
+        if (nearest) actions.chooseObject(nearest);
       }
     }
 
@@ -764,9 +848,19 @@ export function SkyMap({ className }: { className?: string }) {
 
       const labelColor = cssVariable(host, "--map-label", "#9be8ff");
       const font = getComputedStyle(host).fontFamily || "sans-serif";
+      // A click on an object. A star or galaxy becomes the study at once. A planet shows its card.
       const onClick = (source: { data: { object: SkyObject } }) => {
         lastObjectClick = Date.now();
-        actions.selectObject(source.data.object);
+        actions.chooseObject(source.data.object);
+        // The yellow square and crosshair show what is selected. Aladin's own highlight on the
+        // clicked mark would stay behind after the selection moves on, so it is let go at once.
+        setTimeout(() => {
+          try {
+            aladin?.view.unselectObjects();
+          } catch {
+            // An Aladin internal. Without it the clicked mark only stays highlighted for a while.
+          }
+        }, 0);
       };
       labeled = A.catalog({ name: "Known objects", shape: "circle", sourceSize: 14, color: labelColor, displayLabel: true, labelColumn: "name", labelColor, labelFont: `13px ${font}`, onClick });
       unlabeled = A.catalog({ name: "More objects", shape: "circle", sourceSize: 9, color: labelColor, onClick });
@@ -774,11 +868,14 @@ export function SkyMap({ className }: { className?: string }) {
       // The solar system wears its own color and a diamond, so it reads apart from the fixed sky.
       const solarColor = cssVariable(host, "--map-solar", "#a8e6a1");
       planets = A.catalog({ name: "Solar system", shape: "rhomb", sourceSize: 14, color: solarColor, displayLabel: true, labelColumn: "name", labelColor: solarColor, labelFont: `13px ${font}`, onClick });
+      // The Sun and the Moon at their true size. Added first, so their marks and names lie on top.
+      discs = A.catalog({ name: "Sun and Moon", sourceSize: 14, color: solarColor, shape: drawDisc, onClick });
       // The studied target's name. Its "shape" is a function that writes the name, so it is
       // drawn with the map and never trails behind it. A click on it does nothing.
       caption = A.catalog({ name: "Studied target", sourceSize: 1, color: cssVariable(host, "--map-field", "#ffd24a"), shape: drawCaption, onClick: () => (lastObjectClick = Date.now()) });
       aladin.addCatalog(labeled);
       aladin.addCatalog(unlabeled);
+      aladin.addCatalog(discs);
       aladin.addCatalog(planets);
       aladin.addCatalog(caption);
       aladin.addOverlay(marks);
@@ -789,8 +886,12 @@ export function SkyMap({ className }: { className?: string }) {
         if (event.isDragging) return;
         // A click on an object fires this too. Let the object win.
         setTimeout(() => {
+          if (Date.now() - lastObjectClick <= 250) return;
+          // A click anywhere on the drawn Sun or Moon chooses it, as a click on its mark does.
+          const body = discAt({ ra: event.ra, dec: event.dec });
+          if (body) actions.chooseObject(body);
           // A click on empty sky selects that area, and its images load at once. The map stays put.
-          if (Date.now() - lastObjectClick > 250) actions.goTo({ ra: event.ra, dec: event.dec, epoch: 2026.0 }, { fly: false });
+          else actions.goTo({ ra: event.ra, dec: event.dec, epoch: 2026.0 }, { fly: false });
         }, 0);
       });
 

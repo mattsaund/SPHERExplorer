@@ -45,7 +45,7 @@ const STEPS: Step[] = [
     screen: "map",
     example: true,
     text: () =>
-      "The map went there. The yellow square is the area being studied. Drag inside the square to move it, drag its edge to resize it, or click anywhere on the map to load a new area. Close on its card ends the study.",
+      "The map went there. The yellow square is the area being studied. Drag inside the square to move it, drag its edge to resize it, or click an object or anywhere on the map to load a new area. Close on its card ends the study.",
   },
   {
     title: "The images",

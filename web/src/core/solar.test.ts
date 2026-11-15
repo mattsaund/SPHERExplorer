@@ -2,7 +2,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
 import { separation } from "./astro";
-import { heliocentric, solarPlaces } from "./solar";
+import { heliocentric, moonLight, solarPlaces } from "./solar";
 import { SOLAR_BODIES, SOLAR_CHECK, SOLAR_EPOCH } from "./solarBodies";
 
 /** The moment of the check as a Date. Orbits are counted on a clock 69.184 s ahead of the wall clock. */
@@ -51,5 +51,43 @@ describe("solar system places", () => {
     // At closest approach it is exactly q from the Sun.
     const near = heliocentric(visitor.orbit!, visitor.orbit!.tp);
     expect(Math.hypot(...near)).toBeCloseTo(visitor.orbit!.q, 6);
+  });
+});
+
+describe("the discs of the Sun and the Moon", () => {
+  // From JPL Horizons, seen from the center of the Earth: the Moon's lit share, its width and
+  // the Sun's in arcseconds, and the direction away from the Sun at the Moon (its PsAng).
+  const checks = [
+    { when: "2026-11-15T00:00:00Z", lit: 0.2723, moonWidth: 1770.646, sunWidth: 1939.188, awayFromSun: 80.724 },
+    { when: "2026-11-27T12:00:00Z", lit: 0.8805, moonWidth: 1982.351, sunWidth: 1944.196, awayFromSun: 273.037 },
+    { when: "2026-12-02T06:00:00Z", lit: 0.3951, moonWidth: 1873.011, sunWidth: 1945.713, awayFromSun: 292.67 },
+  ];
+
+  it("are as wide as JPL Horizons says", () => {
+    for (const check of checks) {
+      const by = Object.fromEntries(solarPlaces(new Date(check.when)).map((body) => [body.id, body]));
+      expect(by.sun.disc! * 7200, check.when).toBeCloseTo(check.sunWidth, 0);
+      // The Moon's distance comes from a short series, good to about a third of a percent.
+      expect(Math.abs(by.moon.disc! * 7200 - check.moonWidth) / check.moonWidth, check.when).toBeLessThan(0.005);
+      expect(by.jupiter.disc).toBeUndefined();
+    }
+  });
+
+  it("light the Moon as JPL Horizons says", () => {
+    for (const check of checks) {
+      const moon = solarPlaces(new Date(check.when)).find((body) => body.id === "moon")!;
+      expect(Math.abs(moon.lit! - check.lit), check.when).toBeLessThan(0.01);
+      const sunward = (check.awayFromSun + 180) % 360;
+      const off = Math.abs(((moon.sunward! - sunward + 540) % 360) - 180);
+      expect(off, check.when).toBeLessThan(1);
+    }
+  });
+
+  it("call the Moon full opposite the Sun and new beside it", () => {
+    const sun = { ra: 100, dec: 20, distance: 1 };
+    expect(moonLight({ ra: 280, dec: -20, distance: 0.00257 }, sun).lit).toBeCloseTo(1, 4);
+    expect(moonLight({ ra: 100.001, dec: 20, distance: 0.00257 }, sun).lit).toBeCloseTo(0, 4);
+    // The Sun due west of the Moon lights its western edge.
+    expect(moonLight({ ra: 110, dec: 0, distance: 0.00257 }, { ra: 80, dec: 0, distance: 1 }).sunward).toBeCloseTo(270, 3);
   });
 });

@@ -47,6 +47,9 @@
   --map-deep: #c79bff;
   --map-measure: #ffffff;
   --map-solar: #a8e6a1;
+  /* The Sun and the Moon, drawn as discs of their true size once the map is close enough. */
+  --map-sun: #ffd76a;
+  --map-moon: #d9dde3;
   --orbit-land: #3d5a45;
   --orbit-sea: #0e2233;
   --orbit-night: rgba(0, 0, 0, 0.45);

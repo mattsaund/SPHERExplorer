@@ -156,6 +156,7 @@ Checked on known objects.
 - Checked against JPL Horizons 30 days after the orbits were taken, which the unit test repeats. Every body is within 16 arcsec: the planets and small bodies mostly within 5, Venus 15, Mercury 9. The Moon is within 0.06 degree, a tenth of its own width.
 - The orbits drift from the truth over months, mostly for bodies that pass close to planets. Running the script again renews them.
 - Clicking a body shows what it is and how far it is from the Earth and the Sun right now. "Study in SPHEREx" then follows it through the images with the exact path from JPL Horizons, as for any moving target (section 5).
+- The Sun and the Moon are drawn as discs of their true size, from their radius (695,700 km and 1,737.4 km) and their distance at that moment. The Moon shows its lit share and the bright edge faces the Sun (Meeus, Astronomical Algorithms, chapter 48). Checked against JPL Horizons at three moments, which the unit test repeats: the widths agree to half a percent, the lit share to one point in a hundred, and the Sun's direction to one degree. The discs are drawings over the map, not survey images.
 - A studied body has two marks, and they mean different things. The green diamond is where it is right now. The yellow square is where it was when the image on screen was taken, with the name and that date written on it. The square moves along the body's path as the film plays, and the map follows it when it leaves the view.
 
 ## 16. The sky map's overlays and measure tool

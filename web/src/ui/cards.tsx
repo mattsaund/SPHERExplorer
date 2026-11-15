@@ -3,7 +3,7 @@
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
-import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, fieldCenter, fieldDate, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
+import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, fieldCenter, fieldDate, isStudied, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
 import { copyText } from "./copy";
 
 /** Points down. Turns up while the thing it belongs to is open (see app.css). */
@@ -80,8 +80,14 @@ export function AreaCard({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Facts about an object chosen on the sky map. `onStudy` runs after its images are asked for. */
-export function ObjectCard({ object, onStudy }: { object: SkyObject; onStudy: () => void }) {
+/**
+ * Facts about an object chosen on the sky map. A click on a star or galaxy also makes it the
+ * study at once, with the view box around it. Then "Close" ends that study, and `onClose`
+ * runs so the page can put the image study away. `onStudy` runs after images are asked for.
+ */
+export function ObjectCard({ object, onStudy, onClose }: { object: SkyObject; onStudy: () => void; onClose: () => void }) {
+  const studied = useStore((s) => isStudied(s, object));
+  const fieldSize = useStore((s) => s.fieldSize);
   const solar = object.solar;
   if (solar) {
     // A body of the solar system. Its place on the map is where it is right now, and studying
@@ -94,6 +100,7 @@ export function ObjectCard({ object, onStudy }: { object: SkyObject; onStudy: ()
         <p className="mono">{coordinates(object)}</p>
         <p>
           Right now: {formatAu(solar.earth)} from Earth{solar.sun > 0 && `, ${formatAu(solar.sun)} from the Sun`}.
+          {solar.lit !== undefined && ` ${Math.round(solar.lit * 100)}% of its face is lit.`}
         </p>
         <div className="row wrap">
           {query && <button className="primary" onClick={() => { void actions.search(query); onStudy(); }}>Study in SPHEREx</button>}
@@ -110,10 +117,16 @@ export function ObjectCard({ object, onStudy }: { object: SkyObject; onStudy: ()
       <p className="mono">{coordinates(object)}</p>
       {object.distance && <p>Distance: {formatDistance(object.distance)}, {distanceMethod(object.distance.method)}</p>}
       {object.refs != null && <p className="muted">Mentioned in {object.refs.toLocaleString("en-US")} papers</p>}
+      {studied && <p>{Number((fieldSize / 60).toFixed(1))} arcminutes across</p>}
       <div className="row wrap">
-        <button className="primary" onClick={() => { actions.studyObject(object); onStudy(); }}>Study in SPHEREx</button>
+        {!studied && <button className="primary" onClick={() => { actions.studyObject(object); onStudy(); }}>Study in SPHEREx</button>}
         <a className="button" href={object.url} target="_blank" rel="noreferrer">Full details</a>
-        <button onClick={() => actions.selectObject(null)}>Close</button>
+        {studied && <CopyButton text={coordinates(object)} label="Copy Coordinates" />}
+        {studied ? (
+          <button onClick={() => { actions.closeStudy(); onClose(); }} title="Close the image study and take the square off the map">Close</button>
+        ) : (
+          <button onClick={() => actions.selectObject(null)}>Close</button>
+        )}
       </div>
     </section>
   );

@@ -36,6 +36,8 @@ export interface Target extends SkyPosition {
   distance?: Distance | null;
   /** A page that lists everything known about the object (SIMBAD, or JPL for solar system bodies). */
   url?: string | null;
+  /** Spectral type, when the target came from the sky map's objects. */
+  spectralType?: string | null;
   /**
    * Set for a solar system body, which is somewhere else in every image.
    * `command` is its identifier at JPL Horizons. ra and dec then hold its latest observed position.
@@ -350,9 +352,11 @@ export interface SkyObject extends SkyPosition {
   /**
    * Set for a body of the solar system, whose place on the map is where it is right now.
    * `query` is what to search for to study it in SPHEREx images, or null for the Sun and the
-   * Moon. Distances are in au.
+   * Moon. Distances are in au. The Sun and the Moon also carry the radius of their disc on the
+   * sky in degrees, and the Moon the share of its face that is lit (0 to 1) and the direction
+   * of the Sun from it (degrees from north through east), so both can be drawn as they look.
    */
-  solar?: { query: string | null; earth: number; sun: number; note: string };
+  solar?: { query: string | null; earth: number; sun: number; note: string; disc?: number; lit?: number; sunward?: number };
 }
 
 /** State of the sky map. */

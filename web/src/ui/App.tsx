@@ -21,6 +21,7 @@ import {
   formatDistance,
   formatFlux,
   formatRa,
+  isStudied,
   useStore,
   type Screen,
   type SequenceMode,
@@ -149,6 +150,7 @@ function DetailsCard() {
         <span>
           <strong>{target.name ?? "Custom position"}</strong>
           {target.kind && <span className="muted kind">, {target.kind}</span>}
+          {target.spectralType && <span className="muted kind">, type {target.spectralType}</span>}
         </span>
         <button aria-expanded={open} onClick={() => setOpen((now) => !now)} title={open ? "Fold the details away" : "Show the details"}>
           {open ? "Hide" : "Details"}
@@ -262,10 +264,13 @@ function MapPlace() {
  * The card for the sky map: an object chosen on the map, or else the selected area.
  * An object chosen on the image side is shown there, in the list of objects.
  * `onClose` runs when the selected area is closed, which also closes the image study.
+ * With both screens up, an object that is being studied gets the short selected area card,
+ * which names it. Its facts are in the details box beside it, and a tall card here would
+ * cover the object itself in the middle of the half-width map.
  */
-function MapCards({ showImages, onClose }: { showImages: () => void; onClose: () => void }) {
-  const chosen = useStore((s) => (s.map.selectedIn === "map" ? s.map.selected : null));
-  if (chosen) return <ObjectCard object={chosen} onStudy={showImages} />;
+function MapCards({ both, showImages, onClose }: { both: boolean; showImages: () => void; onClose: () => void }) {
+  const chosen = useStore((s) => (s.map.selectedIn === "map" && s.map.selected && !(both && isStudied(s, s.map.selected)) ? s.map.selected : null));
+  if (chosen) return <ObjectCard object={chosen} onStudy={showImages} onClose={onClose} />;
   return <AreaCard onClose={onClose} />;
 }
 
@@ -274,7 +279,7 @@ function MapCards({ showImages, onClose }: { showImages: () => void; onClose: ()
  * With the images alone on screen, an object chosen earlier on the map that is not in the
  * list still gets its card.
  */
-function ImageCards({ both, openTool, showImages }: { both: boolean; openTool: (id: string) => void; showImages: () => void }) {
+function ImageCards({ both, openTool, showImages, onClose }: { both: boolean; openTool: (id: string) => void; showImages: () => void; onClose: () => void }) {
   const chosen = useStore((s) => s.map.selected);
   const listed = useStore((s) => {
     const id = s.map.selected?.id;
@@ -282,7 +287,7 @@ function ImageCards({ both, openTool, showImages }: { both: boolean; openTool: (
   });
   const fromImages = useStore((s) => s.map.pickedIn === "images");
   const picked = useStore((s) => s.map.picked !== null);
-  if (chosen) return both || listed ? null : <ObjectCard object={chosen} onStudy={showImages} />;
+  if (chosen) return both || listed ? null : <ObjectCard object={chosen} onStudy={showImages} onClose={onClose} />;
   if (picked && (!both || fromImages)) return <SpotCard openTool={openTool} />;
   return null;
 }
@@ -434,7 +439,7 @@ function StatusBar({ view }: { view: ViewId }) {
         <p className="hint-text">
           {areaShown
             ? "Drag the square to move it, or drag its edge to resize it. Click anywhere else to load a new area."
-            : "Drag to move, scroll to zoom. Click a label to learn about an object, or click anywhere to load that area."}
+            : "Drag to move, scroll to zoom. Click an object, or anywhere on the sky, to load its images."}
         </p>
       )}
     </div>
@@ -620,11 +625,11 @@ export function App() {
         {view !== "map" && <BlinkControl />}
         {/* With both views up, the map's card sits over the map and the image side's over the images. */}
         {view === "both" && (
-          <div className="overlay beside-map"><MapCards showImages={showImages} onClose={() => setView("map")} /></div>
+          <div className="overlay beside-map"><MapCards both showImages={showImages} onClose={() => setView("map")} /></div>
         )}
         <div className="overlay">
-          {view === "map" && <MapCards showImages={showImages} onClose={() => setView("map")} />}
-          {view !== "map" && <ImageCards both={view === "both"} openTool={(id) => actions.setLayout({ tool: id })} showImages={showImages} />}
+          {view === "map" && <MapCards both={false} showImages={showImages} onClose={() => setView("map")} />}
+          {view !== "map" && <ImageCards both={view === "both"} openTool={(id) => actions.setLayout({ tool: id })} showImages={showImages} onClose={() => setView("map")} />}
           <Messages view={view} />
         </div>
       </main>

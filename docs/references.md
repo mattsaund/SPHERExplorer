@@ -105,6 +105,7 @@ Add the license and version when a library goes into the build.
 | IRSA coverage maps for SPHEREx (`spherex.obscore.moc.fits` and `spherex.deep_field.moc.fits`, in the IVOA MOC format) | Public | IRSA acknowledgment | Yes (the two coverage overlays on the sky map, relayed and kept for a day by the API) |
 | IMCCE SkyBoT (Paris Observatory) | Public | Berthier et al. 2006, ASP Conf. Ser. 351, 367 | Yes (known asteroids, comets, and planets in the field of an image) |
 | JPL Horizons and Small-Body Database APIs | Public | JPL Solar System Dynamics. Giorgini et al. 1996 | Yes (names and paths of planets, asteroids, and comets, and the orbits behind the solar system marks on the sky map) |
+| Illuminated fraction of the Moon and position angle of its bright limb | Published formulae | Jean Meeus, Astronomical Algorithms, 2nd edition, chapter 48. Radii: IAU 2015 Resolution B3 (nominal solar radius), NASA Moon fact sheet (mean radius) | Yes (the Sun and Moon discs on the sky map) |
 | Low-precision formulae for the Moon | Public | The Astronomical Almanac, US Naval Observatory and HM Nautical Almanac Office, section D | Yes (the Moon's place on the sky map) |
 | CelesTrak orbital elements (NORAD 63182 SPHEREx, 39089 NEOSSat, 27783 GALEX, 13777 IRAS) | Public, rate limited | CelesTrak, T.S. Kelso | Yes (live telescope map, cached by the API for three hours) |
 | Mission facts for the telescope list (launch and retirement dates, sites) | Public | Each mission's own pages: NASA, ESA, CSA, IPAC (2MASS), SDSS, STScI (DSS) | Yes (Telescopes tab) |

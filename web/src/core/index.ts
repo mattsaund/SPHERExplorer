@@ -51,7 +51,7 @@ export { TEST_TARGETS } from "./targets";
 export { COLOR_MAPS } from "./colormaps";
 export { distanceMethod, formatAngle, formatAu, formatDate, formatDec, formatDistance, formatMonth, formatRa, mjdToDate, mjdToYear, parseCoordinates } from "./astro";
 export { formatWavelength } from "./sequence";
-export { fieldCenter, fieldDate } from "./field";
+export { fieldCenter, fieldDate, isStudied } from "./field";
 export { FrameView } from "./FrameView";
 export { SpectrumPlot } from "./SpectrumPlot";
 export { Timeline } from "./Timeline";

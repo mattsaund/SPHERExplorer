@@ -2,7 +2,7 @@
 // asteroid, or comet has a new place in every image, so its field moves with the film.
 // Written with Claude Code (Anthropic) assistance.
 import type { AppState } from "./store";
-import type { SkyPosition } from "./types";
+import type { SkyObject, SkyPosition } from "./types";
 
 type Study = Pick<AppState, "target" | "frames" | "sequence" | "player">;
 
@@ -27,6 +27,15 @@ export function mapHome(state: Study): SkyPosition | null {
   const target = state.target;
   if (!target) return null;
   return target.moving ? state.frames[0]?.center ?? null : target;
+}
+
+/**
+ * True when an object from the sky map is the target of the study: the same name at the same
+ * place. A click on its label made it the study, and its card stays up while it is.
+ */
+export function isStudied(state: Pick<AppState, "target">, object: SkyObject): boolean {
+  const target = state.target;
+  return target !== null && !target.moving && target.name === object.name && target.ra === object.ra && target.dec === object.dec;
 }
 
 /** The date of the image on screen, as a Modified Julian Date. Null before any image is found. */

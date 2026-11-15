@@ -5,6 +5,7 @@ import { ApiError, getKnown, getMeta, getMissions, getNeossat, getObjects, getSp
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
+import { isStudied } from "./field";
 import { COLOR_PRESETS } from "./colorBands";
 import { exportAllFits, exportAnimation, exportChanges, exportFits, exportImage, exportLightCurve, exportSpectrum } from "./export";
 import { spectrumFeatures } from "./features";
@@ -349,6 +350,7 @@ async function load(target: Target, fieldSize: number, fly = true): Promise<void
   abort = new AbortController();
   const signal = abort.signal;
   const mine = ++generation;
+  const chosen = get().map.selected;
   pause();
   clearPixels();
   set({
@@ -358,8 +360,8 @@ async function load(target: Target, fieldSize: number, fly = true): Promise<void
     targetState: "loading",
     // The picked area has become the field being studied, or been left behind. The map now
     // shows the field's own square. The study is the one thing selected, so an object chosen
-    // before it is let go of.
-    map: { ...get().map, picked: null, selected: null, fieldShown: true },
+    // before it is let go of, unless that object is what is being studied.
+    map: { ...get().map, picked: null, selected: chosen && isStudied({ target }, chosen) ? chosen : null, fieldShown: true },
   });
 
   // A solar system body has no fixed field, so there are no field objects or survey matches to fetch.
@@ -1064,7 +1066,7 @@ export const actions = {
       session: generation,
       target: null,
       targetState: "idle",
-      map: { ...get().map, picked: null, fieldShown: false },
+      map: { ...get().map, picked: null, selected: null, fieldShown: false },
     });
   },
 
@@ -1104,8 +1106,21 @@ export const actions = {
     }
   },
 
-  /** Study a known object in SPHEREx images, following its motion. */
-  studyObject(object: SkyObject): void {
+  /**
+   * A click on an object on the sky map. A star, a galaxy, or anything else that stays put
+   * becomes the study at once, with its view box around it, as a click on empty sky does
+   * (Matt's decision). Its card shows its facts and the map stays put. A body of the solar
+   * system only shows its card, because its images are somewhere else on the sky.
+   */
+  chooseObject(object: SkyObject): void {
+    actions.selectObject(object);
+    // Already the study, or a body that moves: the card is all there is to do.
+    if (object.solar || isStudied(get(), object)) return;
+    actions.studyObject(object, { fly: false });
+  },
+
+  /** Study a known object in SPHEREx images, following its motion. `fly` false leaves the map where it is. */
+  studyObject(object: SkyObject, options: { fly?: boolean } = {}): void {
     actions.goTo({
       name: object.name,
       ra: object.ra,
@@ -1118,7 +1133,8 @@ export const actions = {
       source: "SIMBAD",
       distance: object.distance,
       url: object.url,
-    });
+      spectralType: object.spectralType,
+    }, options);
   },
 
   /** Used by the map to report its state. */

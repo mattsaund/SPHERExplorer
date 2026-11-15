@@ -43,16 +43,16 @@ gcloud run deploy spherexplorer \
   --source . \
   --region us-east4 \
   --allow-unauthenticated \
-  --execution-environment gen2 \
-  --memory 4Gi --cpu 4 --cpu-boost \
-  --concurrency 40 --min-instances 0 --max-instances 2 \
+  --execution-environment gen1 \
+  --memory 4Gi --cpu 2 --cpu-boost \
+  --concurrency 40 --min-instances 0 --max-instances 3 \
   --timeout 300 \
-  --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=4
+  --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=2
 ```
 
 The first deploy offers to create a `cloud-run-source-deploy` repository for the built images. Answer Y. Cloud Build then runs the `Dockerfile`, which takes several minutes, and the command prints the public address.
 
-- `--execution-environment gen2`, `--cpu 4`, `--memory 4Gi`, and `--max-instances 2` are explained under "Size" below.
+- `--execution-environment gen1`, `--cpu 2`, `--memory 4Gi`, and `--max-instances 3` are explained under "Size" below.
 - `--cpu-boost` gives a starting instance more processor until it is ready, which shortens a cold start.
 - `--min-instances 1` keeps one instance always running. Then nobody meets a cold start, and the images of a target someone has opened stay in memory for the next visitor. It costs money all day, so use it for the judging weeks (early December through January 26) and go back to 0 after.
 
@@ -137,7 +137,7 @@ All optional. Set with `--set-env-vars NAME=value`.
 | `SPX_INDEX_SEED` | set in the container | A copy of the exposure index inside the image, so a new instance can search at once |
 | `SPX_CACHE_DIR` | `/tmp/spherexplorer` | Where file layouts, calibration tables, and color tiles are kept |
 | `SPX_CACHE_MAX_MB` | 300 in the container | Ceiling on that folder. Cloud Run keeps `/tmp` in memory, so it must stay small. The oldest files go first |
-| `SPX_CPUS` | what the container can see, and 4 on the live site | Processors the server may use, for sizing its compute threads. Cloud Run shows a container more processors than it allows, so `deploy.yml` sets this beside `--cpu`. Keep the two equal |
+| `SPX_CPUS` | what the container can see, and 2 on the live site | Processors the server may use, for sizing its compute threads. Cloud Run shows a container more processors than it allows, so `deploy.yml` sets this beside `--cpu`. Keep the two equal |
 | `SPX_FRAME_CACHE_MB` | 256, and 1024 on the live site | Memory for finished frames, so a target someone has opened reloads at once. A 5 arcminute frame takes about 8 kB and a 30 arcminute frame about 200 kB, so one 30 arcminute load of 380 images is about 80 MB |
 
 ## What starts cold
@@ -200,16 +200,16 @@ Processor times are from a development machine. The live instance takes three to
 
 ## Size
 
-Matt chose these on Nov 14, after loads of larger fields were slow on the live site. `deploy.yml` sets them on every deploy.
-
-Measured after the change, on Nov 15: small fields load about a third faster, and large fields no faster. The instance's network limit binds before its processors do (see "Speed"). Two processors would do the same work at half the price per second, and four instances of that size would carry twice the traffic of two. Going back to 2 processors and 4 instances is open for Matt to decide.
+`deploy.yml` sets these on every deploy. Matt asked on Nov 15 for the best size that costs no more.
 
 | Setting | Value | Why |
 |---|---|---|
-| `--execution-environment gen2` | second generation | Google's newer runtime has the faster processor and network. A first load is mostly reading the archive, so that is where the time goes. It costs the same as the first generation and starts a little slower |
-| `--cpu 4` | 4 processors | One target's reads and math run on every processor at once. Measured: a first load only uses about 1.3 of them, because the network limit binds first |
-| `--memory 4Gi` | 4 GB | Room for a larger frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready |
-| `--max-instances 2` | 2 instances | Keeps the worst-case cost where four 2-processor instances had it. It also means a returning visitor more often meets the instance that holds their images. Each instance has its own network limit, so two instances carry half the traffic that four would |
+| `--cpu 2` | 2 processors | A first load uses about 1.3 of them, because the instance's network limit binds first (see "Speed"). Four were tried on Nov 14 and 15: large fields loaded no faster, and every busy second cost twice as much |
+| `--memory 4Gi` | 4 GB | Room for 1024 MB of frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready. Memory costs a tenth of what a processor does |
+| `--max-instances 3` | 3 instances | Each instance has its own network limit, so three carry half again the traffic of the two larger ones before. At the worst they cost $15 a day, less than the $18 of either size before |
+| `--execution-environment gen1` | first generation | It starts a new instance sooner, which is what a visitor to a quiet site waits for. The second generation was live on Nov 14 and 15: it read the archive no faster, and a request that found no instance running waited 6.1 s |
+
+History: 2 processors, 2 GB, and 4 instances until Nov 14. Then 4 processors, 4 GB, 2 instances, and the second generation until Nov 15.
 
 Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on is a decision for Matt and Austin.
 
@@ -228,7 +228,7 @@ What is in place.
 - The container runs as a user with no rights, from a fixed installer version, with nothing private in its build context.
 - `.gitignore` keeps keys, tokens, environment files, and cloud credentials out of the repository. The history was scanned and holds none. GitHub's secret scanning and push protection are on.
 - `npm audit` reports no known vulnerabilities in the web app's libraries.
-- `--max-instances 2` caps what a flood of requests can cost.
+- `--max-instances 3` caps what a flood of requests can cost.
 
 For Matt or Austin to switch on, since they are account settings.
 
@@ -240,11 +240,11 @@ For Matt or Austin to switch on, since they are account settings.
 
 These are rough figures from Google's list prices. Check https://cloud.google.com/run/pricing before relying on them.
 
-- An instance is billed per second that it is handling a request, for its 4 processors and 4 GB. Idle time costs nothing.
-- The free tier covers about 12.5 busy hours a month of one instance. A faster instance finishes a load sooner, so one load costs about the same as it did on 2 processors.
-- Past that, each busy instance costs about $0.38 an hour.
-- Both instances busy around the clock would cost about $18 a day. The budget alert is there for that case.
-- `--min-instances 1` removes the cold start for judges. One instance is then billed around the clock at the idle rate, about $1.73 a day.
+- An instance is billed per second that it is handling a request, for its 2 processors and 4 GB. Idle time costs nothing.
+- The free tier covers about 25 busy hours a month of one instance.
+- Past that, each busy instance costs about $0.21 an hour. A 30 arcminute first load, about 21 seconds, costs about a tenth of a cent.
+- All three instances busy around the clock would cost about $15 a day. The budget alert is there for that case.
+- `--min-instances 1` removes the cold start for judges. One instance is then billed around the clock at the idle rate, about $1.30 a day.
 - Data sent to visitors is billed apart, at about $0.12 per GB after the first GB each month.
 - The trial credit pays for all of it. If the credit ran out, Google would stop the site, not charge the card.
 

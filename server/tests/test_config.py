@@ -1,6 +1,7 @@
 # The processor count the server sizes its thread pools from.
 # Written with Claude Code (Anthropic) assistance.
 
+import importlib
 import os
 
 from spherex_api import config
@@ -42,3 +43,18 @@ def test_the_older_layout_is_read_too(tmp_path):
 def test_nonsense_in_the_files_is_ignored(tmp_path):
     (tmp_path / "cpu.max").write_text("soon\n")
     assert config.usable_cpus(str(tmp_path)) == machine()
+
+
+def test_a_count_stated_by_the_deploy_wins(monkeypatch):
+    # Cloud Run does not show its limit to the container, so the deploy states it.
+    try:
+        monkeypatch.setenv("SPX_CPUS", "3")
+        assert importlib.reload(config).CPUS == 3
+        # Nonsense, or zero, falls back to what the container can see.
+        monkeypatch.setenv("SPX_CPUS", "many")
+        assert importlib.reload(config).CPUS == machine()
+        monkeypatch.setenv("SPX_CPUS", "0")
+        assert importlib.reload(config).CPUS == machine()
+    finally:
+        monkeypatch.delenv("SPX_CPUS", raising=False)
+        importlib.reload(config)

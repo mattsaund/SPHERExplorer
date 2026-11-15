@@ -44,6 +44,21 @@ For slides, the guide asks for at most seven slides, including the title and int
 - The file's title, comment, and description metadata carry the SI statement.
 - If the site changes before the upload, capture and render again.
 
+The on-screen text follows Matt's direction of Nov 15: science, not a sales pitch. It is technical, in the proper terms, and short, and each line says what its shot shows. The line of the second scene is his own words. The names are in full, as he asked.
+
+| Seconds | Shot | On-screen text |
+|---|---|---|
+| 0 to 2.25 | Team card | Turing Complete. Matthew Saunders and Austin Laubach. NASA Space Apps Challenge 2026 |
+| 2.25 to 5.25 | The sky map in SPHEREx color | Planet X and SPHEREx. "SPHEREx images to understand object movement in the sky" |
+| 5.25 to 8.5 | The whole app | SPHERExplorer. "Time-domain viewer for SPHEREx Level 2 spectral images" |
+| 8.5 to 11.25 | A name typed into Find | "Query by name, or by RA and Dec (J2000)" |
+| 11.25 to 14 | WISE 0855 by visit | "Proper motion of WISE 0855, a brown dwarf 2.3 parsecs away" |
+| 14 to 16.5 | Haumea through a year | "Dwarf planet Haumea, tracked on its JPL Horizons ephemeris" |
+| 16.5 to 19.25 | The spectrum of Epsilon Indi B | "Water and methane absorption in Epsilon Indi B, 0.75 to 5 µm" |
+| 19.25 to 22 | Blink on Barnard's Star | "Compared with WISE (2010), 2MASS, Gaia DR3, and NEOSSat" |
+| 22 to 26.5 | Four fields in a grid | "Brown dwarfs, high proper motion stars, comets, and nebulae", then "New SPHEREx exposures are indexed twice a week" |
+| 26.5 to 29 | End card | spherexplorer.earth. Open source, Apache-2.0. Credits. "Independent project. Not endorsed by NASA." |
+
 ## The backup: a slide deck
 
 Seven slides, drafted with Claude as a slide artifact, with real screenshots of the live site taken on Nov 15.
@@ -76,7 +91,7 @@ SPHERExplorer: explore SPHEREx images of the sky and how they change over time.
 Try it: https://spherexplorer.earth
 Code, Apache-2.0: https://github.com/mattsaund/SPHERExplorer
 
-Team Turing Complete (Matt and Austin). NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
+Team Turing Complete (Matthew Saunders and Austin Laubach). NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
 
 This video is SI-generated. It was built from code with Claude Code (Anthropic), from real captures of the SPHERExplorer web tool. Every picture of the sky in it is real data, shown the way the tool shows it. The video has no sound.
 

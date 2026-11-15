@@ -1,5 +1,7 @@
 # Challenge, rules, and judging
 
+A snapshot from November 2026. Recheck anything time-sensitive against the live services.
+
 Sources: the challenge page, the 2026 Project Submission Guide, the 2026 Judging and Awards Guide, the Participant FAQ, Space Apps Connect (GitHub Discussions), and the Global Offers page.
 
 ## Challenge

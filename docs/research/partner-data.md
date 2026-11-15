@@ -1,5 +1,7 @@
 # Partner data and other resources from the challenge page
 
+A snapshot from November 2026. Recheck anything time-sensitive against the live services.
+
 ## CSA NEOSSat (Space Agency Partner data)
 
 - Canada's Near-Earth Object Surveillance Satellite. Launched Feb 25, 2013, into an orbit about 780 km up with a 100-minute period.

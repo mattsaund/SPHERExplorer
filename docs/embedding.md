@@ -4,14 +4,12 @@ Every view of SPHERExplorer has an address. Put coordinates in the address and t
 
 The address bar follows what is on screen. Copy it, or use "Copy link" under Save and share, and the link reopens the same view: the same image, zoom, brightness, tool, and map.
 
-`<site>` below stands for the address of the live site.
-
 ## Link to a place
 
 ```
-<site>/?ra=133.795129&dec=-7.245147
-<site>/?ra=08h55m10.831s&dec=-7d14m42.53s
-<site>/?target=Barnard's Star
+https://spherexplorer.earth/?ra=133.795129&dec=-7.245147
+https://spherexplorer.earth/?ra=08h55m10.831s&dec=-7d14m42.53s
+https://spherexplorer.earth/?target=Barnard's Star
 ```
 
 - `ra` and `dec` are J2000 (ICRS). Plain numbers are degrees. Any form the search box reads also works, such as `08h55m10.8s`, `08:55:10.8`, or `-07d14m42s`.
@@ -78,7 +76,7 @@ A link made by the tool also carries these. Each is left out while it is at its 
 
 ## Use the data API from another project
 
-The API under `<site>/api/` allows requests from any site. `<site>/api/docs` lists every route.
+The API under `https://spherexplorer.earth/api/` allows requests from any site. `https://spherexplorer.earth/api/docs` lists every route.
 
 | Route | Returns |
 |---|---|

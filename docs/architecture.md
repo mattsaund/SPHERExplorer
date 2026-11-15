@@ -1,16 +1,16 @@
 # Architecture
 
-The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this file. Propose changes in a pull request.
+How SPHERExplorer is built and why: its parts, the data flow, and the contract between the engine and the interface. The concept it serves is in `docs/concept.md`.
 
 ## Shape
 
-| Part | What it is | Owner |
-|---|---|---|
-| `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. | Matt |
-| `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. | Matt |
-| `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. | Austin. Matt adds wiring for new engine tools |
-| `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. | Shared. Say so in the pull request before changing them. |
-| `docs/` | Team docs. | Shared |
+| Part | What it is |
+|---|---|
+| `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. |
+| `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. |
+| `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. |
+| `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. |
+| `docs/` | Documentation for users and developers, and the hackathon record. |
 
 ## Why this design
 
@@ -30,7 +30,7 @@ The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this
 | State | Zustand | Tiny. Components subscribe to slices, so sliders don't redraw the page. |
 | Frame rendering | WebGL2 on a canvas, written in `core` | Blink at 60 fps, stretch and color on the GPU. |
 | Sky map | Aladin Lite v3 (CDS), loaded from npm | HiPS, projections, catalogs. NASA lists it as a suggested tool. |
-| Hosting | Google Cloud (Austin's decision). One Cloud Run container serves the API and the site. Live address and setup in `docs/deploy.md`. | Scales to zero. Credit covers judging. |
+| Hosting | Google Cloud. One Cloud Run container serves the API and the site. Live address and setup in `docs/deploy.md`. | Scales to zero. Credit covers judging. |
 
 Dependencies stay few. Every new one goes in `docs/references.md` in the same commit.
 
@@ -57,28 +57,6 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 - The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
 - Types. Everything exported from `core/types.ts`.
 
-## The page layout
-
-One full screen between a top bar and a bottom bar. Both bars expand. Austin's side designed it.
-
-| Part | File | Holds |
-|---|---|---|
-| Top bar | `ui/App.tsx`, `ui/SearchBox.tsx` | Name, search box with suggestions, the switch between sky map, images, and both, and the settings drawer |
-| Settings drawer | `ui/settings.tsx` | Every setting in two halves: the sky map's on the left, the image study's on the right. The line between them sits where the line between the two views is, and nothing changes place when the view changes |
-| Stage | `ui/App.tsx` | The sky map, the image viewer, or both side by side on a wide screen. Both stay mounted while hidden. A details card sits in the corner of the images: name, kind, distance, the link to everything known about the target, and the image on screen. Boxes for clicked objects, spots, and messages lie over the stage |
-| Status line | `ui/App.tsx` | Progress on the left, the pointer readout or map help on the right. Fixed height |
-| Player | `ui/App.tsx` | Play, step, scrub, speed, and what to play. In the bottom bar while the images are on screen, and put away with them |
-| Tool dock | `ui/tools.tsx` | Tabs that open upward: graphs (spectrum, brightness over time, timeline), studies (measure changes, measure movement), telescopes (live map, facts, other telescopes' images of the field), save and share, about. Only the open tool is on the page |
-
-- A new tool usually needs one component and one entry in `TOOLS` in `ui/tools.tsx`.
-- `ui/ChangesPanel.tsx`, `ui/FeaturesList.tsx`, and `ui/SearchBox.tsx` are self-contained pieces with their own style files.
-- `ui/Embed.tsx` is the compact layout used when the address holds `embed=1`.
-- A new study, from a search or a click on the map, brings the images up beside the map on a wide screen (the Both view). The sky map centers on the target and shows its yellow square. A narrow screen keeps its view, and the status line says where the images are.
-- `ui/cards.tsx` holds the cards laid over the stage. On the map: the selected area (Copy Coordinates, Close) or an object chosen on the map. A click on the map selects an area and loads it at once. A click on an object's label does the same for that object, and its card shows its facts. That holds for a planet, asteroid, or comet too. Its square starts on its marker and the map does not move. Playing the film then sends the square along the body's path. The Sun and the Moon have no images, so they only show their card. Close ends the study, removes the square, and puts the image study away. Along the top of the images: one list of every object in the field on the left, folded at first, and the details box on the right. A spot clicked in the images gets its own card.
-- The lower left of the map shows the coordinates under the pointer and at the center, with a Copy button, and the measured angle while the measure tool is on.
-- NASA's test targets are in the Find dropdown and in the image view before a target is chosen.
-- Space plays and pauses. The left and right arrows step.
-
 Rules for both sides.
 
 - `core` never imports from `ui`. `ui` never calls `fetch` or the server directly.
@@ -87,38 +65,6 @@ Rules for both sides.
 - UI-only state (open panels, theme, tips) lives in `ui`. The exception is which screen is up and which tool is open: the UI owns them but keeps them in the engine (`layout`, `actions.setLayout`), so that a link can carry them.
 - A redesign must keep every tool. `docs/ui-checklist.md` is the list, and CI enforces it.
 
-## UI rules (from the team concept)
+## The page layout
 
-- Sans-serif, highly readable. No glow, bloom, neon, or gradients for effect.
-- A child or an older adult can use it. Large targets, plain words, visible labels, keyboard access.
-- Fast. No layout shift while frames load. No blocking spinners over the whole page.
-- Works on a phone and on a projector.
-
-## Build order
-
-NASA's stated objectives come first. Each step lands on `main` working.
-
-1. Search, cutout stream, and the frame player with the five test targets.
-2. The 102 bands: detector sums, epoch stacks, and the spectrum plot.
-3. Change tools: wavelength-matched blink, differences, motion and brightness tracking.
-4. The sky map: SPHEREx all-sky channels, other missions, clickable annotations, projections.
-5. Solar system objects and the spacecraft view.
-6. Links that carry the full view, export, help, and deployment.
-
-## Run it
-
-```sh
-# API on port 8000. On first start it downloads the exposure index (12 MB).
-cd server && uv sync && uv run uvicorn spherex_api.main:app --reload --port 8000
-
-# Web on port 5173. It proxies /api to port 8000.
-cd web && npm install && npm run dev
-```
-
-Checks before a pull request.
-
-```sh
-cd server && uv run pytest
-cd web && npm run typecheck && npm test && npm run build
-python3 scripts/check_text.py
-```
+The layout, the cards, and how the page behaves are described in `docs/interface.md`.

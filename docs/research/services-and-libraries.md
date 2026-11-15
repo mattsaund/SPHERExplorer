@@ -1,5 +1,7 @@
 # Services and libraries
 
+A snapshot from November 2026. Recheck anything time-sensitive against the live services.
+
 CORS was tested with the header `Origin: https://example.com`.
 
 ## CDS outage (check this first)

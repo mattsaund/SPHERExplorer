@@ -75,10 +75,6 @@ SPHEREx DOIs: DR1 Spectral Images [10.26131/IRSA678](https://doi.org/10.26131/IR
 
 Every other source, library, and license is listed in [docs/references.md](docs/references.md).
 
-## Disclaimer
-
-SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
-
 ## License
 
 [Apache License 2.0](LICENSE). Third-party data and libraries keep their own licenses, listed in [docs/references.md](docs/references.md).

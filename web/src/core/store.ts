@@ -14,7 +14,7 @@ import { spectrumFeatures } from "./features";
 import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
-import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
+import { famousMatch, loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
 import { CHANGE_LEVELS, LEVELS, MAP_NEAR, MAX_FIELD, MIN_FIELD, buildLink, embedSnippet, parseLink, stepNear, type LinkState } from "./url";
 import type { BlinkChoice, BlinkState, DisplaySettings, Filters, Frame, Hover, KnownCheck, Layout, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
@@ -803,7 +803,17 @@ export const actions = {
     }
     set({ targetState: "loading", error: null, notice: null });
     try {
-      const found = await resolveName(query);
+      let found: Awaited<ReturnType<typeof resolveName>>;
+      try {
+        found = await resolveName(query);
+      } catch (error) {
+        // The catalogs do not know the name. It may still be a name people use for a
+        // well-known object, such as "Pillars of Creation" for part of the Eagle Nebula.
+        const known = error instanceof ApiError && error.status === 404 ? famousMatch(query) : null;
+        if (!known) throw error;
+        found = await resolveName(known[0]);
+        set({ notice: `No catalog lists "${query}" by that name. Showing ${known[1]}, which holds it.` });
+      }
       if ("moving" in found && found.moving === true) {
         // A planet, asteroid, or comet. Its position is filled in from the images that caught it.
         actions.goTo({ name: found.name, kind: found.kind, ra: 0, dec: 0, epoch: 2026.0, source: "JPL Horizons", url: found.url, moving: { command: found.command } }, options);

@@ -40,7 +40,10 @@ export async function fitsArchive(request: CutoutRequest, signal?: AbortSignal):
 }
 
 /** An error with a message fit to show a person. */
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  /** The HTTP status of the answer, when the server gave one. 404 means the thing asked for does not exist. */
+  status?: number;
+}
 
 /** Fetch JSON from our API. Failures become an ApiError with words fit to show a person. */
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
@@ -53,7 +56,9 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   }
   if (!response.ok) {
     const detail = await response.json().then((body) => body.detail as string, () => "");
-    throw new ApiError(detail || `The server answered with an error (${response.status}).`);
+    const error = new ApiError(detail || `The server answered with an error (${response.status}).`);
+    error.status = response.status;
+    throw error;
   }
   return response.json() as Promise<T>;
 }

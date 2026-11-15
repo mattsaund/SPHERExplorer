@@ -7,6 +7,7 @@ import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
 import { isStudied } from "./field";
 import { COLOR_PRESETS } from "./colorBands";
+import { BASE_PIXELS, pixelBudget, thisDevice } from "./device";
 import { exportAllFits, exportAnimation, exportChanges, exportFits, exportImage, exportLightCurve, exportSpectrum } from "./export";
 import { spectrumFeatures } from "./features";
 import { clearPixels, imageOf, setPixels } from "./pixels";
@@ -128,8 +129,6 @@ function openingLayout(): Layout {
   return { screen: link?.view ?? (study ? "both" : "map"), tool: link?.tool ?? null };
 }
 
-/** Most image pixels held for one target. About 120 MB as received, more once sums are built. */
-const PIXEL_BUDGET = 6e7;
 /** Always load at least this many images, however wide the field. */
 const MIN_FRAMES = 60;
 
@@ -342,14 +341,41 @@ function emptyStudy(): Partial<AppState> {
 }
 
 /**
+ * Counts every time the film is moved on purpose: a seek, a step, Play, or a new way of
+ * playing. A reload looks at it to tell whether the person has moved on while it was loading.
+ * The player's own index is no guide, because it shifts as earlier images arrive.
+ */
+let filmMoves = 0;
+
+/** An image of the film, named by its time and wavelength the way a link names it. */
+interface Place {
+  time?: number;
+  wavelength?: number;
+}
+
+/**
+ * The image on screen, so that a reload of the same target can come back to it. Null at the
+ * first image, where a reload starts anyway.
+ */
+function placeInFilm(): Place | null {
+  const { sequence, player, mode } = get();
+  const step = sequence[player.index];
+  if (!step || player.index === 0) return null;
+  // A sum per wavelength is known by its wavelength. Its mean time means nothing.
+  return { time: mode === "channels" ? undefined : step.mjd, wavelength: step.wavelength };
+}
+
+/**
  * Start a study: find every image of the target, then stream them in. A newer call cancels an
  * older one. `fly` false keeps the map from moving to a body whose place is found only now.
+ * `place` is the image to come back to once the images are in, for a reload of the same target.
  */
-async function load(target: Target, fieldSize: number, fly = true): Promise<void> {
+async function load(target: Target, fieldSize: number, fly = true, place: Place | null = null): Promise<void> {
   abort?.abort();
   abort = new AbortController();
   const signal = abort.signal;
   const mine = ++generation;
+  const movesAtStart = filmMoves;
   const chosen = get().map.selected;
   pause();
   clearPixels();
@@ -453,10 +479,12 @@ async function load(target: Target, fieldSize: number, fly = true): Promise<void
     });
     if (!frames.length) return;
 
-    // A wide field times thousands of images is more than a phone can hold. Past the budget,
+    // A wide field times thousands of images is more than a computer can hold. Past the budget,
     // load an even sample across time, which keeps every visit and every wavelength represented.
+    // A bigger computer has a bigger budget. A viewer embedded in another page keeps the smallest.
     const perFrame = (fieldSize / (get().meta?.pixelScale ?? 6.15)) ** 2 * 2;   // the cutout is padded for rotation
-    const budget = Math.max(MIN_FRAMES, Math.floor(PIXEL_BUDGET / perFrame));
+    const pixels = get().embed ? BASE_PIXELS : pixelBudget(thisDevice());
+    const budget = Math.max(MIN_FRAMES, Math.floor(pixels / perFrame));
     let wanted = frames;
     if (frames.length > budget) {
       const stride = frames.length / budget;
@@ -499,7 +527,11 @@ async function load(target: Target, fieldSize: number, fly = true): Promise<void
     );
     if (timer) clearTimeout(timer);
     flush();
-    if (mine === generation) set({ framesState: "ready" });
+    if (mine !== generation) return;
+    set({ framesState: "ready" });
+    // A reload of the same target (a new field size, or "Try again") comes back to the image
+    // that was on screen. If the person has moved the film while it loaded, it is left alone.
+    if (place && filmMoves === movesAtStart) actions.seek(stepNear(get().sequence, get().mode, place.time, place.wavelength));
   } catch (error) {
     if (mine !== generation || (error as Error).name === "AbortError") return;
     const message = error instanceof ApiError ? error.message : "Something went wrong while loading images.";
@@ -803,18 +835,23 @@ export const actions = {
   setFieldSize(arcsec: number, reload = true): void {
     const fieldSize = Math.min(3600, Math.max(60, Math.round(arcsec)));
     if (fieldSize === get().fieldSize && !reload) return;
+    const place = placeInFilm();
+    const found = get().frames.length > 0;
     set({ fieldSize });
     const target = get().target;
-    if (target && reload) void load(target, fieldSize);
+    // The film comes back to the image that was on screen, and the map stays where it is.
+    if (target && reload) void load(target, fieldSize, !found, place);
   },
 
-  /** Load the current target again. */
+  /** Load the current target again. The film comes back to the image that was on screen. */
   reload(): void {
     const target = get().target;
-    if (target) void load(target, get().fieldSize);
+    // After a first load that found nothing, the map has not gone to a moving body yet.
+    if (target) void load(target, get().fieldSize, get().frames.length === 0, placeInFilm());
   },
 
   setMode(mode: SequenceMode): void {
+    filmMoves++;
     set({ mode, ...resequence(undefined, mode), player: { ...get().player, index: 0 } });
   },
 
@@ -832,6 +869,7 @@ export const actions = {
 
   play(): void {
     if (get().player.playing) return;
+    filmMoves++;
     set({ player: { ...get().player, playing: true } });
     ticker = setTimeout(tick, 1000 / get().player.fps);
   },
@@ -847,6 +885,7 @@ export const actions = {
   seek(index: number): void {
     const count = get().sequence.length;
     if (!count) return;
+    filmMoves++;
     set({ player: { ...get().player, index: ((Math.round(index) % count) + count) % count } });
   },
 
@@ -972,6 +1011,7 @@ export const actions = {
 
   /** Show one exposure in the frame view, whatever the current playback mode. */
   showFrame(frameId: number): void {
+    filmMoves++;
     pause();
     const mode = "exposures";
     const next = get().mode === mode ? { sequence: get().sequence } : resequence(undefined, mode);

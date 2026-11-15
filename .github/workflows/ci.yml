@@ -5,7 +5,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # dev is the branch work lands on before main, so it is checked on every push too.
+    branches: [main, dev]
   pull_request:
 
 # The checks only read the code. They never write to the repository.

@@ -37,7 +37,7 @@ SPHERExplorer finds every public SPHEREx image of a sky position, from an object
 
 ## How it works
 
-- The API reads SPHEREx Level 2 files straight from NASA's public S3 bucket, a few kilobytes at a time. A 5 arcmin frame travels as about 8 KB, not the 65 MB file.
+- The API reads only the rows it needs from each SPHEREx Level 2 file, straight from NASA's public S3 bucket: about 1 MB of a 65 MB file for a 5 arcmin field. The frame then travels to the browser as about 8 KB.
 - Search runs on our own index of all 273,000 exposures, so it answers in milliseconds and keeps working when the archive's search service is busy.
 - The browser does the rest, with a WebGL2 viewer, sums, spectra, and plots.
 

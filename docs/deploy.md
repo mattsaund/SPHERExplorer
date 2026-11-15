@@ -147,31 +147,68 @@ The frame memory starts empty too. The first visitor to a target waits for S3. E
 
 ## Speed
 
-Measured on a development machine, on a first load of 334 images that nothing had cached. In the cloud the network is much faster, so processor time is what counts there.
+### What limits a first load
+
+- The server reads only part of each 65 MB file from the bucket: about 1 MB per image for a 5 arcminute field, 2.5 MB for 15, and 5 MB for 30. S3 serves whole rows of an image, so a wider field costs more.
+- Google caps every Cloud Run instance at 600 Mbps and 64,000 packets a second, both directions together (https://cloud.google.com/run/quotas). Measured on Nov 15, the server takes in 62 to 77 MB a second from the bucket, which is that cap.
+- At the cap the instance uses about 1.3 processors. More processors do not make a first load faster. That was measured with 2 and with 4.
+- So a first load takes as long as its bytes take to arrive: the number of images, times the megabytes per image, at about 65 MB a second.
+- The first image arrives in under half a second in every case, and the film can play while the rest come in.
+
+### Measured on the live site
+
+First loads of fields that nothing had cached, on Nov 15. Fields differ in how many images they have.
+
+| Field | Images | First image | All images | Images a second |
+|---|---|---|---|---|
+| 5 arcmin | 297 | 0.45 s | 4.4 s | 68 |
+| 15 arcmin | 301 | 0.12 s | 11.9 s | 25 |
+| 30 arcmin | 254 | 0.42 s | 20.9 s | 12 |
+
+- The same 30 arcminute field again, on the same instance: about 1 s. Finished frames stay in memory, already packed.
+- Before the reading path was rewritten on Nov 14, the same kinds of load took 6.8 s, 19 s, and 34 s, and the repeat took 11 s.
+
+### What the server does to get there
 
 | Step | Before | After | What changed |
 |---|---|---|---|
 | First call on a cold instance | 15 s | under 0.01 s | The index ships in the image instead of being downloaded |
-| Processor time for the first load | 8.1 s | 2.2 s | The bucket is no longer read with httpx, which spent most of its time rescanning its connection pool |
-| Wall time for the first load | 17 s | 6 to 11 s, set by the home network | 32 parallel reads instead of 128, which only competed with each other |
-| The same load again | 0.1 s | 0.1 s | Finished frames stay in memory |
-| Page download, first visit | 1.01 MB | 0.77 MB | Files are compressed once at build time with Brotli, not on every request |
-| Page download, later visits | 1.01 MB, revalidated | 0.02 MB | Files with a hash in their name are cached for good |
+| Processor time per image, 5 arcmin | 24 ms | 5.1 ms | The bucket is read on worker threads over plain sockets, not with httpx. Each frame is packed once and kept packed. Photometry looks at a small box only |
+| Processor time per image, 30 arcmin | 36 ms | 23 ms | The same, measured after httpx was already gone |
+| Work on the event loop per image | most of it | 1.1 to 1.7 ms | Reading and math run on threads, on every processor |
+| The same load again | 1.3 s | under 0.01 s | A finished frame is kept as the bytes that go to the browser |
+| Page download, first visit | 1.01 MB | 0.78 MB | Files are compressed once at build time with Brotli, not on every request |
+| Page download, later visits | 1.01 MB, revalidated | 0.004 MB | Files with a hash in their name are cached for good |
 
-- A first load reads about 0.9 MB from the bucket per image, because S3 only serves whole rows of an image. That is why a target's first load takes seconds and its second is instant.
-- A view of the sky map asks for its object list once, and the browser keeps the answer for an hour. Before, the page asked twice at every start. A return visit to the plain page now downloads about 4 kB.
+Processor times are from a development machine. The live instance takes three to five times as long for the same work.
+
+- A file's layout is predicted from the first file of the same release and detector, and checked against the file's own table. That saves a read per image.
+- A view of the sky map asks for its object list once, and the browser keeps the answer for an hour.
 - After a deploy, open each of NASA's five test targets once. Their images then sit in the instance's memory for everyone who follows, as long as the instance lives.
+
+### What the browser does
+
+- Sums of images are three times faster than they were and are made in the background, so the page does not freeze on a wide field. The numbers are in `docs/methods.md`, section 6.
+- A larger computer loads more images of a wide field. See `docs/methods.md`, section 18.
+
+### What would make a first load faster still
+
+- Keeping one instance running (`--min-instances 1`). Its memory then outlives quiet hours, so targets opened before stay instant. See "Cost".
+- Spreading one load over several instances, each with its own network limit. Not built. It would need the browser to split a load and the frame memory to be shared.
+- Reading less of each file is not possible without dropping the flags or part of the field.
 
 ## Size
 
 Matt chose these on Nov 14, after loads of larger fields were slow on the live site. `deploy.yml` sets them on every deploy.
 
+Measured after the change, on Nov 15: small fields load about a third faster, and large fields no faster. The instance's network limit binds before its processors do (see "Speed"). Two processors would do the same work at half the price per second, and four instances of that size would carry twice the traffic of two. Going back to 2 processors and 4 instances is open for Matt to decide.
+
 | Setting | Value | Why |
 |---|---|---|
 | `--execution-environment gen2` | second generation | Google's newer runtime has the faster processor and network. A first load is mostly reading the archive, so that is where the time goes. It costs the same as the first generation and starts a little slower |
-| `--cpu 4` | 4 processors | One target's reads and math run on every processor at once. They cost twice as much per second as 2 and finish sooner |
+| `--cpu 4` | 4 processors | One target's reads and math run on every processor at once. Measured: a first load only uses about 1.3 of them, because the network limit binds first |
 | `--memory 4Gi` | 4 GB | Room for a larger frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready |
-| `--max-instances 2` | 2 instances | Keeps the worst-case cost where four 2-processor instances had it. It also means a returning visitor more often meets the instance that holds their images |
+| `--max-instances 2` | 2 instances | Keeps the worst-case cost where four 2-processor instances had it. It also means a returning visitor more often meets the instance that holds their images. Each instance has its own network limit, so two instances carry half the traffic that four would |
 
 Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on is a decision for Matt and Austin.
 

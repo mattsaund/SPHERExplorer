@@ -12,8 +12,9 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 
 ## 2. Reading pixels
 
-- Level 2 files are 65 to 72 MB. `layout.py` maps a file with two or three small Range reads, then remembers the layout.
+- Level 2 files are 65 to 72 MB. `layout.py` maps a file with one or two small Range reads, then remembers the layout. After the first file of a release and detector, the layout of the next is predicted and checked against that file's own table of rows.
 - `cutout.py` reads only the rows it needs from IMAGE, FLAGS, and VARIANCE, and crops them. FLAGS is RICE-compressed with one tile per row, so single rows can be decompressed.
+- For a 5 arcminute field the server reads about 1 MB of each file, because S3 serves whole rows. The frame goes to the browser as about 8 KB: the image rounded to 16-bit floats, which keeps one part in two thousand and is far finer than the noise, and the flags. Both are then packed without further loss (`cutout.pack`). The server keeps finished frames in that form, so a second look costs no reading and no computing. Checked: unpacking returns the frame byte for byte. The server's own brightness fit and the FITS downloads use the archive's full 32-bit values.
 - Pixels stay in detector geometry. Each frame carries a 2x2 matrix from pixel steps to sky offsets, computed from the full TAN-SIP solution (`wcs.py`). The browser places the frame on the sky with that matrix, so pixels are resampled once, at display.
 - Checked: crops equal Astropy's read of the same file, pixel for pixel. Sky positions agree with `astropy.wcs` to 1e-6 arcsec.
 

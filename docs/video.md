@@ -8,6 +8,7 @@ The video is made by agents from code: real captures of the live site, laid out 
 
 From the project submission form, the Project Submission Guide, and `CLAUDE.md`.
 
+- Our Local Event (Bethesda, MD) needs the video uploaded and the project submitted by 4:20 pm Eastern on Sunday, Nov 15.
 - 30 seconds or less, or the project loses Global Judging. Target 28.5 s. The render script fails anything over 29.5 s.
 - A public link that needs no password, permission, or registration. YouTube, Google Drive, GitHub, OneDrive, or Dropbox. Paste the full URL, starting with `https://`. Test it in a private window.
 - English.
@@ -118,12 +119,15 @@ Sunday, Nov 15, Eastern time.
 | Time | Milestone |
 |---|---|
 | Saturday night | Scope and decisions 1 to 4 approved |
-| 11:00 am | The pipeline runs end to end with placeholder text |
-| 2:00 pm | Cut 1 with real captures and the approved text |
-| 5:00 pm | Recapture from the live site, cut 2, final sign-off |
-| 7:00 pm | Upload, private-window test, full URL in the form, Save Progress |
-| 11:00 pm | Deploys freeze |
-| 11:59 pm | Submission closes. Only the last "Submit for Judging" counts, and nothing can be edited after |
+| 9:00 am | The pipeline runs end to end with placeholder text |
+| 11:30 am | Cut 1 with real captures and the approved text |
+| 1:30 pm | Recapture from the live site, cut 2 |
+| 2:30 pm | Final sign-off |
+| 3:00 pm | Upload, private-window test |
+| 3:30 pm | Full URL in the form, every field done, Submit for Judging |
+| 4:20 pm | Our Local Event's cutoff for the video and the submission |
+| 11:00 pm | Deploys freeze. The live site keeps improving until then |
+| 11:59 pm | The global form closes. Don't resubmit after 4:20 pm unless the Local Lead allows it |
 
 ## Final checks
 

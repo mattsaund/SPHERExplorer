@@ -154,6 +154,7 @@ Measured on a development machine, on a first load of 334 images that nothing ha
 | Page download, later visits | 1.01 MB, revalidated | 0.02 MB | Files with a hash in their name are cached for good |
 
 - A first load reads about 0.9 MB from the bucket per image, because S3 only serves whole rows of an image. That is why a target's first load takes seconds and its second is instant.
+- A view of the sky map asks for its object list once, and the browser keeps the answer for an hour. Before, the page asked twice at every start. A return visit to the plain page now downloads about 4 kB.
 - After a deploy, open each of NASA's five test targets once. Their images then sit in the instance's memory for everyone who follows, as long as the instance lives.
 
 ## Memory

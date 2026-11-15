@@ -189,18 +189,26 @@ async def search(
 @app.get("/api/resolve")
 async def resolve_name(name: str = Query(min_length=1, max_length=120)):
     """Look up an object by name. Positions come back at epoch 2026.0 with motion."""
-    # "asteroid Ceres" or "comet 67P" says outright that this is a solar system body.
-    if solarsystem.PREFIX.match(name.strip()):
-        body = await solarsystem.lookup(name)
+    busy = HTTPException(503, "The name service for planets, asteroids, and comets is not answering. Try again in a moment, or enter coordinates.")
+    # "asteroid Ceres", "comet 67P", or "Halley's Comet" says outright that this is a solar system body.
+    text = name.strip()
+    if solarsystem.PREFIX.match(text) or solarsystem.COMET_SUFFIX.search(text) or solarsystem.DESIGNATION.match(text):
+        try:
+            body = await solarsystem.lookup(name)
+        except net.UpstreamError as error:
+            raise busy from error
         if body is not None:
             return {**body, "moving": True}
     found = await resolve.resolve(name)
     if found is None:
         # Not a star or galaxy. It may be a planet, an asteroid, or a comet.
-        body = await solarsystem.lookup(name)
+        try:
+            body = await solarsystem.lookup(name)
+        except net.UpstreamError as error:
+            raise busy from error
         if body is not None:
             return {**body, "moving": True}
-        raise HTTPException(404, f'No object named "{name.strip()}" was found. Check the spelling, or enter coordinates.')
+        raise HTTPException(404, f'No object named "{text}" was found. Check the spelling, or enter coordinates.')
     return found
 
 

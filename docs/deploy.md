@@ -287,6 +287,15 @@ Only verified owners of the domain can change the mappings. To make a teammate o
 
 Why domain mapping: it is free and works in `us-east4`. Google calls it a preview and does not recommend it for production because of latency, which is fine for a hackathon. Firebase Hosting was rejected because it ends every request at 60 seconds, and the service allows 300 for the `/api/cutouts` stream. A global load balancer adds about $18 a month in fixed fees. Moving to one later only changes the DNS records.
 
+## Until judging ends on Jan 26, 2027
+
+Deploys freeze on Nov 15, so these are the things that can still go wrong by themselves.
+
+- **The index refresh can switch itself off.** GitHub pauses scheduled workflows in a public repository after 60 days with no activity in it. With nothing pushed after the freeze, that falls about Jan 14. A small commit in early January, or the Enable button on the workflow's page under Actions, keeps new exposures coming in. A commit that touches only docs still deploys nothing after the freeze.
+- **The first scheduled run is Tue Nov 17.** Until one run has passed, the refresh is unproven. It can be started by hand from the Actions tab (Refresh exposure index, then Run workflow).
+- **The trial credit.** If it ran out, Google would stop the site. Billing, then Reports, shows what is left. See "Cost".
+- **The solar system marks** are good to a fraction of a degree for months. `scripts/update_solar.py` renews them, but that needs a deploy, so they stay as they are through judging.
+
 ## Check after deploying
 
 - `https://<address>/api/health` answers with `"status": "ok"`.

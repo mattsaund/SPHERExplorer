@@ -38,6 +38,12 @@ MAJOR = {
 }
 # Words people put in front of a name to say what they mean.
 PREFIX = re.compile(r"^(asteroid|comet|minor planet|dwarf planet|planet)\s+", re.I)
+# The same said after the name: "Halley's Comet", "Halley comet".
+COMET_SUFFIX = re.compile(r"('s)?\s+comet$", re.I)
+# A comet or interstellar designation at the start of a name: "1P", "67P/Churyumov-Gerasimenko",
+# "3I/ATLAS", "C/2025 N1 (ATLAS)". JPL finds the body by this part alone. Given the full
+# "1P/Halley" it also offers the asteroid 2688 Halley, and lists it first.
+DESIGNATION = re.compile(r"^(\d+[PDI]|[CPDXA]/\d{4} [A-Z]{1,2}\d*)(?=$|[/ (])", re.I)
 COMMAND = re.compile(r"^(\d{2,3}|DES=[A-Za-z0-9 /\-]+;( CAP;)?)$")
 
 
@@ -63,9 +69,42 @@ _ephemerides: dict[str, tuple[float, Ephemeris]] = {}
 _lookups: dict[str, dict | None] = {}
 
 
+def choose(matches: list[dict], wanted: str | None) -> dict:
+    """Pick one of several bodies that share a name.
+
+    JPL lists asteroids first. A comet's name has a slash in it ("1P/Halley"). Someone who
+    wrote "comet" or "asteroid" gets that kind. Otherwise a lone comet among asteroids wins,
+    because a comet such as Halley or Encke is the body people know by that name.
+    """
+    comets = [match for match in matches if "/" in str(match.get("name", ""))]
+    others = [match for match in matches if match not in comets]
+    if wanted == "comet" and comets:
+        return comets[0]
+    if wanted == "asteroid" and others:
+        return others[0]
+    if wanted is None and len(comets) == 1:
+        return comets[0]
+    return matches[0]
+
+
 async def lookup(name: str) -> dict | None:
-    """Find a solar system body by name. Returns its display name, kind, and Horizons command."""
-    text = PREFIX.sub("", name.strip())
+    """Find a solar system body by name. Returns its display name, kind, and Horizons command.
+
+    Raises net.UpstreamError when JPL cannot be reached, which is not the same as not found.
+    """
+    text = name.strip()
+    said = PREFIX.match(text)
+    wanted = None
+    if said:
+        word = said.group(1).lower()
+        wanted = "comet" if word == "comet" else "asteroid" if word in ("asteroid", "minor planet") else None
+        text = text[said.end():]
+    if COMET_SUFFIX.search(text):
+        wanted = "comet"
+        text = COMET_SUFFIX.sub("", text)
+    designation = DESIGNATION.match(text)
+    if designation:
+        text = designation.group(1)
     token = re.sub(r"\s+", " ", text.lower())
     if not token:
         return None
@@ -75,6 +114,8 @@ async def lookup(name: str) -> dict | None:
         command, label, kind = MAJOR[major]
         page = "dwarf-planets/pluto" if major == "pluto" else major
         return {"name": label, "kind": kind, "command": command, "url": f"https://science.nasa.gov/{page}/"}
+    # The kind asked for is part of the key: "comet Halley" and "asteroid Halley" differ.
+    token = f"{wanted or 'any'}|{token}"
     if token in _lookups:
         return _lookups[token]
     stored = cache.load_json("body", token)
@@ -85,11 +126,11 @@ async def lookup(name: str) -> dict | None:
         response = await net.client().get(SBDB, params={"sstr": text}, timeout=15)
         data = response.json()
         if "object" not in data and data.get("list"):
-            # Several matches. Take the first, which SBDB ranks as the best.
-            response = await net.client().get(SBDB, params={"sstr": data["list"][0]["pdes"]}, timeout=15)
+            # Several bodies share the name. Ask again for the one that was meant.
+            response = await net.client().get(SBDB, params={"sstr": choose(data["list"], wanted)["pdes"]}, timeout=15)
             data = response.json()
-    except Exception:  # noqa: BLE001 (JPL is unreachable, so this is not a "not found")
-        return None
+    except Exception as error:  # noqa: BLE001 (JPL is unreachable, so this is not a "not found")
+        raise net.UpstreamError("The JPL name service did not answer.") from error
     body = data.get("object")
     if not body:
         _lookups[token] = None

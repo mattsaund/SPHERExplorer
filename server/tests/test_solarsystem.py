@@ -64,3 +64,101 @@ def test_major_bodies_and_command_check():
     assert not solarsystem.COMMAND.match("799'; drop") and not solarsystem.COMMAND.match("x")
     with pytest.raises(ValueError):
         asyncio.run(solarsystem.ephemeris("not a body", 61000.0))
+
+
+# ---- Names that an asteroid and a comet share ------------------------------------------------
+
+class FakeJpl:
+    """Answers the small-body database the way JPL does for a handful of names."""
+
+    HALLEY = [{"pdes": "2688", "name": "2688 Halley (1982 HG1)"}, {"pdes": "1P", "name": "1P/Halley"}]
+    OBJECTS = {
+        "1P": {"fullname": "1P/Halley", "kind": "cn", "des": "1P", "spkid": "1000036", "orbit_class": {"name": "Halley-type Comet*"}},
+        "2688": {"fullname": "2688 Halley (1982 HG1)", "kind": "an", "des": "2688", "spkid": "20002688", "orbit_class": {"name": "Main-belt Asteroid"}},
+        "3I": {"fullname": "C/2025 N1 (ATLAS)", "kind": "cu", "des": "2025 N1", "spkid": "1004083", "orbit_class": {"name": "Hyperbolic Comet"}},
+        "C/2025 N1": {"fullname": "C/2025 N1 (ATLAS)", "kind": "cu", "des": "2025 N1", "spkid": "1004083", "orbit_class": {"name": "Hyperbolic Comet"}},
+        "Ceres": {"fullname": "1 Ceres (A801 AA)", "kind": "an", "des": "1", "spkid": "20000001", "orbit_class": {"name": "Main-belt Asteroid"}},
+    }
+    LISTS = {"Halley": HALLEY, "1P/Halley": HALLEY, "Churyumov": [
+        {"pdes": "2627", "name": "2627 Churyumov (1978 PP3)"}, {"pdes": "67P", "name": "67P/Churyumov-Gerasimenko"}, {"pdes": "1986 N1", "name": "C/1986 N1 (Churyumov-Solodovnikov)"},
+    ]}
+
+    def __init__(self):
+        self.asked: list[str] = []
+        self.down = False
+
+    async def get(self, url, params, timeout):
+        if self.down:
+            raise OSError("no route to host")
+        text = params["sstr"]
+        self.asked.append(text)
+        if text in self.OBJECTS:
+            data = {"object": self.OBJECTS[text]}
+        elif text in self.LISTS:
+            data = {"list": self.LISTS[text]}
+        else:
+            data = {"code": "200", "message": "specified object was not found"}
+
+        class Answer:
+            def json(self):
+                return data
+
+        return Answer()
+
+
+@pytest.fixture
+def jpl(monkeypatch):
+    fake = FakeJpl()
+    monkeypatch.setattr(net, "client", lambda: fake)
+    # No memory of earlier answers, in the process or on disk.
+    monkeypatch.setattr(solarsystem, "_lookups", {})
+    monkeypatch.setattr(solarsystem.cache, "load_json", lambda kind, name: None)
+    monkeypatch.setattr(solarsystem.cache, "save_json", lambda kind, name, value: None)
+    return fake
+
+
+def look(name):
+    return asyncio.run(solarsystem.lookup(name))
+
+
+def test_a_comet_name_finds_the_comet_not_the_asteroid_named_after_it(jpl):
+    # JPL lists the asteroid 2688 Halley first. One comet among the matches is the body people mean.
+    assert look("Halley")["name"] == "1P/Halley"
+    assert look("Halley")["command"] == "DES=1P; CAP;"
+    assert look("Halley's Comet")["name"] == "1P/Halley"
+    assert look("comet Halley")["name"] == "1P/Halley"
+    # Asking for the asteroid by word still gets the asteroid.
+    assert look("asteroid Halley")["name"] == "2688 Halley (1982 HG1)"
+    assert look("asteroid Halley")["command"] == "DES=20002688;"
+
+
+def test_a_designation_is_looked_up_by_itself(jpl):
+    # Given the whole "1P/Halley", JPL offers the asteroid too. The designation alone is one body.
+    assert look("1P/Halley")["name"] == "1P/Halley"
+    assert jpl.asked == ["1P"]
+    assert look("3I/ATLAS")["name"] == "C/2025 N1 (ATLAS)"
+    assert look("C/2025 N1 (ATLAS)")["url"].endswith("sstr=2025%20N1")
+    assert jpl.asked == ["1P", "3I", "C/2025 N1"]
+
+
+def test_two_comets_of_one_name_leave_the_first_match(jpl):
+    # Nothing says which comet is meant, so JPL's own first choice stands.
+    assert solarsystem.choose(FakeJpl.LISTS["Churyumov"], None)["pdes"] == "2627"
+    assert solarsystem.choose(FakeJpl.LISTS["Churyumov"], "comet")["pdes"] == "67P"
+
+
+def test_plain_names_and_unknown_names_work_as_before(jpl):
+    assert look("Ceres")["command"] == "DES=20000001;"
+    assert look("asteroid Ceres")["name"] == "1 Ceres (A801 AA)"
+    assert look("Nosuchbody") is None
+    assert look("Jupiter")["command"] == "599"   # the planets never reach JPL's small-body list
+    assert "Jupiter" not in jpl.asked
+
+
+def test_an_outage_is_not_reported_as_an_unknown_name(jpl):
+    jpl.down = True
+    with pytest.raises(net.UpstreamError):
+        look("Halley")
+    # And the failure is not remembered: the next try asks again.
+    jpl.down = False
+    assert look("Halley")["name"] == "1P/Halley"

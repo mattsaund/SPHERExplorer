@@ -26,7 +26,7 @@ Each one is the live site as it was on Nov 15, 2026. None is SI-generated imager
 | File | What it shows | How it was made |
 |---|---|---|
 | `orion-nebula-color.png` | The Orion Nebula, M 42, as one color picture from three wavelength ranges, the sum of 373 images | The tool's own Save picture button |
-| `wise-0855-by-visit.gif` | The brown dwarf WISE 0855 stepping west across three visits | The tool's own Save animation button |
+| `wise-0855-by-visit.gif` | The brown dwarf WISE 0855 in three visits. The view follows it, so the stars step east as it moves west | The tool's own Save animation button |
 | `app-barnards-star.png` | The whole page with Barnard's Star open: the sky map and the image study | A screenshot of the page |
 | `epsilon-indi-b-spectrum.png` | The spectrum of Epsilon Indi B, with water and methane marked | A screenshot of the page |
 | `spherexplorer_136108_Haumea_2003_EL61_exposures.gif` | The dwarf planet Haumea, followed through 55 images from Jun 23, 2025 to Jul 25, 2026. Haumea stays under the cross while the stars behind it change. 32 MB | The tool's own Save animation button |

@@ -10,6 +10,8 @@ Built by team Turing Complete (Matt and Austin) for the [NASA Space Apps Challen
 
 **Status.** Built during the NASA Space Apps Challenge, Nov 14 to 15, 2026. The live site stays up through judging, which ends Jan 26, 2027.
 
+![The SPHERExplorer page with Barnard's Star open. The sky map is on the left, with the selected area marked. The SPHEREx images of that area are on the right, with the player below them.](media/pictures/app-barnards-star.png)
+
 ## What it does
 
 SPHERExplorer finds every public SPHEREx image of a sky position, from an object name or coordinates, and plays the images in time order.
@@ -38,6 +40,8 @@ Each link opens the live site on that view.
 | [3I/ATLAS, by visit](https://spherexplorer.earth/?target=3I/ATLAS&mode=visits) | An interstellar comet. Its spectrum shows carbon dioxide emission |
 | [The Orion Nebula in color](https://spherexplorer.earth/?target=M%2042&fov=1200&mode=deep&color=wide) | The Orion Nebula as a color image from three wavelength ranges |
 | [WISE 0855, embedded](https://spherexplorer.earth/?ra=08h55m10.831s&dec=-7d14m42.53s&mode=visits&det=56&play=1&embed=1) | NASA's WISE 0855 coordinates, as the compact viewer another page would show |
+
+Pictures, animations, and a brightness table saved from the tool are in [media/](media/README.md), with the slides and the demo video.
 
 ## How it works
 

@@ -1,13 +1,10 @@
-# Demo video and live presentation
+# Demo video and backup slides
 
-Status, Nov 15 at 12:30 pm: the demo is the video that Matt's Claude built from code in `media/code/`. A seven-slide deck that Claude drafted is the backup.
+Status, Nov 15 at 2:50 pm: the demo is the video that Matt's Claude built from code in `media/code/`. It is public on YouTube. A seven-slide deck that Claude drafted is the backup.
 
-Two deliverables are due today, Sunday, Nov 15, Eastern time.
+The demo link goes in the form, and Submit for Judging is clicked, before our Local Event's cutoff on Sunday, Nov 15, at 4:20 pm Eastern. The limit is 30 seconds of video, or 7 slides.
 
-| What | When | Limit |
-|---|---|---|
-| Live presentation at our Local Event | 3:30 pm | 5 minutes at most |
-| Demo link in the form, and Submit for Judging | before 4:20 pm | 30 seconds of video, or 7 slides |
+The 5-minute live presentation at 3:30 pm has its own file, `docs/submission/livepresentation.md`, with the notes, the talking points, and the eight demo objects. The day's times and what is left to do are in `docs/submission/submission-checklist.md`.
 
 ## What Space Apps asks for
 
@@ -121,45 +118,6 @@ This research has made use of the VizieR catalogue access tool, CDS, Strasbourg 
 The sky map is drawn with Aladin Lite (CDS, Strasbourg Astronomical Observatory). Typeface: Inter by Rasmus Andersson, SIL Open Font License 1.1. Every source and license is listed in docs/references.md in the repository.
 ```
 
-## Live presentation, 3:30 pm
-
-Five minutes at most. Aim for 4 minutes 30 seconds, and leave the rest for the room. The content and the words are Matt and Austin's. Claude can draft talking points on request.
-
-| Time | Part |
-|---|---|
-| 0:00 to 0:30 | Who we are, and the challenge. Playing the 30-second video works as the opener |
-| 0:30 to 3:00 | Live demo on the site: search, playback by visit, the spectrum, Measure Changes, Blink, and the sky map |
-| 3:00 to 3:45 | How it works, the data from NASA, ESA, and the Canadian Space Agency, and how the results were checked (`docs/methods.md`, section 9) |
-| 3:45 to 4:30 | Who it helps, and what comes next |
-| 4:30 to 5:00 | Thanks, and the address on screen |
-
-Before going on:
-
-- Check the projector early. Set the browser zoom so the back row can read it.
-- Ten minutes before, open each of the five test targets once. Their images then usually sit in the server's memory, and the demo loads at once. The site can run two instances, and each has its own memory, so this isn't guaranteed.
-- Matt's Claude also keeps the site warm from 3:05 pm to 5:00 pm, which Matt asked for on Nov 15. It opens the eight demo objects below on the live site, asks the site for its health every three minutes so the instance stays up, and opens the objects again if the instance was replaced.
-- Don't merge to `main` between 3:00 and 5:00 pm. A merge deploys about four minutes later, and a new deploy starts with empty memory.
-- If the venue network blocks the new domain, use https://spherexplorer-112779026983.us-east4.run.app instead.
-- If the network fails, play the video file and show the backup slides from the laptop.
-- Agree who says which part, and run it once with a timer.
-
-### The eight demo objects
-
-Matt chose these on Nov 15. Each link was opened on the live site that day. An object stays quick as long as it is opened at the field size of its link, or at the 5 arcminutes that a typed name opens with.
-
-| Object | Link | What it shows |
-|---|---|---|
-| Haumea | https://spherexplorer.earth/?target=Haumea&fov=600&smooth=1&det=2 | A dwarf planet followed through a year. Press Play: the square moves on the map and the image study keeps it under its marker |
-| Pillars of Creation | https://spherexplorer.earth/?target=M%2016&fov=900&mode=deep&color=wide | The Eagle Nebula, M 16, in three-band color. Typing "Pillars of Creation" in Find opens the same place |
-| Jupiter and its moons | https://spherexplorer.earth/?target=Jupiter&fov=1200 | Jupiter with its four large moons as points beside it. Step through the film and they change places |
-| WISE 0855 | https://spherexplorer.earth/?target=WISE%200855-0714&mode=visits&det=56 | The coldest known brown dwarf stepping west between visits. Measure Changes finds it |
-| Barnard's Star | https://spherexplorer.earth/?target=Barnard%27s%20Star&blink=wise-w1 | Blink against WISE from 2010. The star jumps more than 2.5 arcminutes |
-| Epsilon Indi B | https://spherexplorer.earth/?target=Epsilon%20Indi%20B&tool=graphs&feat=water,methane | The spectrum of a brown dwarf, with water and methane marked |
-| 3I/ATLAS | https://spherexplorer.earth/?target=3I/ATLAS&mode=visits | An interstellar comet, followed as it moves |
-| Orion Nebula | https://spherexplorer.earth/?target=M%2042&fov=1200&mode=deep&color=wide | A color image from three wavelength ranges |
-
-The moons of Jupiter have no names in the tool. Find does not know them, so open Jupiter and point at them.
-
 ## Who does what
 
 | Who | Work |
@@ -167,23 +125,6 @@ The moons of Jupiter have no names in the tool. Find does not know them, so open
 | Matt and Austin | Approve the video, upload it, choose the video or the slides, submit, and present |
 | Matt's Claude | Build and render the video |
 | Austin's Claude | The backup slides, this plan, and a check of the final file against the requirements |
-
-## Schedule
-
-Sunday, Nov 15, Eastern time.
-
-| Time | Milestone |
-|---|---|
-| 1:30 pm | Final video approved |
-| 2:00 pm | Uploaded with the description, tested in a private window |
-| 2:15 pm | Decide: the video, or the backup slides |
-| 2:45 pm | Demo link in the form, every field done, Submit for Judging |
-| 3:10 pm | Presentation setup. No merges to `main` until 3:40 pm |
-| 3:30 pm | Live presentation |
-| 4:20 pm | Local Event cutoff. Resubmit only if something must change |
-| 11:00 pm | Deploys freeze. A change to the site must be merged before this |
-| 11:30 pm | The repo freezes. No commit, merge, or push after this |
-| 11:59 pm | The global form closes |
 
 ## Final checks
 

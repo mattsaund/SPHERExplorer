@@ -11,7 +11,7 @@ Read this file first. Details live in `docs/`.
 
 - Started Sat Nov 14, 2026, 9:00 am local time (Eastern for Matt).
 - Our Local Event (Bethesda, MD) needs the demo video uploaded and the project submitted by Sun Nov 15, 4:20 pm Eastern.
-- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:00 and 5:00 pm, while the site is kept warm for it. The plan is in `docs/submission/video.md`.
+- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:00 and 5:00 pm, while the site is kept warm for it. The plan is in `docs/submission/livepresentation.md`.
 - The global form closes Sun Nov 15, 11:59 pm Eastern. Automatic deploys freeze at 11:00 pm.
 - The repo freezes at 11:30 pm Eastern on Sun Nov 15, half an hour before the form closes (Matt, Nov 15). No commit, merge, or push after that, to any branch. A change to the site must be merged before the deploy freeze at 11:00 pm. The live site's data keeps updating through the scheduled index refresh.
 - Results: Global Nominees Dec 3, Global Finalists Dec 17, Global Winners Jan 26, 2027. The public site must stay up through judging.
@@ -134,7 +134,8 @@ Details in `docs/research/`.
 | `docs/ui-checklist.md` | Every tool the UI must offer, checked in CI |
 | `scripts/update_solar.py` | Renews the orbits behind the solar system marks on the sky map. Run every few months |
 | `docs/embedding.md` | Link options and how to embed the viewer in another page |
-| `docs/submission/video.md` | The demo video (built by `media/code/`), the backup slide deck, and the plan for the 5-minute live presentation |
+| `docs/submission/video.md` | The demo video (built by `media/code/`) and the backup slide deck |
+| `docs/submission/livepresentation.md` | The 5-minute live presentation: the run of show, the notes and talking points, and the eight demo objects |
 | `media/` | What the team shows people: `videos/`, `slides/`, `pictures/`, and the code that makes the demo video (`media/code/`) |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |

@@ -8,7 +8,7 @@ Each row was checked against the code and the dependency files on Nov 15, 2026, 
 
 ## NASA Data
 
-14 rows. All of them are in the form.
+14 rows. All of them are on the public project page, in this order (read on Nov 15 at 6:32 pm).
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -33,7 +33,7 @@ One more row would be true, if wanted. The cards for the Sun, the Moon, and the 
 
 ### Data and services
 
-13 rows. All of them are in the form.
+13 rows. All of them are on the public project page, in this order (read on Nov 15 at 6:32 pm).
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -51,13 +51,13 @@ One more row would be true, if wanted. The cards for the Sun, the Moon, and the 
 | Natural Earth | https://www.naturalearthdata.com/ | Land outlines on the map of telescopes |
 | WiseView | https://github.com/backyardworlds/wiseview | Studied as prior art for blinking images |
 
-One row that is in the form can come out: "NEOSSat tutorial, Canadian Space Agency". It was read, and no code or data came from it.
+One row came out of the form on Nov 15 at 6:28 pm: "NEOSSat tutorial, Canadian Space Agency". It was read, and no code or data came from it.
 
 WiseView and the IRSA SPHEREx Data Explorer were studied, not used as code or data. They stay because the challenge names WiseView as a model and the coverage overlays follow the Data Explorer. Ending their link text with "(studied as a model)" would make that plain.
 
 ### Code and tools
 
-26 rows to add. If time is short, the first 14 rows and the last one matter most: they are the code inside the tool, the SI tool, and the complete list.
+26 rows to add. None of them is on the public project page (read on Nov 15 at 6:32 pm). If time is short, the first 14 rows and the last one matter most: they are the code inside the tool, the SI tool, and the complete list.
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -90,7 +90,7 @@ WiseView and the IRSA SPHEREx Data Explorer were studied, not used as code or da
 
 ## What the check found
 
-- Every data and service row is called or loaded by the code. Its host or its package is in `server/`, `web/src/`, or the dependency files. The three exceptions were read or studied only: the NEOSSat tutorial, WiseView, and the IRSA SPHEREx Data Explorer.
+- Every data and service row is called or loaded by the code. Its host or its package is in `server/`, `web/src/`, or the dependency files. Two rows are for tools that were studied only: WiseView and the IRSA SPHEREx Data Explorer. The NEOSSat tutorial was read only, and its row is no longer in the form.
 - Not rows here, because the row for the resource covers them: the papers that the archives ask to be cited, the survey papers for the map layers, sub-packages, type definitions, single CI steps, and single cloud services.
 - Not rows here, because the tool does not use them: HITRAN2020 (named in `docs/references.md` as a source to check against), the IRSA TAP and cutout services, and the papers that were background reading (Bock, Akeson, Korngut, Meisner, Gagné, Rustamkulov, and Chen).
 - Formulas and published values that the code does use are in `docs/references.md` with their papers: the effective PSF, the repeated median, error diffusion, Vincenty's formula, Meeus and the Astronomical Almanac, ice band positions, flux zero points, and cosmological parameters.

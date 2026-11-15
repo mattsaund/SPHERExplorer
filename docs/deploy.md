@@ -9,7 +9,7 @@ One container runs everything: the API and the built web app. It runs on Google 
 | Address | https://spherexplorer-112779026983.us-east4.run.app |
 | Service | `spherexplorer` on Cloud Run, region `us-east4` |
 | First deployed | Nov 14, 2026 |
-| Custom domain | Claimed, not connected yet |
+| Custom domain | https://spherexplorer.earth and https://www.spherexplorer.earth. Mapped Nov 14. Live once the DNS records and the certificate are in place |
 | Paid by | The Google Cloud Free Trial from the Space Apps Global Offers |
 
 The trial gives $300 for 90 days. It ends about Feb 12, 2027, after judging ends on Jan 26. When it ends, Google stops the site unless the account is upgraded to a paid one. The free tier only keeps the site running after that upgrade.
@@ -48,12 +48,12 @@ gcloud run deploy spherexplorer \
   --timeout 300
 ```
 
-Cloud Build runs the `Dockerfile`, which takes several minutes. The command then prints the public address.
+The first deploy offers to create a `cloud-run-source-deploy` repository for the built images. Answer Y. Cloud Build then runs the `Dockerfile`, which takes several minutes, and the command prints the public address.
 
 - `--cpu-boost` gives a starting instance more processor until it is ready, which shortens a cold start.
 - `--min-instances 1` keeps one instance always running. Then nobody meets a cold start, and the images of a target someone has opened stay in memory for the next visitor. It costs money all day, so use it for the judging weeks (early December through January 26) and go back to 0 after.
 
-If the build stops with a permission error for `<number>-compute@developer.gserviceaccount.com`, give that account the build role, wait two minutes, and deploy again.
+If the build stops with a permission error for `<number>-compute@developer.gserviceaccount.com`, give that account the build role, wait two minutes, and deploy again. Our project did not need this.
 
 ```sh
 PROJECT_NUMBER=$(gcloud projects describe <project id> --format='value(projectNumber)')
@@ -137,14 +137,14 @@ These are rough figures from Google's list prices. Check https://cloud.google.co
 
 ## Custom domain
 
-The domain comes from the Space Apps Global Offers (GoDaddy Registry, claimed at https://www.spaceapps.earth/). Registration finishes at Porkbun, so Porkbun is the registrar and holds the DNS records. It is free for one year. Keep "NASA" out of the name. Don't turn on the hosting that comes with it, because it rewrites the DNS records.
+The domain is `spherexplorer.earth`. It comes from the Space Apps Global Offers (GoDaddy Registry, claimed at https://www.spaceapps.earth/). Registration finishes at Porkbun, so Porkbun is the registrar and holds the DNS records. It is free for one year. Keep "NASA" out of the name. Don't turn on the hosting that comes with it, because it rewrites the DNS records.
 
 1. Prove ownership. Open Google Search Console (https://search.google.com/search-console) with the account that runs `gcloud`. Add a Domain property for the bare domain. Add its `google-site-verification=...` value at Porkbun as a TXT record with a blank Host, then click Verify.
 2. Clear the parking records. Porkbun points new domains at a parking page. Delete every A, AAAA, ALIAS, and CNAME record on the bare domain, `www`, and `*`.
 3. Map both names to the service in Cloud Shell.
 
    ```sh
-   D=<domain>
+   D=spherexplorer.earth
    gcloud domains list-user-verified
    gcloud beta run domain-mappings create --service spherexplorer --domain "$D" --region us-east4
    gcloud beta run domain-mappings create --service spherexplorer --domain "www.$D" --region us-east4
@@ -152,10 +152,25 @@ The domain comes from the Space Apps Global Offers (GoDaddy Registry, claimed at
    gcloud beta run domain-mappings describe --domain "www.$D" --region us-east4 --format='yaml(status.resourceRecords)'
    ```
 
-4. Copy the printed records into Porkbun exactly. The bare domain usually gets four A and four AAAA records with a blank Host. `www` gets a CNAME to `ghs.googlehosted.com`.
+4. Copy the records into Porkbun, as in the table below. Go by the `describe` output. The `create` output shows `spherexplorer` in the NAME column of the bare-domain records, but that is not a host. Typed as a Host, it would make `spherexplorer.spherexplorer.earth`.
 5. Wait for the certificate. It usually takes 15 minutes and can take 24 hours. `gcloud beta run domain-mappings list --region us-east4` shows a check mark when it is ready. If it never arrives, look for a CAA record at Porkbun that leaves out Google.
 
 Add each teammate as an Owner in Search Console too, under Settings, then Users and permissions. Only verified owners can change the mappings.
+
+### DNS records at Porkbun
+
+| Host | Type | Answer |
+|---|---|---|
+| (blank) | A | `216.239.32.21` |
+| (blank) | A | `216.239.34.21` |
+| (blank) | A | `216.239.36.21` |
+| (blank) | A | `216.239.38.21` |
+| (blank) | AAAA | `2001:4860:4802:32::15` |
+| (blank) | AAAA | `2001:4860:4802:34::15` |
+| (blank) | AAAA | `2001:4860:4802:36::15` |
+| (blank) | AAAA | `2001:4860:4802:38::15` |
+| `www` | CNAME | `ghs.googlehosted.com` |
+| (blank) | TXT | The `google-site-verification=...` value. Keep it, because Google checks it again later |
 
 Why domain mapping: it is free and works in `us-east4`. Google calls it a preview and does not recommend it for production because of latency, which is fine for a hackathon. Firebase Hosting was rejected because it ends every request at 60 seconds, and the service allows 300 for the `/api/cutouts` stream. A global load balancer adds about $18 a month in fixed fees. Moving to one later only changes the DNS records.
 
@@ -163,5 +178,6 @@ Why domain mapping: it is free and works in `us-east4`. Google calls it a previe
 
 - `https://<address>/api/health` answers with `"status": "ok"`.
 - `https://<address>/?target=WISE%200855-0714&mode=visits&det=56` shows the brown dwarf at the marker.
+- https://spherexplorer.earth and https://www.spherexplorer.earth load with no certificate warning.
 - Open it from a phone on mobile data, to be sure it is public.
 - Request a FortiGuard Web Filter Classification for the address (see `docs/submission-checklist.md`).

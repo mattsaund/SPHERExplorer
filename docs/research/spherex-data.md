@@ -1,5 +1,7 @@
 # SPHEREx data
 
+A snapshot from November 2026. Recheck anything time-sensitive against the live services.
+
 Includes live checks against IRSA. "Unverified" marks items not confirmed in a primary source.
 
 ## Mission and instrument

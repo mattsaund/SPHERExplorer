@@ -15,7 +15,7 @@ SPHERExplorer finds every public SPHEREx image of a sky position, from an object
 - **Search.** Object names, J2000 RA and Dec in any common form, and planets, asteroids, and comets. A dropdown suggests matches as you type.
 - **Playback.** Every exposure, one summed image per visit, one per wavelength, or the deepest sum of all images.
 - **Change over time.** The tool follows moving stars and comets, subtracts one visit from another, measures source motion, and plots brightness over time.
-- **Known objects.** One list holds every known object in the field, including the asteroids, comets, and planets present when the image on screen was taken. Each one can be followed by name.
+- **Known objects.** One list holds the best-known objects in the field, including the asteroids, comets, and planets present when the image on screen was taken. Each one can be followed by name.
 - **Change detection.** Measure Changes checks every source in the field and reports which sources moved, brightened, or faded between visits. It flags all five of NASA's test targets, including stars too bright for the detector. WISE 0855 needs detectors 5 and 6 selected, the only ones that see it.
 - **All 102 bands.** Sums of any of the six detectors for higher signal-to-noise, color images from three wavelength ranges, and the spectrum of any selected position.
 - **Spectral features.** Markers for hydrogen, water, carbon dioxide, methane, and other features, with a redshift slider for galaxies. The tool tests which features stand out above the noise and reports them in plain language.
@@ -43,7 +43,7 @@ Each link opens the live site on that view.
 - Search runs on our own index of all 273,000 exposures, so it answers in a fraction of a second and keeps working when the archive's search service is busy.
 - The browser does the rest, with a WebGL2 viewer, sums, spectra, and plots.
 
-More in [docs/architecture.md](docs/architecture.md) and [docs/methods.md](docs/methods.md).
+More in [docs/architecture.md](docs/architecture.md) and [docs/methods.md](docs/methods.md). The terms are explained in [docs/glossary.md](docs/glossary.md).
 
 ## Run it locally
 
@@ -65,7 +65,7 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173. `scripts/check_all.sh` runs the same checks as CI. Deployment is covered in [docs/deploy.md](docs/deploy.md).
+Then open http://localhost:5173. `scripts/check_all.sh` runs the same checks as CI. Deployment is covered in [docs/deploy.md](docs/deploy.md), and how to contribute in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Use of Super Intelligence (SI)
 

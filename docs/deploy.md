@@ -1,6 +1,6 @@
 # Deployment
 
-One container runs everything: the API and the built web app. It runs on Google Cloud Run (Austin's decision, see `docs/decisions.md`).
+One container runs everything: the API and the built web app. It runs on Google Cloud Run.
 
 ## Live site
 
@@ -22,12 +22,14 @@ The trial gives $300 for 90 days. It ends about Feb 12, 2027, after judging ends
 
 ## Google Cloud account
 
-1. Start the Free Trial from the Space Apps Global Offers page, or at https://cloud.google.com/free. The card gets a temporary hold, not a charge. An account that has paid for Google Cloud, Maps, or Firebase before does not qualify.
-2. Create the project under "No organization". New trial accounts get an organization made for them. New organizations block grants to anyone outside them, which breaks `--allow-unauthenticated` and stops a teammate's Gmail account from being added.
-3. Add each teammate under IAM & Admin with the Owner role. They accept an email invitation.
-4. Set a budget alert under Billing, then Budgets & alerts. It only sends email. `--max-instances` is the real ceiling on cost.
+Set up once.
 
-A project already inside such an organization still works. Deploy with `--no-invoker-iam-check` in place of `--allow-unauthenticated`. To add a teammate, an organization policy administrator turns off `iam.allowedPolicyMemberDomains` for the project.
+1. Start the Free Trial, linked from the Space Apps Global Offers page or at https://cloud.google.com/free. An account that has paid for Google Cloud before does not qualify.
+2. Create the project under "No organization". A new trial account comes with an organization whose policies block public access and outside members.
+3. Add teammates under IAM & Admin as Owners.
+4. Set a budget alert under Billing. It only sends email. `--max-instances` is what caps the cost.
+
+A project inside such an organization still works: deploy with `--no-invoker-iam-check` in place of `--allow-unauthenticated`, and turn off `iam.allowedPolicyMemberDomains` for the project to add teammates.
 
 ## First deploy
 
@@ -133,7 +135,7 @@ All optional. Set with `--set-env-vars NAME=value`.
 | `SPX_USER_AGENT` | `spherex-viewer/0.1` | How the API names itself to IRSA, AWS, SIMBAD, and MAST |
 | `SPX_INDEX_URL` | this repo's `exposure-index` release | Where to download the exposure index |
 | `SPX_FRAME_CONCURRENCY` | 32 | Frames built at once per request |
-| `SPX_S3_CONCURRENCY` | 32 | Parallel reads from the SPHEREx bucket. More is not faster: see "Speed" below |
+| `SPX_S3_CONCURRENCY` | 32 | Parallel reads from the SPHEREx bucket. More is not faster. See `docs/performance.md` |
 | `SPX_INDEX_SEED` | set in the container | A copy of the exposure index inside the image, so a new instance can search at once |
 | `SPX_CACHE_DIR` | `/tmp/spherexplorer` | Where file layouts, calibration tables, and color tiles are kept |
 | `SPX_CACHE_MAX_MB` | 300 in the container | Ceiling on that folder. Cloud Run keeps `/tmp` in memory, so it must stay small. The oldest files go first |
@@ -148,11 +150,11 @@ The frame memory starts empty too. The first visitor to a target waits for S3. E
 
 ## Size
 
-`deploy.yml` sets these on every deploy. Matt asked on Nov 15 for the fastest site.
+`deploy.yml` sets these on every deploy. They are the fastest size measured, and the measurements are in `docs/performance.md`.
 
 | Setting | Value | Why |
 |---|---|---|
-| `--execution-environment gen2` | second generation | The fastest in the comparison below. The first generation spent about twice the processor time on the same bytes, and loaded the same fields more slowly |
+| `--execution-environment gen2` | second generation | The fastest in the comparison in `docs/performance.md`. The first generation spent about twice the processor time on the same bytes, and loaded the same fields more slowly |
 | `--cpu 4` | 4 processors | The size the fastest runs were measured on. One first load uses about one of them, so several visitors can load at once |
 | `--memory 4Gi` | 4 GB | Room for 1024 MB of frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready. Memory costs a tenth of what a processor does |
 | `--max-instances 2` | 2 instances | At the worst they cost $18 a day, what the service cost before Nov 15 |
@@ -160,7 +162,7 @@ The frame memory starts empty too. The first visitor to a target waits for S3. E
 - The price of the second generation is a slower start. Google documents the first generation as the quicker of the two to start a new instance (https://docs.cloud.google.com/run/docs/about-execution-environments). On the second, a request that found no instance running waited 6.1 s on Nov 15. That was before the server's own start was trimmed the same day, so it may be a little less now. Measuring it again needs 15 minutes with no visitor at all, then one run of `curl -s -o /dev/null -w '%{time_total}\n' https://spherexplorer.earth/api/health`.
 - `--min-instances 1` removes that wait. See "Cost".
 
-Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on is a decision for Matt and Austin.
+Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on would add that cookie.
 
 ## Memory
 
@@ -199,10 +201,12 @@ These are rough figures from Google's list prices. Check https://cloud.google.co
 
 ## Custom domain
 
-The domain is `spherexplorer.earth`. It comes from the Space Apps Global Offers (GoDaddy Registry, claimed at https://www.spaceapps.earth/). Registration finishes at Porkbun, so Porkbun is the registrar and holds the DNS records. It is free for one year. Keep "NASA" out of the name. Don't turn on the hosting that comes with it, because it rewrites the DNS records.
+`spherexplorer.earth` and `www.spherexplorer.earth` come from the Space Apps Global Offers (GoDaddy Registry, claimed at https://www.spaceapps.earth/). Porkbun is the registrar and holds the DNS records. The first year is free.
 
-1. Prove ownership. Open Google Search Console (https://search.google.com/search-console) with the account that runs `gcloud`. Add a Domain property for the bare domain. Add its `google-site-verification=...` value at Porkbun as a TXT record with a blank Host, then click Verify.
-2. Clear the parking records. Porkbun points new domains at a parking page. Delete every A, AAAA, ALIAS, and CNAME record on the bare domain, `www`, and `*`.
+Set up once:
+
+1. Verify the domain in Google Search Console (https://search.google.com/search-console) with the account that runs `gcloud`, through a TXT record at Porkbun.
+2. Delete Porkbun's parking records: every A, AAAA, ALIAS, and CNAME record on the bare domain, `www`, and `*`.
 3. Map both names to the service in Cloud Shell.
 
    ```sh
@@ -214,10 +218,11 @@ The domain is `spherexplorer.earth`. It comes from the Space Apps Global Offers 
    gcloud beta run domain-mappings describe --domain "www.$D" --region us-east4 --format='yaml(status.resourceRecords)'
    ```
 
-4. Copy the records into Porkbun, as in the table below. Go by the `describe` output. The `create` output shows `spherexplorer` in the NAME column of the bare-domain records, but that is not a host. Typed as a Host, it would make `spherexplorer.spherexplorer.earth`.
-5. Wait for the certificate. It usually takes 15 minutes and can take 24 hours. `gcloud beta run domain-mappings list --region us-east4` shows a check mark when it is ready. If it never arrives, look for a CAA record at Porkbun that leaves out Google.
+4. Enter the records from the `describe` output at Porkbun, as in the table below. The bare-domain records take a blank Host. The `create` output prints `spherexplorer` as their name, which is not a host.
+5. Wait for the certificate, usually 15 minutes and at most 24 hours. `gcloud beta run domain-mappings list --region us-east4` shows a check mark when it is ready.
+6. Ask FortiGuard to classify the new domain (https://www.fortiguard.com/faq/wfratingsubmit), so filtered networks don't block it.
 
-Only verified owners of the domain can change the mappings. To make a teammate one, open the property in Search Console (https://search.google.com/search-console/welcome), open the Verified owners list, click Add an owner, and enter their Google account. "Add user" under Users and permissions is not enough.
+Only verified owners of the domain can change the mappings. Add one in Search Console from the property's Verified owners list, with Add an owner. "Add user" under Users and permissions is not enough.
 
 ### DNS records at Porkbun
 
@@ -234,7 +239,7 @@ Only verified owners of the domain can change the mappings. To make a teammate o
 | `www` | CNAME | `ghs.googlehosted.com` |
 | (blank) | TXT | The `google-site-verification=...` value. Keep it, because Google checks it again later |
 
-Why domain mapping: it is free and works in `us-east4`. Google calls it a preview and does not recommend it for production because of latency, which is fine for a hackathon. Firebase Hosting was rejected because it ends every request at 60 seconds, and the service allows 300 for the `/api/cutouts` stream. A global load balancer adds about $18 a month in fixed fees. Moving to one later only changes the DNS records.
+Domain mapping is free and works in `us-east4`. Google calls it a preview and does not recommend it for production because of latency. Firebase Hosting was rejected because it ends every request at 60 seconds, and a global load balancer adds about $18 a month.
 
 ## Until judging ends on Jan 26, 2027
 
@@ -252,4 +257,3 @@ Deploys freeze on Nov 15, so these are the things that can still go wrong by the
 - `https://<address>/?target=WISE%200855-0714&mode=visits&det=56` shows the brown dwarf at the marker.
 - https://spherexplorer.earth and https://www.spherexplorer.earth load with no certificate warning.
 - Open it from a phone on mobile data, to be sure it is public.
-- Request a FortiGuard Web Filter Classification for the address (see `docs/submission-checklist.md`).

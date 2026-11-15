@@ -40,6 +40,7 @@ Newest first.
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-15 | The demo is the video that Matt's Claude built from code. A seven-slide deck is the backup | Austin | The team first planned to record the video itself, then switched to slides, then kept the finished automated video. Plan in `docs/video.md` |
 | 2026-11-15 | Matt and Austin record the demo video themselves, on the live site with their own voices. Claude helps write and time the script. The automated cut is the fallback | Austin | Follows the Space Apps "Visual Storytelling" beats. A team recording with an SI-assisted script is disclosed in the description and the SI question |
 | 2026-11-15 | The Local Event has a live presentation at 3:30 pm, 5 minutes at most | Austin | The plan is in `docs/video.md`. Submit for Judging moves before it, to 2:45 pm |
 | 2026-11-15 | Saved pictures and animations must be high quality | Matt | Matt saved a couple of GIFs and found them very low quality. They were shrunk to 560 pixels on the longest side of the whole window, margins included, and kept 64 shades of gray. Now a saved picture is the field itself, drawn again at 1600 pixels (PNG) or 1080 (GIF), with every shade of gray, and color pictures are dithered. See `docs/methods.md` section 14 |

@@ -1,16 +1,16 @@
 # Architecture
 
-The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this file. Propose changes in a pull request.
+How SPHERExplorer is built and why: its parts, the data flow, and the contract between the engine and the interface. The concept it serves is in `docs/concept.md`.
 
 ## Shape
 
-| Part | What it is | Owner |
-|---|---|---|
-| `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. | Matt |
-| `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. | Matt |
-| `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. | Austin. Matt adds wiring for new engine tools |
-| `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. | Shared. Say so in the pull request before changing them. |
-| `docs/` | Team docs. | Shared |
+| Part | What it is |
+|---|---|
+| `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. |
+| `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. |
+| `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. |
+| `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. |
+| `docs/` | Documentation for users and developers, and the hackathon record. |
 
 ## Why this design
 
@@ -30,7 +30,7 @@ The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this
 | State | Zustand | Tiny. Components subscribe to slices, so sliders don't redraw the page. |
 | Frame rendering | WebGL2 on a canvas, written in `core` | Blink at 60 fps, stretch and color on the GPU. |
 | Sky map | Aladin Lite v3 (CDS), loaded from npm | HiPS, projections, catalogs. NASA lists it as a suggested tool. |
-| Hosting | Google Cloud (Austin's decision). One Cloud Run container serves the API and the site. Live address and setup in `docs/deploy.md`. | Scales to zero. Credit covers judging. |
+| Hosting | Google Cloud. One Cloud Run container serves the API and the site. Live address and setup in `docs/deploy.md`. | Scales to zero. Credit covers judging. |
 
 Dependencies stay few. Every new one goes in `docs/references.md` in the same commit.
 
@@ -57,42 +57,14 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 - The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
 - Types. Everything exported from `core/types.ts`.
 
+Rules for both sides.
+
+- `core` never imports from `ui`. `ui` never calls `fetch` or the server directly.
+- `core` ships no visible styling beyond the canvases. Colors used inside canvases come from CSS variables that `ui` defines.
+- A change to an exported name or type is a contract change. Announce it in the pull request title with the prefix `contract:`.
+- UI-only state (open panels, theme, tips) lives in `ui`. The exception is which screen is up and which tool is open: the UI owns them but keeps them in the engine (`layout`, `actions.setLayout`), so that a link can carry them.
+- A redesign must keep every tool. `docs/ui-checklist.md` is the list, and CI enforces it.
+
 ## The page layout
 
 The layout, the cards, and how the page behaves are described in `docs/interface.md`.
-
-## UI rules (from the team concept)
-
-- Sans-serif, highly readable. No glow, bloom, neon, or gradients for effect.
-- A child or an older adult can use it. Large targets, plain words, visible labels, keyboard access.
-- Fast. No layout shift while frames load. No blocking spinners over the whole page.
-- Works on a phone and on a projector.
-
-## Build order
-
-NASA's stated objectives come first. Each step lands on `main` working.
-
-1. Search, cutout stream, and the frame player with the five test targets.
-2. The 102 bands: detector sums, epoch stacks, and the spectrum plot.
-3. Change tools: wavelength-matched blink, differences, motion and brightness tracking.
-4. The sky map: SPHEREx all-sky channels, other missions, clickable annotations, projections.
-5. Solar system objects and the spacecraft view.
-6. Links that carry the full view, export, help, and deployment.
-
-## Run it
-
-```sh
-# API on port 8000. On first start it downloads the exposure index (12 MB).
-cd server && uv sync && uv run uvicorn spherex_api.main:app --reload --port 8000
-
-# Web on port 5173. It proxies /api to port 8000.
-cd web && npm install && npm run dev
-```
-
-Checks before a pull request.
-
-```sh
-cd server && uv run pytest
-cd web && npm run typecheck && npm test && npm run build
-python3 scripts/check_text.py
-```

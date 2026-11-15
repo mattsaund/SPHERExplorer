@@ -28,7 +28,7 @@ The text for each field, and the claims to recheck before submitting, is in `doc
 
 ## Demo
 
-- [ ] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging. The fallback cut is 28.50 s by ffprobe, and its render refuses anything over 29.5 s. The team's recording must be measured too, on the file and on the host's player.
+- [ ] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging. The fallback cut is 29.00 s by ffprobe, and its render refuses anything over 29.5 s. The team's recording must be measured too, on the file and on the host's player.
 - [ ] English, or English subtitles if the video is in another language. Slides must be in English. The script and the fallback cut are in English.
 - [ ] Hosted on YouTube, Google Drive, GitHub, OneDrive, or Dropbox with a public link. Test it in a private window.
 - [ ] Suggested video timing: 0:00 names and team (Turing Complete), 0:02 the challenge, 0:05 title and tagline, 0:10 how it works plus the NASA and partner data, 0:20 to 0:30 the future.

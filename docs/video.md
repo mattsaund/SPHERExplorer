@@ -99,7 +99,7 @@ Data: NASA SPHEREx through the NASA/IPAC Infrared Science Archive (IRSA). ESA Ga
 
 ## Fallback: the automated cut
 
-If the recording isn't uploaded by 2:15 pm, upload the cut that Matt's Claude built from code instead. It is in `video/`, made with `node capture.mjs` and then `node render.mjs` on Matt's machine. It is 28.5 seconds, silent, and carries the SI watermark on every frame. That cut is SI-generated, so it uses the longer description in the git history of this file (commit 9c1438d), which says so.
+If the recording isn't uploaded by 2:15 pm, upload the cut that Matt's Claude built from code instead. It is in `video/`, made with `node capture.mjs` and then `node render.mjs` on Matt's machine. It is 29.0 seconds, silent, and carries the SI watermark on every frame. Matt watched it on Nov 15 and asked for one more shot, which is in: Haumea through a year of images, with the square moving on the map and the image study tracking it. That cut is SI-generated, so it uses the longer description in the git history of this file (commit 9c1438d), which says so.
 
 ## Live presentation, 3:30 pm
 
@@ -117,6 +117,7 @@ Before going on:
 
 - Check the projector early. Set the browser zoom so the back row can read it.
 - Ten minutes before, open each of the five test targets once. Their images then usually sit in the server's memory, and the demo loads at once. The site can run two instances, and each has its own memory, so this isn't guaranteed.
+- Matt's Claude also keeps the site warm from 3:05 pm, which Matt approved on Nov 15. It opens the demo targets on the live site, asks the site for its health every few minutes so the instance stays up, and opens the targets again if the instance was replaced.
 - Don't merge to `main` between 3:10 and 3:40 pm. A merge deploys about four minutes later, and a new deploy starts with empty memory.
 - If the venue network blocks the new domain, use https://spherexplorer-112779026983.us-east4.run.app instead.
 - If the network fails, play the video file and show screenshots from the laptop.

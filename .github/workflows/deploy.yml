@@ -66,17 +66,17 @@ jobs:
           service_account: ${{ secrets.GCP_DEPLOY_SA }}
       - uses: google-github-actions/setup-gcloud@v3
       # The code, plus the size of the service (Matt's decision, Nov 15, see docs/deploy.md "Size").
-      # Matt asked on Nov 15 for the fastest site. Two processors on the first generation
-      # runtime loaded the same fields about 15 percent slower than four on the second, so this
-      # is a measured step: four processors, still on the first generation, which starts a new
-      # instance sooner. Two instances of this size cost what the service cost before Nov 15.
+      # Matt asked for the fastest site. Measured on Nov 15 with the same three fields, the
+      # second generation runtime loads them fastest. The first generation spent more processor
+      # time on the same bytes and was slower, with 2 processors and with 4. So this is the size
+      # of Nov 14 again: 4 processors, 4 GB, 2 instances, second generation.
       # Public access, concurrency, the timeout, and the instance minimum are not named here,
       # so they keep their current settings.
       # SPX_CPUS must equal --cpu: Cloud Run does not tell the container how many it may use.
       - name: Build and deploy
         run: >-
           gcloud run deploy spherexplorer --source . --region us-east4 --quiet
-          --execution-environment gen1 --cpu 4 --memory 4Gi --max-instances 2
+          --execution-environment gen2 --cpu 4 --memory 4Gi --max-instances 2
           --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=4
       - name: Check that the live site answers
         run: curl -fsS --retry 5 --retry-delay 10 --retry-all-errors https://spherexplorer-112779026983.us-east4.run.app/api/health

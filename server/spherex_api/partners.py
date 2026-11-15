@@ -1,7 +1,7 @@
 # Space Agency Partner data: visible-light images from NEOSSat, the Canadian Space Agency's
 # Near-Earth Object Surveillance Satellite, served by the Canadian Astronomy Data Centre (CADC).
 # NEOSSat has watched many fields for years, so it shows how a target looked before SPHEREx flew.
-# Licence: Open Government Licence - Canada.
+# License: Open Government Licence - Canada.
 # Written with Claude Code (Anthropic) assistance.
 
 import csv

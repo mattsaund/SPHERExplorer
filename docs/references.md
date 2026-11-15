@@ -16,7 +16,6 @@ Every external resource goes here with its license and required credit. Set "In 
 | 2MASS Point Source Catalog | UMass, IPAC/Caltech, NASA, NSF (VizieR II/246) | Public | Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003 | Yes (J, H, Ks brightness) |
 | AllWISE Source Catalog | NASA WISE, JPL, IPAC (VizieR II/328) | Public | Wright et al. 2010. Cutri et al. 2013. Flux zero points from Jarrett et al. 2011 | Yes (W1, W2 brightness) |
 | UltracoolSheet | Best et al. | CC-BY-4.0 | DOI 10.5281/zenodo.15802304 | Not yet |
-
 | Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck | Each survey team, HiPS built by CDS, ESA, and IPAC | Public | Layer credits in `web/src/core/skyLayers.ts`. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list | Yes (map layers) |
 
 IRSA data use terms: https://irsa.ipac.caltech.edu/data_use_terms.html
@@ -78,6 +77,7 @@ Add the license and version when a library goes into the build.
 | Astropy 8 | BSD-3-Clause | Astropy Collaboration 2013, 2018, 2022 | Yes (API) |
 | NumPy 2 | BSD-3-Clause | Harris et al. 2020 | Yes (API) |
 | FastAPI, Starlette, Uvicorn | MIT, BSD-3-Clause | | Yes (API) |
+| Pydantic 2 | MIT | | Yes (API, checks each request) |
 | HTTPX | BSD-3-Clause | | Yes (API) |
 | Pillow 13 | MIT-CMU | | Yes (API, color sky tiles) |
 | world-atlas 2 and topojson-client 3 | ISC | Mike Bostock. Land outlines from Natural Earth (public domain) | Yes (world map in the spacecraft view) |
@@ -87,6 +87,7 @@ Add the license and version when a library goes into the build.
 | Zustand 5 | MIT | | Yes (web) |
 | Vite 8, @vitejs/plugin-react | MIT | | Yes (build) |
 | TypeScript 7 | Apache-2.0 | | Yes (build) |
+| Type definitions for Node, React, React DOM, and topojson-client (DefinitelyTyped) | MIT | | Yes (build) |
 | Vitest 5 | MIT | | Yes (tests) |
 | matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/colormaps.ts`) |
 | astroquery | BSD-3-Clause | Ginsburg et al. 2019 | Not yet |
@@ -111,4 +112,8 @@ Add the license and version when a library goes into the build.
 | CADC TAP and file services (NEOSSat) | Public | Canadian Astronomy Data Centre, operated by the National Research Council of Canada with the support of the Canadian Space Agency | Yes |
 | Google Cloud Run, Cloud Build, Artifact Registry, and Workload Identity Federation, on the Google Cloud Free Trial from the Space Apps Global Offers | Google Cloud terms of service | | Yes (hosting and deploys) |
 | google-github-actions/auth 3 and setup-gcloud 3 | Apache-2.0 | Google | Yes (continuous deployment) |
+| GitHub Actions steps: actions/checkout 4, actions/setup-node 4, astral-sh/setup-uv 5 | MIT | GitHub, Astral | Yes (checks on every push, and the index refresh) |
+| Node.js 22 and Python 3.13, as the official container images `node:22-slim` and `python:3.13-slim` | MIT (Node.js), PSF-2.0 (Python) | OpenJS Foundation, Python Software Foundation | Yes (the production container) |
+| GitHub: the repository, Actions, and Releases | GitHub terms of service | | Yes (code hosting, checks, deploys, and the published exposure index that the server downloads) |
+| Claude Code (Anthropic), with the model Claude Fable 5.2 | Anthropic terms of service | Labeled in every commit, pull request, and file header. Logged in `docs/si-usage.md` | Yes (the SI tool that wrote and tested code and docs under Matt's and Austin's direction) |
 | Domain name from the GoDaddy Registry offer in the Space Apps Global Offers, registered through Porkbun | Porkbun terms of service | | Yes (`spherexplorer.earth`) |

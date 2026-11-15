@@ -29,47 +29,47 @@ const STEPS: Step[] = [
   {
     title: "Welcome to SPHERExplorer",
     text: () =>
-      "SPHEREx is a NASA telescope that photographs the whole sky in 102 colors of infrared light. This page shows every public SPHEREx image of any place in the sky as a short film, so you can see what moves and what changes. The tour takes about a minute.",
+      "SPHEREx is a NASA space telescope that surveys the entire sky in 102 infrared bands. SPHERExplorer plays every public SPHEREx image of a sky position in time order, which makes motion and changes in brightness visible. This tour takes about one minute.",
   },
   {
-    title: "Find a place",
+    title: "Search",
     anchor: ".search",
     text: (loaded) =>
-      `Type a name such as Vega or Jupiter, or coordinates (RA and Dec). The list under the box offers NASA's five test targets. ${
-        loaded ? `The tour will use ${loaded}, which you have open.` : `For this tour we will look at ${EXAMPLE.name}, a pair of brown dwarfs 12 light-years away.`
+      `The search box accepts an object name, such as Vega or Jupiter, or coordinates (RA and Dec). The list below it includes NASA's five test targets. ${
+        loaded ? `This tour uses ${loaded}, which is already open.` : `This tour uses ${EXAMPLE.name}, a binary brown dwarf 12 light-years away.`
       }`,
   },
   {
-    title: "The sky map",
+    title: "Sky map",
     anchor: ".view.map",
     screen: "map",
     example: true,
     text: () =>
-      "The map went there. The yellow square is the area being studied. Drag inside the square to move it, drag its edge to resize it, or click anywhere on the map to load a new area. Close on its card ends the study.",
+      "The sky map centers on the target. The yellow square marks the study area. Dragging inside the square moves it, dragging its edge resizes it, and selecting another point on the map loads a new area. Selecting Close ends the study.",
   },
   {
-    title: "The images",
+    title: "SPHEREx images",
     anchor: ".view.images",
     screen: "images",
     example: true,
     text: () =>
-      "These are the SPHEREx images of that area. Each one is taken in a different color of infrared light. The yellow marks show where the target should be. Click any ring to learn about that object.",
+      "These are the SPHEREx images of the study area. Each image is taken in a different infrared band. The yellow marks show the target's expected position. Selecting a circled object shows its details.",
   },
   {
-    title: "Play them like a film",
+    title: "Playback",
     anchor: ".controlbar",
     screen: "images",
     example: true,
     text: () =>
-      'Press Play, or step one image at a time. "By visit" adds up each visit, so faint things show and moving things step from place to place. "Deepest" adds up everything.',
+      'Play runs the image sequence, and the arrow buttons step through it one image at a time. "By visit" sums the images from each visit, which reveals faint objects and shows moving objects changing position. "Deepest" sums every image into one.',
   },
   {
-    title: "Blink against an older picture",
+    title: "Blink comparison",
     anchor: ".blink",
     screen: "images",
     example: true,
     text: () =>
-      "Blink swaps the SPHEREx image with one that an earlier telescope took many years before. Anything that jumps between the two has moved. Try it on this target after the tour.",
+      "Blink alternates the SPHEREx image with an archival image of the same field from an earlier sky survey. An object that shifts position between the two has moved.",
   },
   {
     title: "Objects and details",
@@ -77,20 +77,20 @@ const STEPS: Step[] = [
     screen: "images",
     example: true,
     text: () =>
-      "Objects lists everything known in the field. Open one to read its facts. Details has the coordinates, the distance, and a link to everything known about the target.",
+      "Objects lists everything known in the field. Opening one shows its facts. Details has the coordinates, the distance, and a link to everything known about the target.",
   },
   {
     title: "Tools",
     anchor: ".dock-tabs",
     example: true,
     text: () =>
-      "Graphs shows the spectrum, which tells what something is made of. Studies finds everything in the field that moved or changed brightness, with one button. Telescopes shows where SPHEREx is right now. Save and share has pictures, films, data files, and links.",
+      "Graphs plots the spectrum, which indicates an object's composition. Studies finds the sources in the field that moved or changed in brightness. Telescopes maps the live positions of SPHEREx and the other telescopes whose data appear here. Save and share exports images, animations, data files, and links.",
   },
   {
     title: "Settings and help",
     anchor: ".toggles",
     text: () =>
-      "Settings holds the detectors, brightness, color, and what is drawn on the map. Help brings this tour back at any time. That is the whole page. Enjoy the sky.",
+      "Settings controls the detectors, image brightness and color, and the map overlays. Help reopens this tour at any time.",
   },
 ];
 

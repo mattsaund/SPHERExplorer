@@ -95,3 +95,8 @@ CLAUDE.local.md
 
 # Local API cache of calibration tables and file layouts
 server/.cache/
+
+# The demo video: captures, rendered frames, and the encoded file are built, not kept.
+video/captures/
+video/frames/
+video/out/

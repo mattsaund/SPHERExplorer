@@ -112,6 +112,87 @@ Rejected alternatives:
 6. Host: YouTube, public or unlisted, is recommended. Decide whose account.
 7. Ownership of the new `video/` folder. Proposed: Matt's side, since Matt's Claude builds it.
 
+## Draft cut, Nov 15
+
+Matt asked Claude for a draft of the video on the morning of Nov 15. It is built and runs end to end. Nothing in it is approved yet.
+
+How to make it, on Matt's machine:
+
+```sh
+cd video
+npm install
+node capture.mjs          # the pictures, from the live site (SITE=http://127.0.0.1:5173 for the local preview)
+node render.mjs           # every frame, then out/spherexplorer-demo.mp4
+node render.mjs 7.5 22    # single frames at those seconds, to look at
+```
+
+What the draft is:
+
+- 28.5 s, 855 frames at 30 a second, 1920 by 1080, H.264, no sound, 12 MB.
+- Nine scenes on the storyboard's timings, with its on-screen text word for word.
+- The app is shown whole, in a frame above the caption, so no part of it is covered or cut.
+- The SI watermark is on every frame, above every scene. The render stops if it is ever covered.
+- The file's title, comment, and description metadata carry the SI statement.
+- `render.mjs` refuses a video over 29.5 s, before and after encoding.
+
+Where the draft differs from the plan above:
+
+- The browser is driven with puppeteer-core and the Chrome already on Matt's machine, not Playwright. It does the same job without a 150 MB download.
+- The captures were taken from the live site at 10:22 am on Nov 15. Take them again if the site changes before the final cut.
+- The motion shot is WISE 0855 by visit with the sky held still (`follow=0`), zoomed three times and smoothed. The brown dwarf then steps west while the stars stay put. Barnard's Star was tried and saturates into a blur at that zoom.
+- The spectrum shot outlines the plot. The other shots have no callout except the search box.
+- The partner shot is Blink on Barnard's Star, the SPHEREx image of August 2025 against the WISE 3.4 micron survey of 2010. The star jumps more than 2.5 arcminutes between the two, which is its own motion over 15 years.
+
+What the draft assumes for the open decisions below, until Matt and Austin choose:
+
+1. Names: "Matt and Austin".
+2. Tagline: the README line as drafted.
+3. The future line as drafted.
+4. No audio.
+5. The motion shot: WISE 0855.
+6. Host: not chosen. The upload is Matt's or Austin's to do.
+7. `video/` is on Matt's side.
+
+### Draft description for the host page
+
+A draft for Matt and Austin to approve. It goes in the description box of the page that hosts the video. It carries the SI statement and the full acknowledgments, which the frames have no room for. The quoted lines are each archive's own required text from `docs/references.md`.
+
+```text
+SPHERExplorer: explore SPHEREx images of the sky and how they change over time.
+Try it: https://spherexplorer.earth
+Code, Apache-2.0: https://github.com/mattsaund/SPHERExplorer
+
+Team Turing Complete (Matt and Austin). NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
+
+This video is SI-generated. It was built from code with Claude Code (Anthropic), from real captures of the SPHERExplorer web tool. Every picture of the sky in it is real data, shown the way the tool shows it. The video has no sound.
+
+This is an independent team project. It is not an official NASA product and is not endorsed by NASA.
+
+Acknowledgments
+
+This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.
+
+This research has made use of the NASA/IPAC Infrared Science Archive, which is funded by the National Aeronautics and Space Administration and operated by the California Institute of Technology.
+
+This publication makes use of data products from the Wide-field Infrared Survey Explorer, which is a joint project of the University of California, Los Angeles, and the Jet Propulsion Laboratory/California Institute of Technology, funded by the National Aeronautics and Space Administration.
+
+This publication makes use of data products from the Two Micron All Sky Survey, which is a joint project of the University of Massachusetts and the Infrared Processing and Analysis Center/California Institute of Technology, funded by the National Aeronautics and Space Administration and the National Science Foundation.
+
+This work has made use of data from the European Space Agency (ESA) mission Gaia (https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis Consortium (DPAC, https://www.cosmos.esa.int/web/gaia/dpac/consortium). Funding for the DPAC has been provided by national institutions, in particular the institutions participating in the Gaia Multilateral Agreement.
+
+NEOSSat, Canadian Space Agency: Contains information licensed under the Open Government Licence - Canada.
+
+This research has made use of the SIMBAD database, CDS, Strasbourg Astronomical Observatory, France.
+
+This research has made use of the VizieR catalogue access tool, CDS, Strasbourg Astronomical Observatory, France.
+
+The sky map is drawn with Aladin Lite (CDS, Strasbourg Astronomical Observatory). Typeface: Inter by Rasmus Andersson, SIL Open Font License 1.1. Every source and license is listed in docs/references.md in the repository.
+```
+
+If audio is added (decision 4), the description must also name the track, its author, and its license, or say that the audio is SI-generated.
+
+Still to do: approval of the text and the seven decisions, a new capture if the site changes, the upload with the description above, and the link in the form.
+
 ## Schedule
 
 Sunday, Nov 15, Eastern time.

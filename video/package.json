@@ -1,0 +1,17 @@
+{
+  "name": "spherexplorer-video",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Builds the SPHERExplorer demo video from captures of the live site. Written with Claude Code (Anthropic) assistance.",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "render": "node render.mjs",
+    "all": "node capture.mjs && node render.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "puppeteer-core": "^25.17.0"
+  }
+}

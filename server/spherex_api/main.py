@@ -183,7 +183,7 @@ async def suggestions(q: str = Query(min_length=3, max_length=60, description="W
 
 
 @app.get("/api/moving")
-async def moving(command: str = Query(min_length=3, max_length=60, description="Body identifier from /api/resolve")):
+async def moving(command: str = Query(min_length=2, max_length=60, description="Body identifier from /api/resolve")):
     """Every SPHEREx image that caught a solar system body, with its position at each exposure."""
     index = await exposures.get_index()
     if index is None:

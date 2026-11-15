@@ -33,10 +33,12 @@ MAJOR = {
     "mercury": ("199", "Mercury", "Planet"), "venus": ("299", "Venus", "Planet"), "mars": ("499", "Mars", "Planet"),
     "jupiter": ("599", "Jupiter", "Planet"), "saturn": ("699", "Saturn", "Planet"), "uranus": ("799", "Uranus", "Planet"),
     "neptune": ("899", "Neptune", "Planet"), "pluto": ("999", "Pluto", "Dwarf planet"), "moon": ("301", "The Moon", "Moon"),
+    # SPHEREx never points near the Sun, so this finds no images. It is here so the name is known.
+    "sun": ("10", "The Sun", "Star"),
 }
 # Words people put in front of a name to say what they mean.
 PREFIX = re.compile(r"^(asteroid|comet|minor planet|dwarf planet|planet)\s+", re.I)
-COMMAND = re.compile(r"^(\d{3}|DES=[A-Za-z0-9 /\-]+;( CAP;)?)$")
+COMMAND = re.compile(r"^(\d{2,3}|DES=[A-Za-z0-9 /\-]+;( CAP;)?)$")
 
 
 @dataclass
@@ -67,9 +69,11 @@ async def lookup(name: str) -> dict | None:
     token = re.sub(r"\s+", " ", text.lower())
     if not token:
         return None
-    if token in MAJOR:
-        command, label, kind = MAJOR[token]
-        page = "dwarf-planets/pluto" if token == "pluto" else token
+    # The sky map labels them "The Sun" and "The Moon", so people type that too.
+    major = token.removeprefix("the ")
+    if major in MAJOR:
+        command, label, kind = MAJOR[major]
+        page = "dwarf-planets/pluto" if major == "pluto" else major
         return {"name": label, "kind": kind, "command": command, "url": f"https://science.nasa.gov/{page}/"}
     if token in _lookups:
         return _lookups[token]

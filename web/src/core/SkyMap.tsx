@@ -8,7 +8,8 @@ import { useEffect, useRef } from "react";
 import { apiUrl, coverageUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
 import { solarPlaces } from "./solar";
-import { separation, skyOffset, skyPath } from "./astro";
+import { formatDate, separation, skyOffset, skyPath } from "./astro";
+import { fieldCenter, fieldDate } from "./field";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
 
@@ -34,6 +35,10 @@ const SOLAR_MS = 60000;
 const CLICK_SLOP = 4;
 /** How close, in screen pixels, a click must be to an object's ring to choose it. */
 const OBJECT_REACH = 10;
+/** A moving body's square counts as in sight while it is this many screen pixels inside the map's edge. */
+const SIGHT_MARGIN = 24;
+/** The gap between the studied field's square and its name, in screen pixels. */
+const CAPTION_GAP = 6;
 
 /**
  * Coverage maps laid over the sky, the same two the IRSA SPHEREx Data Explorer offers.
@@ -73,7 +78,12 @@ export function SkyMap({ className }: { className?: string }) {
     let settle: ReturnType<typeof setTimeout> | null = null;
     let request: AbortController | null = null;
     let lastObjectClick = 0;
-    let applied: Partial<AppState["map"]> & { goal?: number; target?: unknown; fieldSize?: number } = {};
+    // The width of view last asked for, in degrees. Used once, to settle the map after it starts.
+    let wantedFov = 0;
+    let applied: Partial<AppState["map"]> & { goal?: number; target?: unknown; fieldSize?: number; field?: SkyPosition | null; caption?: string } = {};
+    // The studied target's name, written beside its square.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let caption: any = null;
     // The solar system's marks, and the bodies they stand for, as they were last placed.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let planets: any = null;
@@ -199,11 +209,68 @@ export function SkyMap({ className }: { className?: string }) {
      * The selected area: one yellow square that can be moved and resized. It is the field
      * being studied. While it is being dragged to a new place it follows the pointer, and its
      * images load when it is let go. `studied` is false only during that drag.
+     * A planet or comet has a square too. It sits where the image on screen was taken, so it
+     * moves across the map as the film plays.
      */
     function squares(state: AppState): { center: SkyPosition; studied: boolean }[] {
       if (state.map.picked && state.map.pickedIn === "map") return [{ center: state.map.picked, studied: false }];
-      if (state.map.fieldShown && state.target && !state.target.moving) return [{ center: state.target, studied: true }];
-      return [];
+      const center = state.map.fieldShown ? fieldCenter(state) : null;
+      return center ? [{ center, studied: true }] : [];
+    }
+
+    /** True when a place on the sky is on the map, clear of its edge. */
+    function inSight(position: SkyPosition): boolean {
+      const at = aladin.world2pix(position.ra, position.dec) as [number, number] | null;
+      if (!at) return false;
+      return at[0] >= SIGHT_MARGIN && at[0] <= host.clientWidth - SIGHT_MARGIN && at[1] >= SIGHT_MARGIN && at[1] <= host.clientHeight - SIGHT_MARGIN;
+    }
+
+    /**
+     * The name to write beside the studied field's square, or "" for none: a named target
+     * gets its name, and a moving body also the date of the image on screen, because its
+     * square is where it was on that date and not where it is now.
+     */
+    function captionText(state: AppState): string {
+      const target = state.target;
+      if (!target?.name || (state.map.picked && state.map.pickedIn === "map")) return "";
+      if (!target.moving) return target.name;
+      const date = fieldDate(state);
+      return date === null ? target.name : `${target.name}, ${formatDate(date)}`;
+    }
+
+    /**
+     * Write the studied target's name beside its square. Aladin calls this as the "shape" of
+     * the one source in the caption catalog, which sits at the middle of the field. The name
+     * goes above the square, or beside the crosshair that stands in for a square too small to see.
+     */
+    function drawCaption(source: { x: number; y: number; data: { name: string } }, ctx: CanvasRenderingContext2D) {
+      const [fovX] = aladin.getFov();
+      const pixel = fovX / Math.max(host.clientWidth, 1); // degrees per screen pixel
+      const half = useStore.getState().fieldSize / 3600 / 2 / pixel; // half the square's width on screen
+      ctx.save();
+      ctx.font = `600 13px ${getComputedStyle(host).fontFamily || "sans-serif"}`;
+      ctx.fillStyle = cssVariable(host, "--map-field", "#ffd24a");
+      ctx.textBaseline = "alphabetic";
+      // A thin dark edge keeps the name readable over bright sky and over other labels.
+      ctx.lineWidth = 3;
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.75)";
+      const [x, y] = 2 * half < TINY_PIXELS ? [source.x + CROSS_GAP + CROSS_ARM + 5, source.y + 4] : [source.x - half, source.y - half - CAPTION_GAP];
+      ctx.strokeText(source.data.name, x, y);
+      ctx.fillText(source.data.name, x, y);
+      ctx.restore();
+    }
+
+    /** Put the caption on the studied field, move it there, or take it away. */
+    function showCaption(state: AppState) {
+      if (!caption) return;
+      const center = state.map.fieldShown ? fieldCenter(state) : null;
+      const text = center ? captionText(state) : "";
+      const key = text && center ? `${text}|${center.ra}|${center.dec}` : "";
+      if (applied.caption === key) return;
+      applied.caption = key;
+      caption.removeAll();
+      if (text && center) caption.addSources([A.source(center.ra, center.dec, { name: text })]);
     }
 
     /** Draw the picked area or the studied field, and the selected object. */
@@ -265,6 +332,7 @@ export function SkyMap({ className }: { className?: string }) {
         marks.add(A.polyline(skyPath(measured.from, measured.to).map((point) => [point.ra, point.dec]), { color: ink, lineWidth: 2 }));
         for (const end of [measured.from, measured.to]) marks.add(A.circle(end.ra, end.dec, 3 * pixel, { color: ink, lineWidth: 2 }));
       }
+      showCaption(state);
     }
 
     /** Switch a coverage map on or off. Its file is fetched the first time it is switched on. */
@@ -593,14 +661,26 @@ export function SkyMap({ className }: { className?: string }) {
       }
       if (applied.goal !== state.mapGoal.token) {
         aladin.gotoRaDec(state.mapGoal.ra, state.mapGoal.dec);
-        if (state.mapGoal.fov) aladin.setFoV(state.mapGoal.fov);
+        if (state.mapGoal.fov) {
+          aladin.setFoV(state.mapGoal.fov);
+          wantedFov = state.mapGoal.fov;
+        }
         applied.goal = state.mapGoal.token;
+      }
+      // A moving body's square goes where the image on screen was taken. If the square was in
+      // sight and the film has carried it off the map, the map follows it. A map that the
+      // person has turned elsewhere is left alone.
+      const field = map.fieldShown ? fieldCenter(state) : null;
+      const fieldMoved = field?.ra !== applied.field?.ra || field?.dec !== applied.field?.dec;
+      if (fieldMoved && field && applied.field && state.target?.moving && inSight(applied.field) && !inSight(field)) {
+        aladin.gotoRaDec(field.ra, field.dec);
       }
       if (
         applied.target !== state.target || applied.fieldSize !== state.fieldSize || applied.picked !== map.picked || applied.fieldShown !== map.fieldShown ||
-        applied.selected !== map.selected || applied.fov !== map.fov || applied.center !== map.center || applied.measured !== map.measured
+        applied.selected !== map.selected || applied.fov !== map.fov || applied.center !== map.center || applied.measured !== map.measured || fieldMoved
       ) {
         drawMarks(state);
+        applied.field = field;
         applied.target = state.target;
         applied.fieldSize = state.fieldSize;
         applied.picked = map.picked;
@@ -633,11 +713,12 @@ export function SkyMap({ className }: { className?: string }) {
       if (disposed) return;
       const state = useStore.getState();
       const start = SKY_LAYERS.find((entry) => entry.id === state.map.layer) ?? SKY_LAYERS[0];
+      wantedFov = state.mapGoal.fov ?? state.map.fov;
       aladin = A.aladin(host, {
         survey: layerUrl(start),
         projection: state.map.projection,
         cooFrame: "ICRSd",
-        fov: state.mapGoal.fov ?? state.map.fov,
+        fov: wantedFov,
         target: `${state.mapGoal.ra} ${state.mapGoal.dec}`,
         showCooGrid: state.map.grid,
         // No usage reports to third parties, and none of Aladin's own controls.
@@ -661,6 +742,18 @@ export function SkyMap({ className }: { className?: string }) {
         showSelectionModeControl: false,
       });
       layer = aladin.getBaseImageLayer();
+      // Aladin takes its real size a moment after it is made, and rescales the view as it does.
+      // In a map narrower than the window (beside the images, when a link opens a study) the
+      // width asked for above would then not hold. So take the size now and set the width again.
+      try {
+        aladin.view.wasm.resize(aladin.view.width, aladin.view.height);
+      } catch {
+        // An Aladin internal. The check a moment later still puts the width right.
+      }
+      aladin.setFoV(wantedFov);
+      setTimeout(() => {
+        if (!disposed && Math.abs(aladin.getFov()[0] - wantedFov) > 0.01 * wantedFov) aladin.setFoV(wantedFov);
+      }, 80);
       // A handle for debugging in development builds only.
       if (import.meta.env.DEV) {
         (window as unknown as { spxMap?: unknown }).spxMap = aladin;
@@ -681,9 +774,13 @@ export function SkyMap({ className }: { className?: string }) {
       // The solar system wears its own color and a diamond, so it reads apart from the fixed sky.
       const solarColor = cssVariable(host, "--map-solar", "#a8e6a1");
       planets = A.catalog({ name: "Solar system", shape: "rhomb", sourceSize: 14, color: solarColor, displayLabel: true, labelColumn: "name", labelColor: solarColor, labelFont: `13px ${font}`, onClick });
+      // The studied target's name. Its "shape" is a function that writes the name, so it is
+      // drawn with the map and never trails behind it. A click on it does nothing.
+      caption = A.catalog({ name: "Studied target", sourceSize: 1, color: cssVariable(host, "--map-field", "#ffd24a"), shape: drawCaption, onClick: () => (lastObjectClick = Date.now()) });
       aladin.addCatalog(labeled);
       aladin.addCatalog(unlabeled);
       aladin.addCatalog(planets);
+      aladin.addCatalog(caption);
       aladin.addOverlay(marks);
 
       aladin.on("positionChanged", moved);
@@ -701,7 +798,9 @@ export function SkyMap({ className }: { className?: string }) {
       sync(useStore.getState());
       moved();
       unsubscribe = useStore.subscribe((next, before) => {
-        if (next.map !== before.map || next.mapGoal !== before.mapGoal || next.target !== before.target || next.fieldSize !== before.fieldSize) sync(next);
+        // A planet or comet has a new place in every image, so its square also follows the film.
+        const filmMoved = next.target?.moving !== undefined && (next.player.index !== before.player.index || next.sequence !== before.sequence || next.frames !== before.frames);
+        if (next.map !== before.map || next.mapGoal !== before.mapGoal || next.target !== before.target || next.fieldSize !== before.fieldSize || filmMoved) sync(next);
       });
     })();
 

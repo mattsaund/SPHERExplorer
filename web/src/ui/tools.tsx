@@ -346,7 +346,7 @@ function SaveAndShare() {
           <dt><button onClick={() => actions.saveChanges()} disabled={!hasChanges}>Save change report</button></dt>
           <dd>{hasChanges ? "What Measure Changes found, as a CSV table." : "What Measure Changes found, as a CSV table. Run it in the Studies tab first."}</dd>
           <dt><button onClick={() => copy(actions.shareLink(), "link")} disabled={!count}>{copied === "link" ? "Link copied" : "Copy link"}</button></dt>
-          <dd>A link that reopens this target with these settings.</dd>
+          <dd>A link that reopens this whole view: the same image, zoom, brightness, tool, and map. The address bar holds it too.</dd>
           <dt><button onClick={() => copy(actions.embedCode(), "embed")} disabled={!count}>{copied === "embed" ? "Embed code copied" : "Copy embed code"}</button></dt>
           <dd>HTML that shows this view inside another web page.</dd>
         </dl>

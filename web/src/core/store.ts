@@ -12,8 +12,8 @@ import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
 import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
-import { buildLink, embedSnippet, parseLink } from "./url";
-import type { BlinkChoice, BlinkState, DisplaySettings, Filters, Frame, Hover, KnownCheck, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
+import { CHANGE_LEVELS, LEVELS, MAP_NEAR, buildLink, embedSnippet, parseLink, stepNear, type LinkState } from "./url";
+import type { BlinkChoice, BlinkState, DisplaySettings, Filters, Frame, Hover, KnownCheck, Layout, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
 export interface View {
@@ -77,6 +77,11 @@ export interface AppState {
   spectrum: SpectrumSettings;
   /** True when the page was opened with embed=1, to sit inside another site. The UI should use a compact layout. */
   embed: boolean;
+  /**
+   * What the page itself is showing: which screen is up and which tool is open. The UI owns
+   * it and changes it through actions.setLayout. It lives here so that a link can carry it.
+   */
+  layout: Layout;
   /** Progress of an animation being saved, from 0 to 1, or null when none is running. */
   exporting: number | null;
   /** True while the zip of FITS files is being made by the server and downloaded. */
@@ -111,6 +116,17 @@ function openedEmbedded(): boolean {
   return typeof window !== "undefined" && parseLink(window.location.search).embed === true;
 }
 
+/**
+ * The screen and the tool the page address asks for. Read before the first render, as `embed`
+ * is, so the page opens on them. A link that names a study opens with the map and the images
+ * side by side. The UI shows the images alone where a window is too narrow for both.
+ */
+function openingLayout(): Layout {
+  const link = typeof window === "undefined" ? null : parseLink(window.location.search);
+  const study = link?.target !== undefined || link?.ra !== undefined;
+  return { screen: link?.view ?? (study ? "both" : "map"), tool: link?.tool ?? null };
+}
+
 /** Most image pixels held for one target. About 120 MB as received, more once sums are built. */
 const PIXEL_BUDGET = 6e7;
 /** Always load at least this many images, however wide the field. */
@@ -126,9 +142,7 @@ const DEFAULT_FILTERS: Filters = { detectors: [true, true, true, true, true, tru
 const DEFAULT_DISPLAY: DisplaySettings = {
   color: false,
   bands: COLOR_PRESETS[0],
-  stretch: "asinh",
-  lo: -3,
-  hi: 60,
+  ...LEVELS,
   colorMap: "gray",
   invert: false,
   smooth: false,
@@ -169,6 +183,7 @@ export const useStore = create<AppState>(() => ({
   hover: null,
   spectrum: { log: false, perVisit: true, showPoints: true, showSurveys: true, aperture: null, halo: false, probe: null, families: [], redshift: 0 },
   embed: openedEmbedded(),
+  layout: openingLayout(),
   exporting: null,
   packing: false,
   motion: null,
@@ -325,8 +340,11 @@ function emptyStudy(): Partial<AppState> {
   };
 }
 
-/** Start a study: find every image of the target, then stream them in. A newer call cancels an older one. */
-async function load(target: Target, fieldSize: number): Promise<void> {
+/**
+ * Start a study: find every image of the target, then stream them in. A newer call cancels an
+ * older one. `fly` false keeps the map from moving to a body whose place is found only now.
+ */
+async function load(target: Target, fieldSize: number, fly = true): Promise<void> {
   abort?.abort();
   abort = new AbortController();
   const signal = abort.signal;
@@ -339,8 +357,9 @@ async function load(target: Target, fieldSize: number): Promise<void> {
     target,
     targetState: "loading",
     // The picked area has become the field being studied, or been left behind. The map now
-    // shows the field's own square. A solar system body has no fixed field to draw.
-    map: { ...get().map, picked: null, fieldShown: !target.moving },
+    // shows the field's own square. The study is the one thing selected, so an object chosen
+    // before it is let go of.
+    map: { ...get().map, picked: null, selected: null, fieldShown: true },
   });
 
   // A solar system body has no fixed field, so there are no field objects or survey matches to fetch.
@@ -416,11 +435,12 @@ async function load(target: Target, fieldSize: number): Promise<void> {
       };
     });
     if (moving && frames.length) {
-      // Point the target, and the map, at the body's most recent observed position.
+      // The target's own position is the body's most recent observed place.
       const last = frames[frames.length - 1].track;
       target = { ...target, ra: last.ra, dec: last.dec };
       set({ target });
-      actions.flyTo(target, Math.min(get().map.fov, 2));
+      // The map goes to where the body was in its first image, the one that comes on screen.
+      if (fly) actions.flyTo(frames[0].track, Math.min(get().map.fov, MAP_NEAR));
     }
     set({
       frames,
@@ -544,6 +564,61 @@ let spacecraftRequested = false;
 /** Display settings to restore when subtraction is switched off. */
 let beforeSubtract: { follow: boolean; lo: number; hi: number; color: boolean; stretch: DisplaySettings["stretch"] } | null = null;
 
+/**
+ * True while a link's study is still loading. Parts of its view (the step on screen, the zoom)
+ * go on only once the images are in. Until then the address is left as it was opened, so a
+ * reload still asks for the whole view.
+ */
+let linkPending = false;
+
+/** The parts of the state a link carries. The address is rewritten only when one of them changes. */
+const LINKED: (keyof AppState)[] = ["target", "targetState", "fieldSize", "mode", "filters", "display", "subtract", "follow", "map", "layout", "view", "player", "sequence", "spectrum", "blink"];
+
+/** Open the study a link names. Resolves to its session number, or to null when it names none or the name is not found. */
+async function openLinked(link: LinkState, fly: boolean): Promise<number | null> {
+  if (link.target) return (await actions.search(link.target, { fly })) ? generation : null;
+  if (link.ra !== undefined && link.dec !== undefined) {
+    actions.goTo({ ra: link.ra, dec: link.dec, epoch: 2026.0 }, { fly });
+    return generation;
+  }
+  return null;
+}
+
+/** Run `apply` once every image of one study is in. If another study starts first, run `drop` instead. */
+function afterImages(session: number, apply: () => void, drop: () => void): void {
+  let stop = () => {};
+  const check = (state: AppState) => {
+    if (state.session !== session) {
+      stop();
+      drop();
+    } else if (state.framesState === "ready") {
+      stop();
+      apply();
+    }
+  };
+  stop = useStore.subscribe(check);
+  check(get());
+}
+
+/**
+ * Put back the parts of a link's view that need the images: the step on screen, the zoom and
+ * pan, the halo and spot spectra, blinking, and the film. The map's own view goes on last,
+ * because stepping to an image of a moving body can take the map along.
+ */
+function restoreView(link: LinkState, mapView: { ra: number; dec: number; fov: number } | null): void {
+  const { sequence, mode, target } = get();
+  if (link.time !== undefined || link.wavelength !== undefined) actions.seek(stepNear(sequence, mode, link.time, link.wavelength));
+  if (link.zoom !== undefined || link.east !== undefined || link.north !== undefined) {
+    actions.setView({ zoom: link.zoom ?? 1, east: link.east ?? 0, north: link.north ?? 0 });
+  }
+  if (link.aperture === "halo") actions.setSpectrum({ halo: true });
+  // A spot is measured in a fixed field, as in actions.probe.
+  if (link.spot && target && !target.moving) actions.setSpectrum({ probe: link.spot });
+  if (link.blink) actions.setBlink({ on: true, choice: link.blink });
+  if (mapView) actions.flyTo(mapView, mapView.fov);
+  if (link.play && sequence.length > 1 && !get().blink.on) actions.play();
+}
+
 /** Every state change goes through here so the UI never touches the engine internals. */
 export const actions = {
   /** Start the engine: load the instrument facts and open whatever the page address asks for. Safe to call more than once. */
@@ -553,33 +628,80 @@ export const actions = {
     started = true;
     const link = parseLink(window.location.search);
     const state = get();
+    // Where the link says the map looks. All three numbers, or the map goes where it likes.
+    const mapView = link.mapRa !== undefined && link.mapDec !== undefined && link.mapFov !== undefined ? { ra: link.mapRa, dec: link.mapDec, fov: link.mapFov } : null;
     set({
       embed: link.embed ?? false,
       fieldSize: link.fieldSize ?? state.fieldSize,
       mode: link.mode ?? state.mode,
       filters: link.detectors ? { ...state.filters, detectors: link.detectors } : state.filters,
-      display: link.color ? { ...state.display, color: true, bands: COLOR_PRESETS.find((p) => p.id === link.color) ?? state.display.bands } : state.display,
-      map: { ...state.map, layer: link.layer ?? state.map.layer, channel: link.channel ?? state.map.channel, projection: link.projection ?? state.map.projection },
+      display: {
+        ...state.display,
+        ...(link.color ? { color: true, bands: COLOR_PRESETS.find((p) => p.id === link.color) ?? state.display.bands } : {}),
+        colorMap: link.colorMap ?? state.display.colorMap,
+        invert: link.invert ?? state.display.invert,
+        smooth: link.smooth ?? state.display.smooth,
+        ...link.marks,
+      },
+      player: { ...state.player, fps: link.fps ?? state.player.fps },
+      spectrum: {
+        ...state.spectrum,
+        ...link.plot,
+        aperture: typeof link.aperture === "number" ? link.aperture : state.spectrum.aperture,
+        redshift: link.redshift ?? state.spectrum.redshift,
+        families: link.families ?? state.spectrum.families,
+      },
+      map: {
+        ...state.map,
+        layer: link.layer ?? state.map.layer,
+        channel: link.channel ?? state.map.channel,
+        projection: link.projection ?? state.map.projection,
+        ...link.overlays,
+        ...(mapView ? { center: { ra: mapView.ra, dec: mapView.dec }, fov: mapView.fov } : {}),
+      },
+      mapGoal: mapView ? { ...mapView, token: state.mapGoal.token + 1 } : state.mapGoal,
     });
     if (link.subtract) actions.setSubtract(link.subtract);
-    if (link.play) {
-      // Start the little video once, as soon as every image of the first target is in.
-      const stop = useStore.subscribe((next) => {
-        if (next.framesState !== "ready") return;
-        stop();
-        if (next.sequence.length > 1) actions.play();
-      });
-    }
-    if (link.target) void actions.search(link.target);
-    else if (link.ra !== undefined && link.dec !== undefined) actions.goTo({ ra: link.ra, dec: link.dec, epoch: 2026.0 });
+    // These go on after that, because showing only changes sets its own.
+    if (link.follow !== undefined) set({ follow: link.follow });
+    const levels = { stretch: link.stretch ?? get().display.stretch, lo: link.lo ?? get().display.lo, hi: link.hi ?? get().display.hi };
+    if (levels.hi > levels.lo) set({ display: { ...get().display, ...levels } });
+
+    // The study itself. With a map view in the link, the map stays where the link put it.
+    linkPending = link.target !== undefined || link.ra !== undefined;
+    void openLinked(link, mapView === null).then((session) => {
+      if (session === null) {
+        linkPending = false;
+        return;
+      }
+      // Starting the study may have moved the map or changed the screen. The link has the last word.
+      if (mapView) actions.flyTo(mapView, mapView.fov);
+      if (link.view) actions.setLayout({ screen: link.view });
+      afterImages(
+        session,
+        () => {
+          restoreView(link, mapView);
+          linkPending = false;
+        },
+        () => (linkPending = false),
+      );
+    });
+
     // Keep the address in step with the view, without adding browser history entries.
     let pending: ReturnType<typeof setTimeout> | null = null;
     useStore.subscribe((next, before) => {
-      if (next.target === before.target && next.fieldSize === before.fieldSize && next.mode === before.mode && next.display === before.display && next.filters === before.filters && next.subtract === before.subtract && next.map.layer === before.map.layer && next.map.channel === before.map.channel && next.map.projection === before.map.projection) return;
+      if (LINKED.every((key) => next[key] === before[key])) return;
       if (pending) clearTimeout(pending);
+      // Wait for a pause, so a film that is playing or a map that is moving writes nothing.
       pending = setTimeout(() => {
+        if (linkPending) return;
         const address = window.location.pathname + buildLink(get()) + window.location.hash;
-        window.history.replaceState(null, "", address);
+        if (address === window.location.pathname + window.location.search + window.location.hash) return;
+        try {
+          window.history.replaceState(null, "", address);
+        } catch {
+          // Some browsers limit how often the address may change. The next change will catch up.
+        }
       }, 300);
     });
   },
@@ -602,24 +724,26 @@ export const actions = {
    * unless `fly` is false, which is for a place chosen on the map itself.
    */
   goTo(target: Target, options: { fly?: boolean } = {}): void {
+    const fly = options.fly !== false;
     // Keep a wide map view wide enough to show context, but come in close from an all-sky view.
     // A solar system body's position is known only after its images are found.
-    if (!target.moving && options.fly !== false) actions.flyTo(target, Math.min(get().map.fov, 2));
-    void load(target, get().fieldSize);
+    if (!target.moving && fly) actions.flyTo(target, Math.min(get().map.fov, MAP_NEAR));
+    void load(target, get().fieldSize, fly);
   },
 
   /**
    * Study whatever a person typed: coordinates in any common form, or an object name.
    * Resolves to true when a target was found. On failure, state.error holds the reason.
+   * `fly` false leaves the map where it is.
    */
-  async search(text: string): Promise<boolean> {
+  async search(text: string, options: { fly?: boolean } = {}): Promise<boolean> {
     const query = text.trim();
     if (!query) return false;
     recent ??= loadRecent();
     const position = parseCoordinates(query);
     if (position) {
       recent = rememberSearch(recent, { label: query, query });
-      actions.goTo({ ...position, epoch: 2026.0 });
+      actions.goTo({ ...position, epoch: 2026.0 }, options);
       return true;
     }
     set({ targetState: "loading", error: null, notice: null });
@@ -627,9 +751,9 @@ export const actions = {
       const found = await resolveName(query);
       if ("moving" in found && found.moving === true) {
         // A planet, asteroid, or comet. Its position is filled in from the images that caught it.
-        actions.goTo({ name: found.name, kind: found.kind, ra: 0, dec: 0, epoch: 2026.0, source: "JPL Horizons", url: found.url, moving: { command: found.command } });
+        actions.goTo({ name: found.name, kind: found.kind, ra: 0, dec: 0, epoch: 2026.0, source: "JPL Horizons", url: found.url, moving: { command: found.command } }, options);
       } else {
-        actions.goTo(found as Target);
+        actions.goTo(found as Target, options);
       }
       recent = rememberSearch(recent, { label: found.name ?? query, query });
       return true;
@@ -781,7 +905,7 @@ export const actions = {
     if (subtract !== "none" && state.subtract === "none") {
       beforeSubtract = { follow: state.follow, lo: state.display.lo, hi: state.display.hi, color: state.display.color, stretch: state.display.stretch };
       // A straight-line scale keeps zero exactly in the middle of the gray range.
-      set({ subtract, follow: false, display: { ...state.display, lo: -12, hi: 12, color: false, stretch: "linear" } });
+      set({ subtract, follow: false, display: { ...state.display, ...CHANGE_LEVELS, color: false } });
     } else if (subtract === "none" && state.subtract !== "none" && beforeSubtract) {
       set({ subtract, follow: beforeSubtract.follow, display: { ...state.display, lo: beforeSubtract.lo, hi: beforeSubtract.hi, color: beforeSubtract.color, stretch: beforeSubtract.stretch } });
       beforeSubtract = null;
@@ -885,6 +1009,12 @@ export const actions = {
       blink.older = false;
     }
     set({ blink });
+  },
+
+  /** Used by the UI to say which screen is up and which tool is open, so that a link can carry both. */
+  setLayout(change: Partial<Layout>): void {
+    const layout = { ...get().layout, ...change };
+    if (layout.screen !== get().layout.screen || layout.tool !== get().layout.tool) set({ layout });
   },
 
   /** Used by the map to report the sky position under the pointer. */

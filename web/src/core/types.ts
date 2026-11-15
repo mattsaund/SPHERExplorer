@@ -270,6 +270,16 @@ export interface Player {
   fps: number;
 }
 
+/** Which screen is up: the sky map, the images, or both side by side. */
+export type Screen = "map" | "images" | "both";
+
+/** What the page itself is showing. The UI keeps it current, so that a link can carry it. */
+export interface Layout {
+  screen: Screen;
+  /** The tool tab that is open in the bottom dock, or null while the dock is closed. */
+  tool: string | null;
+}
+
 /** What is under the pointer in the frame view. */
 export interface Hover extends SkyPosition {
   /** Pixel value in MJy/sr, or null over empty pixels. */

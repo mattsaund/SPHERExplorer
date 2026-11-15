@@ -56,6 +56,10 @@ def test_major_bodies_and_command_check():
     body = asyncio.run(solarsystem.lookup("  Neptune "))
     assert body == {"name": "Neptune", "kind": "Planet", "command": "899", "url": "https://science.nasa.gov/neptune/"}
     assert asyncio.run(solarsystem.lookup("planet uranus"))["command"] == "799"
+    # The sky map labels them "The Sun" and "The Moon", so both ways of typing them are known.
+    assert asyncio.run(solarsystem.lookup("the Moon")) == asyncio.run(solarsystem.lookup("moon"))
+    assert asyncio.run(solarsystem.lookup("The Sun")) == {"name": "The Sun", "kind": "Star", "command": "10", "url": "https://science.nasa.gov/sun/"}
+    assert solarsystem.COMMAND.match("10") and not solarsystem.COMMAND.match("1")
     assert solarsystem.COMMAND.match("DES=20000001;") and solarsystem.COMMAND.match("DES=67P; CAP;")
     assert not solarsystem.COMMAND.match("799'; drop") and not solarsystem.COMMAND.match("x")
     with pytest.raises(ValueError):

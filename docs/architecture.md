@@ -65,7 +65,7 @@ One full screen between a top bar and a bottom bar. Both bars expand. Austin's s
 | Settings drawer | `ui/settings.tsx` | Every setting in two halves: the sky map's on the left, the image study's on the right. The line between them sits where the line between the two views is, and nothing changes place when the view changes |
 | Stage | `ui/App.tsx` | The sky map, the image viewer, or both side by side on a wide screen. Both stay mounted while hidden. A details card sits in the corner of the images: name, kind, distance, the link to everything known about the target, and the image on screen. Boxes for clicked objects, spots, and messages lie over the stage |
 | Status line | `ui/App.tsx` | Progress on the left, the pointer readout or map help on the right. Fixed height |
-| Player | `ui/App.tsx` | Play, step, scrub, speed, and what to play. Always in the bottom bar, in every view |
+| Player | `ui/App.tsx` | Play, step, scrub, speed, and what to play. In the bottom bar while the images are on screen, and put away with them |
 | Tool dock | `ui/tools.tsx` | Tabs that open upward: graphs (spectrum, brightness over time, timeline), studies (measure changes, measure movement), telescopes (live map, facts, other telescopes' images of the field), save and share, about. Only the open tool is on the page |
 
 - A new tool usually needs one component and one entry in `TOOLS` in `ui/tools.tsx`.
@@ -82,7 +82,7 @@ Rules for both sides.
 - `core` never imports from `ui`. `ui` never calls `fetch` or the server directly.
 - `core` ships no visible styling beyond the canvases. Colors used inside canvases come from CSS variables that `ui` defines.
 - A change to an exported name or type is a contract change. Announce it in the pull request title with the prefix `contract:`.
-- UI-only state (open panels, theme, tips) lives in `ui`.
+- UI-only state (open panels, theme, tips) lives in `ui`. The exception is which screen is up and which tool is open: the UI owns them but keeps them in the engine (`layout`, `actions.setLayout`), so that a link can carry them.
 - A redesign must keep every tool. `docs/ui-checklist.md` is the list, and CI enforces it.
 
 ## UI rules (from the team concept)

@@ -24,7 +24,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Tool | The user can | Engine pieces |
 |---|---|---|
 | Viewer | See the images, pan, zoom, and click | `FrameView` |
-| Playback | Play, pause, step, scrub, and set the speed | `actions.togglePlay`, `actions.step`, `actions.seek`, `actions.setSpeed` |
+| Playback | Play, pause, step, scrub, and set the speed, in a bar that is on the page while the images are | `actions.togglePlay`, `actions.step`, `actions.seek`, `actions.setSpeed` |
 | What to play | Choose every image, by visit, by wavelength, or the deepest sum | `actions.setMode` |
 | Detectors | Switch each of the six detectors on or off | `actions.toggleDetector` |
 | Field size | Change how much sky is loaded | `actions.setFieldSize` |
@@ -72,7 +72,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Labels and grid | Switch object labels and the coordinate grid | `labels`, `grid` |
 | Go to | Jump to the whole sky or to a place | `actions.flyTo` |
 | Object card | See a clicked object's facts, distance, and details link | `selected` |
-| Selected area | Click the map to select an area and load its images, see its size, move it by dragging inside it, resize it by dragging its edge, copy its coordinates, and close the study | `picked`, `fieldSize`, `fieldShown`, `actions.closeStudy` |
+| Selected area | Click the map to select an area and load its images, see its size, move it by dragging inside it, resize it by dragging its edge, copy its coordinates, and close the study. Every study has the square, with the target's name on it: a searched object too, and a planet or comet, whose square is where the image on screen was taken | `picked`, `fieldSize`, `fieldShown`, `actions.closeStudy`, `fieldCenter`, `fieldDate` |
 | Coordinates | Read the coordinates under the pointer and at the center of the map, and copy the center | `mapHover`, `center` |
 | Coverage | Show where SPHEREx spectral images exist, and where the deep fields are | `coverage`, `deepFields` |
 | Tile grid | Show the HEALPix tiles that all-sky maps are cut into | `tiles` |
@@ -97,7 +97,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Save FITS | Save the image on screen as a FITS file with sky coordinates: the archive's own pixels, flags, and variance for one exposure, or the sum | `actions.saveFits` |
 | Save all FITS | Save every loaded image as FITS files in one zip, with progress | `actions.saveAllFits`, `packing` |
 | Save tables | Save the brightness over time, and what the change finder found, as CSV tables | `actions.saveLightCurve`, `actions.saveChanges` |
-| Share | Copy a link that reopens the view | `actions.shareLink` |
+| Share | Copy a link that reopens the whole view: the screen, the open tool, the image on screen with its zoom and brightness, the spectrum settings, and where the map looks. The address bar follows the view too | `actions.shareLink`, `actions.setLayout`, `layout` |
 | About and credits | Read who made it, where the data comes from, that it is not a NASA product, and that SI was used | `DATA_CREDIT`, `index` |
 | Embed code | Copy HTML that shows the view inside another web page | `actions.embedCode` |
 | Embedded view | Get a compact viewer when the address holds `embed=1` | `embed`, `Embed` |

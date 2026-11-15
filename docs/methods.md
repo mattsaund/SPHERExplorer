@@ -156,6 +156,7 @@ Checked on known objects.
 - Checked against JPL Horizons 30 days after the orbits were taken, which the unit test repeats. Every body is within 16 arcsec: the planets and small bodies mostly within 5, Venus 15, Mercury 9. The Moon is within 0.06 degree, a tenth of its own width.
 - The orbits drift from the truth over months, mostly for bodies that pass close to planets. Running the script again renews them.
 - Clicking a body shows what it is and how far it is from the Earth and the Sun right now. "Study in SPHEREx" then follows it through the images with the exact path from JPL Horizons, as for any moving target (section 5).
+- A studied body has two marks, and they mean different things. The green diamond is where it is right now. The yellow square is where it was when the image on screen was taken, with the name and that date written on it. The square moves along the body's path as the film plays, and the map follows it when it leaves the view.
 
 ## 16. The sky map's overlays and measure tool
 
@@ -163,6 +164,15 @@ Checked on known objects.
 - The tile grid is the HEALPix grid that every all-sky map (HiPS) is cut into. Aladin Lite draws it.
 - The measure tool gives the angle between two points on the sky with the Vincenty formula, which is exact at any separation. The direction is counted from north through east. The line drawn is the shortest path on the sky, in 48 pieces, so it is right in every map shape. Checked against the map library's own conversion from screen to sky, to 0.01 arcsec.
 - The coordinates box shows right ascension and declination, J2000, under the pointer and at the center of the map. What it copies reads back into the Find box and into other archives.
+
+## 17. Links that carry the whole view
+
+- The page address is rewritten as the view changes, after a short pause, so it can be copied at any time. `docs/embedding.md` lists every option.
+- The image on screen is named by its time and its wavelength, not by its number in the film. A new data release adds images, which would shift every number. Two detectors expose at the same moment, so time alone is not enough, and wavelength tells them apart. A sum per wavelength is named by wavelength alone, because its mean time changes whenever a visit is added.
+- A value at its default is left out. The default brightness scale is different while only changes are shown, so the link compares against the right one.
+- The sky map goes to a study by itself. Where it looks is written only when it differs from that by more than 2 percent of its width in position or 5 percent in width.
+- Parts of the view need the images first: the step, the zoom, a spot's spectrum, blinking. They are put back once every image is in. Until then the address is left as it was opened, so a reload still asks for the whole view.
+- Checked by opening a copied link in a new tab and comparing the two states: the same image, zoom, pan, brightness, color table, open tool, spectrum settings, map overlays, and map view (to the last digit a link carries).
 
 ## Known limits
 

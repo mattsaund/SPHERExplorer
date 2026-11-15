@@ -2,10 +2,12 @@
 // Top bar: search with suggestions, the switch between the sky map and the images, and a drawer for test targets or settings.
 // Middle: the sky map or the image viewer, or both side by side on a wide screen, with a label and messages laid over it.
 // Bottom bar: a status line with the pointer readout, the player, and a dock of tools that opens upward.
-// Every setting, for the images and for the map, lives in the one settings drawer, and the player
-// is always in the bottom bar. Nothing changes place when the view changes.
+// Every setting, for the images and for the map, lives in the one settings drawer. The player
+// sits in the bottom bar while the images are on screen, and is put away with them.
+// Which screen is up and which tool is open are kept in the engine's state (layout), so that
+// a link can carry the whole view.
 // Written with Claude Code (Anthropic) assistance.
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   FrameView,
   SKY_LAYERS,
@@ -20,6 +22,7 @@ import {
   formatFlux,
   formatRa,
   useStore,
+  type Screen,
   type SequenceMode,
 } from "../core";
 import { AreaCard, BlinkControl, Chevron, CopyButton, ObjectCard, ObjectsCard, SpotCard, coordinates, useAreaShown } from "./cards";
@@ -31,9 +34,31 @@ import { Tour, tourIsDue, type TourScreen } from "./Tour";
 import "./styles/app.css";
 
 /** What fills the stage. "both" puts the map and the images side by side, on screens wide enough. */
-type ViewId = "map" | "images" | "both";
+type ViewId = Screen;
 /** Narrower than this, the stage shows one view at a time. */
 const WIDE = 1100;
+
+/** Tell `changed` whenever the window is resized. Returns the way to stop. */
+function onWindowResize(changed: () => void): () => void {
+  window.addEventListener("resize", changed);
+  return () => window.removeEventListener("resize", changed);
+}
+
+/** True while the window is wide enough for the map and the images side by side. */
+function useWide(): boolean {
+  return useSyncExternalStore(onWindowResize, () => window.innerWidth >= WIDE);
+}
+
+/** The screen that is really up: a window too narrow for both shows the images alone. */
+function screenNow(): ViewId {
+  const asked = useStore.getState().layout.screen;
+  return asked === "both" && window.innerWidth < WIDE ? "images" : asked;
+}
+
+/** Change the screen. A function gets the screen that is up now. */
+function setView(next: ViewId | ((now: ViewId) => ViewId)): void {
+  actions.setLayout({ screen: typeof next === "function" ? next(screenNow()) : next });
+}
 
 /**
  * The view after the player is used. Playing a film nobody can see would be confusing, so
@@ -371,6 +396,8 @@ function StatusBar({ view }: { view: ViewId }) {
   const loaded = useStore((s) => s.loaded);
   const failed = useStore((s) => s.failed);
   const leftOut = useStore((s) => s.leftOut);
+  // A planet, asteroid, or comet is named when no image caught it. A fixed spot may get images later.
+  const body = useStore((s) => (s.target?.moving ? s.target.name ?? null : null));
   const areaShown = useAreaShown();
   const count = (n: number) => n.toLocaleString("en-US");
 
@@ -381,7 +408,7 @@ function StatusBar({ view }: { view: ViewId }) {
     text = "Searching the SPHEREx archive…";
     progress = null;
   } else if (targetState === "ready" && total === 0) {
-    text = "SPHEREx has no public images of this spot yet.";
+    text = body ? `${body} is not in any public SPHEREx image.` : "SPHEREx has no public images of this spot yet.";
   } else if (framesState === "loading") {
     text = `Loading images ${count(loaded + failed)}/${count(total)}`;
     progress = total ? (loaded + failed) / total : 0;
@@ -414,8 +441,8 @@ function StatusBar({ view }: { view: ViewId }) {
   );
 }
 
-/** onUse runs whenever the player is used, so the page can bring the images into view. */
-function PlayerBar({ onUse }: { onUse: () => void }) {
+/** The film's controls. The page shows them only while the images are on screen. */
+function PlayerBar() {
   const count = useStore((s) => s.sequence.length);
   const index = useStore((s) => s.player.index);
   const playing = useStore((s) => s.player.playing);
@@ -424,17 +451,17 @@ function PlayerBar({ onUse }: { onUse: () => void }) {
   return (
     <div className="controlbar" role="group" aria-label="Player">
       <div className="transport">
-        <button className="icon" onClick={() => { actions.step(-1); onUse(); }} disabled={count < 2} aria-label="Previous image"><Arrow back /></button>
-        <button className="primary play" onClick={() => { actions.togglePlay(); onUse(); }} disabled={count < 2}>
+        <button className="icon" onClick={() => actions.step(-1)} disabled={count < 2} aria-label="Previous image"><Arrow back /></button>
+        <button className="primary play" onClick={() => actions.togglePlay()} disabled={count < 2}>
           {playing ? "Pause" : "Play"}
         </button>
-        <button className="icon" onClick={() => { actions.step(1); onUse(); }} disabled={count < 2} aria-label="Next image"><Arrow /></button>
+        <button className="icon" onClick={() => actions.step(1)} disabled={count < 2} aria-label="Next image"><Arrow /></button>
         <input
           type="range"
           min={0}
           max={Math.max(0, count - 1)}
           value={Math.min(index, Math.max(0, count - 1))}
-          onChange={(event) => { actions.seek(Number(event.target.value)); onUse(); }}
+          onChange={(event) => actions.seek(Number(event.target.value))}
           aria-label="Position in the sequence"
           disabled={count < 2}
         />
@@ -446,7 +473,7 @@ function PlayerBar({ onUse }: { onUse: () => void }) {
       </label>
       <div className="segmented" role="radiogroup" aria-label="What to play">
         {MODES.map((option) => (
-          <button key={option.value} role="radio" aria-checked={mode === option.value} title={option.hint} onClick={() => { actions.setMode(option.value); onUse(); }}>
+          <button key={option.value} role="radio" aria-checked={mode === option.value} title={option.hint} onClick={() => actions.setMode(option.value)}>
             {option.label}
           </button>
         ))}
@@ -456,8 +483,8 @@ function PlayerBar({ onUse }: { onUse: () => void }) {
 }
 
 interface DockProps {
-  tool: string;
-  open: boolean;
+  /** The open tool, or null while the dock is closed. */
+  tool: string | null;
   tall: boolean;
   onTool: (id: string) => void;
   onTall: () => void;
@@ -467,14 +494,15 @@ interface DockProps {
 }
 
 /** The tool tabs. A tab opens the dock upward. The open tool is the only one on the page, so hidden plots cost nothing. */
-function Dock({ tool, open, tall, onTool, onTall, onClose, showMap, showImages }: DockProps) {
+function Dock({ tool, tall, onTool, onTall, onClose, showMap, showImages }: DockProps) {
+  const open = tool !== null;
   const Panel = (TOOLS.find((entry) => entry.id === tool) ?? TOOLS[0]).Panel;
   return (
     <section className="dock" aria-label="Tools">
       <div className="dock-head">
         <div className="dock-tabs">
           {TOOLS.map((entry) => (
-            <button key={entry.id} aria-expanded={open && entry.id === tool} aria-controls="dock-body" onClick={() => onTool(entry.id)}>
+            <button key={entry.id} aria-expanded={entry.id === tool} aria-controls="dock-body" onClick={() => onTool(entry.id)}>
               {entry.label}
             </button>
           ))}
@@ -495,23 +523,25 @@ function Dock({ tool, open, tall, onTool, onTall, onClose, showMap, showImages }
 
 /** The whole page: top bar, settings drawer, stage, status line, player, and tool dock. */
 export function App() {
-  const [view, setView] = useState<ViewId>("map");
-  // The view as the engine's listeners see it, without waiting for a render.
-  const viewNow = useRef(view);
-  viewNow.current = view;
+  // Which screen is asked for, and which tool is open, live in the engine's state so that a
+  // link can carry them. A window too narrow for both screens shows the images alone.
+  const asked = useStore((s) => s.layout.screen);
+  const wide = useWide();
+  const view: ViewId = asked === "both" && !wide ? "images" : asked;
+  const openTool = useStore((s) => s.layout.tool);
+  // A link may name a tool this page does not have. Then the dock stays closed.
+  const tool = TOOLS.some((entry) => entry.id === openTool) ? openTool : null;
   const [settingsOpen, setSettingsOpen] = useState(false);
   // The walkthrough offers itself once, on a first visit to the plain page. Help brings it back.
   const [tour, setTour] = useState(() => !useStore.getState().embed && tourIsDue());
-  const [tool, setTool] = useState(TOOLS[0].id);
-  const [dockOpen, setDockOpen] = useState(false);
   const [dockTall, setDockTall] = useState(false);
   const hasTarget = useStore((s) => s.target !== null);
   const embed = useStore((s) => s.embed);
 
   useEffect(() => {
+    // The engine reads the page address here. A link that names a study opens on the screen
+    // it asks for: both side by side unless it says otherwise.
     actions.init();
-    // A link that names a target opens on its images.
-    if (useStore.getState().targetState === "loading") setView("images");
     // A new study, from a search or a click on the map, brings the image study up beside the
     // map (Matt's decision): on a wide screen the view goes from the map alone to both.
     // Closing the selected area puts the image study away again. A narrow screen has no room
@@ -519,19 +549,12 @@ export function App() {
     // `session` counts studies, so a name that is not found changes nothing.
     return useStore.subscribe((next, before) => {
       if (next.session === before.session || next.target === null) return;
-      if (window.innerWidth < WIDE || viewNow.current !== "map") return;
+      if (window.innerWidth < WIDE || next.layout.screen !== "map") return;
       // The map is about to shrink to the left half of the page. Center it on the new field,
       // so the selected area is still in sight. The zoom is left as it is.
       if (!next.target.moving) actions.flyTo(next.target);
       setView("both");
     });
-  }, []);
-
-  // Side by side needs room. If the window is made narrow, fall back to the images alone.
-  useEffect(() => {
-    const onResize = () => setView((now) => (now === "both" && window.innerWidth < WIDE ? "images" : now));
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   // Keys for the film: space plays and pauses, the arrows step. Not while typing or on a control.
@@ -555,14 +578,8 @@ export function App() {
   const showImages = () => setView((now) => (now !== "map" ? now : window.innerWidth >= WIDE ? "both" : "images"));
   const showMap = () => setView((now) => (now === "both" ? now : "map"));
 
-  function chooseTool(id: string) {
-    if (dockOpen && id === tool) {
-      setDockOpen(false);
-    } else {
-      setTool(id);
-      setDockOpen(true);
-    }
-  }
+  // A tab opens its tool. The tab of the open tool closes the dock.
+  const chooseTool = (id: string) => actions.setLayout({ tool: id === tool ? null : id });
 
   // The tour asks for the screen its step is about. A wide page shows both once there is a target.
   const tourScreen = (screen: TourScreen) => setView(window.innerWidth >= WIDE && useStore.getState().target !== null ? "both" : screen);
@@ -607,20 +624,20 @@ export function App() {
         )}
         <div className="overlay">
           {view === "map" && <MapCards showImages={showImages} onClose={() => setView("map")} />}
-          {view !== "map" && <ImageCards both={view === "both"} openTool={(id) => { setTool(id); setDockOpen(true); }} showImages={showImages} />}
+          {view !== "map" && <ImageCards both={view === "both"} openTool={(id) => actions.setLayout({ tool: id })} showImages={showImages} />}
           <Messages view={view} />
         </div>
       </main>
 
       <StatusBar view={view} />
-      <PlayerBar onUse={() => setView(withImages)} />
+      {/* The player belongs to the images, so it is on the page only while they are (Matt's decision). */}
+      {view !== "map" && <PlayerBar />}
       <Dock
         tool={tool}
-        open={dockOpen}
         tall={dockTall}
         onTool={chooseTool}
         onTall={() => setDockTall((tall) => !tall)}
-        onClose={() => setDockOpen(false)}
+        onClose={() => actions.setLayout({ tool: null })}
         showMap={showMap}
         showImages={showImages}
       />

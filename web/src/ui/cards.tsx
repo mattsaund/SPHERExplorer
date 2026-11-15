@@ -3,7 +3,7 @@
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
-import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
+import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, fieldCenter, fieldDate, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
 import { copyText } from "./copy";
 
 /** Points down. Turns up while the thing it belongs to is open (see app.css). */
@@ -36,7 +36,7 @@ export function coordinates(position: { ra: number; dec: number }): string {
 
 /** True while the sky map shows its yellow square: the field being studied, or that square being dragged. */
 export function useAreaShown(): boolean {
-  return useStore((s) => (s.map.picked !== null && s.map.pickedIn === "map") || (s.map.fieldShown && s.target !== null && !s.target.moving));
+  return useStore((s) => (s.map.picked !== null && s.map.pickedIn === "map") || (s.map.fieldShown && fieldCenter(s) !== null));
 }
 
 /**
@@ -45,21 +45,35 @@ export function useAreaShown(): boolean {
  * its images load at once. While the square is dragged this card follows it.
  * "Close" ends the study and takes the square away. `onClose` runs after that, so the page
  * can put the image study away too.
+ * A named target is named here. A planet or comet moves, so its square is where the image on
+ * screen was taken, and the card says which date that was.
  */
 export function AreaCard({ onClose }: { onClose: () => void }) {
   const dragged = useStore((s) => (s.map.picked && s.map.pickedIn === "map" ? s.map.picked : null));
-  const fieldShown = useStore((s) => s.map.fieldShown);
   const target = useStore((s) => s.target);
   const fieldSize = useStore((s) => s.fieldSize);
-  const area = dragged ?? (fieldShown && target && !target.moving ? target : null);
-  if (!area) return null;
+  // The studied field's center. Its two numbers are read one by one so the card redraws only when they change.
+  const ra = useStore((s) => (s.map.fieldShown ? fieldCenter(s)?.ra : undefined));
+  const dec = useStore((s) => (s.map.fieldShown ? fieldCenter(s)?.dec : undefined));
+  const date = useStore((s) => (s.target?.moving ? fieldDate(s) : null));
+  const studied = useStore((s) => s.map.fieldShown && s.target !== null);
+  const area = dragged ?? (ra !== undefined && dec !== undefined ? { ra, dec } : null);
+  // A moving body has no place on the map until its images are found. Its study can still be closed.
+  if (!area && !studied) return null;
   return (
     <section className="box" aria-label="Selected area">
       <h2>Selected area</h2>
-      <p className="mono">{coordinates(area)}</p>
+      {!dragged && target?.name && (
+        <p>
+          <strong>{target.name}</strong>
+          {target.kind && <span className="muted">, {target.kind}</span>}
+          {area && date !== null && <span className="muted">. Where it was on {formatDate(date)}</span>}
+        </p>
+      )}
+      {area && <p className="mono">{coordinates(area)}</p>}
       <p>{Number((fieldSize / 60).toFixed(1))} arcminutes across</p>
       <div className="row wrap">
-        <CopyButton text={coordinates(area)} label="Copy Coordinates" />
+        {area && <CopyButton text={coordinates(area)} label="Copy Coordinates" />}
         <button onClick={() => { actions.closeStudy(); onClose(); }} title="Close the image study and take the square off the map">Close</button>
       </div>
     </section>

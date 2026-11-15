@@ -2,6 +2,8 @@
 
 Every view of SPHERExplorer has an address. Put coordinates in the address and the tool opens on that patch of sky. Add `embed=1` and it fits inside another web page.
 
+The address bar follows what is on screen. Copy it, or use "Copy link" under Save and share, and the link reopens the same view: the same image, zoom, brightness, tool, and map.
+
 `<site>` below stands for the address of the live site.
 
 ## Link to a place
@@ -32,6 +34,33 @@ All optional. Bad or unknown values are ignored.
 | `ch` | 0 to 101 | SPHEREx channel shown on the sky map |
 | `proj` | `AIT`, `SIN`, `MOL`, `MER`, `ZEA`, `STG`, `TAN` | Sky map shape |
 | `embed` | `1` | Compact layout for a frame inside another page |
+
+## The whole view
+
+A link made by the tool also carries these. Each is left out while it is at its default, so a plain view keeps a short link. All are optional, and bad values are ignored.
+
+| Name | Values | Meaning |
+|---|---|---|
+| `view` | `map`, `images`, `both` | Which screen is up. A link with a target opens on `both`, or on the images alone where the window is narrow |
+| `tool` | `graphs`, `studies`, `telescopes`, `save`, `about` | The tool tab that is open |
+| `t`, `w` | A Modified Julian Date, a wavelength in microns | The image on screen, by its time and wavelength. Not its number in the film, so the link still lands on it after a new data release |
+| `zoom`, `x`, `y` | 0.5 to 40, arcseconds | Zoom of the image, and its pan east and north of the field center |
+| `curve`, `lo`, `hi` | `linear`, `sqrt`, `log`, `asinh`, two numbers | Brightness curve, black point, and white point |
+| `cmap`, `inv`, `smooth` | `gray`, `viridis`, `magma`, `inferno`, `plasma`, `cividis`, then `1` | Color table, inverted, smoothed pixels |
+| `marks` | Letters from `mogcf`, or `0` for none | Marks on the image: `m` target, `o` known objects, `g` Gaia stars, `c` found changes, `f` bad pixels. Default `moc` |
+| `follow` | `0` or `1` | Hold the sky still, or keep a moving target centered, when images are summed |
+| `fps` | 0.5 to 30 | Film speed in steps per second. Default 6 |
+| `blink` | `auto`, `wise-w2`, `wise-w1`, `2mass`, `dss` | Blink against that older survey |
+| `plot` | Letters from `vpls`, or `0` for none | Spectrum options: `v` compare visits, `p` every measurement, `l` log scale, `s` 2MASS and WISE. Default `vps` |
+| `ap` | 4 to 120, or `halo` | Radius of the measuring circle in arcseconds, or the halo measure for a star too bright for the detector |
+| `rs` | 0 to 12 | Redshift applied to the feature marks |
+| `feat` | Names joined by commas, such as `water,co2` | Feature families marked on the spectrum |
+| `spot` | Two numbers joined by a comma | Take the spectrum of this spot instead of the target: arcseconds east and north of the field center |
+| `mra`, `mdec`, `mfov` | Degrees | Where the sky map looks and how wide. All three together. Without them the map goes to the target |
+| `ov` | Letters from `lsgcdt`, or `0` for none | On the sky map: `l` object labels, `s` solar system, `g` coordinate grid, `c` SPHEREx coverage, `d` deep fields, `t` tile grid. Default `ls` |
+
+- The compact layout takes the ones about the image itself: `t`, `w`, `zoom`, `x`, `y`, `curve`, `lo`, `hi`, `cmap`, `inv`, `smooth`, `marks`, `follow`, and `fps`.
+- Not carried: a card that is open, the measure tool's line, and the results of the change finder and the motion measure. Those are one click to make again.
 
 ## Embed the viewer
 

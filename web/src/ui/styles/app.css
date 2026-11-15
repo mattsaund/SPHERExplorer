@@ -219,13 +219,15 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 
 /* The details box wears the look of the map's coordinates box, and keeps to the right.
    Its values may wrap, since some are sentences. */
-.stage-label.place.details { flex: 0 1 auto; margin-left: auto; grid-template-columns: auto minmax(0, 1fr) auto; width: fit-content; max-width: min(440px, 100%); }
+.image-cards > .stage-label.place.details, .stage.both .image-cards > .stage-label.place.details { flex: 0 1 auto; margin-left: auto; grid-template-columns: auto minmax(0, 1fr) auto; width: fit-content; max-width: min(440px, 100%); }
 .details .place-row > span:nth-child(2) { display: block; min-height: 0; padding: 4px 0; white-space: normal; }
 .place a { pointer-events: auto; }
 .place button[aria-expanded="true"] { background: var(--color-bg); border-color: var(--color-border); color: inherit; }
 
 /* The list of objects. Unlike the labels, it takes clicks and scrolls. */
 .stage-label.objects { flex: 0 1 auto; display: flex; flex-direction: column; gap: var(--space-1); min-height: 0; pointer-events: auto; }
+/* Folded, it keeps its own width, so a wide details box wraps its text and does not squeeze it. */
+.stage-label.objects:not(.open) { flex: none; }
 .stage-label.objects.open { flex: 0 1 400px; }
 .object-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; max-height: min(300px, 34dvh); }
 .object-row {

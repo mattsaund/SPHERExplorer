@@ -248,7 +248,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The main stack: Python with FastAPI, NumPy, and Astropy, TypeScript with React and WebGL2, and Aladin Lite | Details | `docs/architecture.md`, `docs/references.md` |
 | Deploys run only after every test passes | Details | `.github/workflows/deploy.yml` |
 | No account is needed | Details | `docs/deploy.md`, Security |
-| The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `video/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
+| The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `media/code/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
 | The SI answer says every source file and every pull request is labeled, and that three commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and three commits on `main` carry no trailer (`ec252a2`, `80d2140`, and `e79c16e`). `docs/si-usage.md` names all three |

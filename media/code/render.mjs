@@ -1,6 +1,6 @@
 // Renders the demo video: opens scenes.html, saves one picture for each thirtieth of a
 // second, and has ffmpeg encode them. Fails if the result would pass the 30 second limit.
-// Usage: node render.mjs            the whole video, to out/spherexplorer-demo.mp4
+// Usage: node render.mjs            the whole video, to ../videos/spherexplorer-demo.mp4
 //        node render.mjs 3.5 12     single frames at those seconds, to out/frame-<t>.png
 // Written with Claude Code (Anthropic) assistance.
 import { execFileSync } from "node:child_process";
@@ -63,7 +63,10 @@ for (let frame = 0; frame < count; frame++) {
 await browser.close();
 console.log(`${count} frames in ${((Date.now() - started) / 1000).toFixed(0)} s`);
 
-const file = path.join(OUT, "spherexplorer-demo.mp4");
+// The finished video goes into media/videos/, where it is kept in the repo. Everything else
+// this script makes (frames, single pictures) stays under this folder and out of the repo.
+const file = path.join(HERE, "..", "videos", "spherexplorer-demo.mp4");
+fs.mkdirSync(path.dirname(file), { recursive: true });
 execFileSync("ffmpeg", [
   "-y", "-loglevel", "error", "-framerate", String(FPS), "-i", path.join(FRAMES, "%04d.png"),
   "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-movflags", "+faststart",

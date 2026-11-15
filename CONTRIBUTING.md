@@ -36,7 +36,7 @@ API_TARGET=https://spherexplorer.earth npm run dev
 | `web/src/core/views/` | The React components that draw the map, the images, and the plots. |
 | `web/src/ui/` | The interface. It imports only from `../core`. |
 | `scripts/` | Checks and maintenance scripts. |
-| `video/` | Builds the demo video from captures of the live site. |
+| `media/` | What the team shows people: `videos/`, `slides/`, and `pictures/`. `media/code/` builds the demo video from captures of the live site. |
 | `docs/` | Documentation. `docs/README.md` says where each document is. `docs/architecture.md`, `docs/interface.md`, and `docs/methods.md` are the places to start. `docs/glossary.md` explains the terms. |
 
 ## Checks

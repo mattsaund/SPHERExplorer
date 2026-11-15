@@ -1,6 +1,6 @@
 # Demo video and live presentation
 
-Status, Nov 15 at 12:30 pm: the demo is the video that Matt's Claude built from code in `video/`. A seven-slide deck that Claude drafted is the backup.
+Status, Nov 15 at 12:30 pm: the demo is the video that Matt's Claude built from code in `media/code/`. A seven-slide deck that Claude drafted is the backup.
 
 Two deliverables are due today, Sunday, Nov 15, Eastern time.
 
@@ -38,9 +38,10 @@ For slides, the guide asks for at most seven slides, including the title and int
 
 ## The video
 
-- `video/` builds it from the live site. `node capture.mjs` takes the captures, and `node render.mjs` lays out and renders every frame.
+- `media/code/` builds it from the live site. `node capture.mjs` takes the captures, and `node render.mjs` lays out and renders every frame.
 - 29.0 seconds, 1920 by 1080, silent, with the SI watermark on every frame. The render refuses anything over 29.5 seconds.
 - Ten scenes. Matt watched the cut on Nov 15 and asked for one more shot, which is in: Haumea through a year of images, with the yellow square moving on the map and the image study keeping it under its marker.
+- The finished file is `media/videos/spherexplorer-demo.mp4`, and it is kept in the repo. The captures and frames it is made from are not.
 - The file's title, comment, and description metadata carry the SI statement.
 - If the site changes before the upload, capture and render again.
 
@@ -61,7 +62,7 @@ The on-screen text follows Matt's direction of Nov 15: science, not a sales pitc
 
 ## The backup: a slide deck
 
-Seven slides, drafted with Claude as a slide artifact, with real screenshots of the live site taken on Nov 15.
+Seven slides, drafted with Claude as a slide artifact, with real screenshots of the live site taken on Nov 15. The deck goes in `media/slides/`.
 
 | Slide | Content |
 |---|---|

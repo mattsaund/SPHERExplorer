@@ -17,7 +17,6 @@ import zlib
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-from astropy.io.fits.hdu.compressed._compression import decompress_rice_1_c
 
 from . import calib, config, net, photometry
 from .cache import ByteLRU
@@ -33,6 +32,24 @@ MIN_HALF = 10        # pixels. Keeps room for the photometry sky ring.
 MAX_HALF = 320       # pixels. About 1.1 degrees across.
 VARIANCE_HALF = 4    # rows of variance read around the photometry position
 F16_LIMIT = 65000.0  # float16 tops out near 65504
+
+_rice = None
+
+
+def rice_decoder():
+    """Astropy's decoder for Rice-compressed rows, loaded on first use.
+
+    It lives inside Astropy's FITS package, which is a large share of what a new instance
+    loads. The server answers its first request before that, and the warm-up in main.py
+    loads this right after.
+    """
+    global _rice
+    if _rice is None:
+        from astropy.io.fits.hdu.compressed._compression import decompress_rice_1_c
+
+        _rice = decompress_rice_1_c
+    return _rice
+
 
 # Finished frames, packed. Level 2 files never change, so a frame built once stays right.
 _frames = ByteLRU(config.FRAME_CACHE_MB * 1_000_000)
@@ -157,9 +174,10 @@ def flags_array(rows, info: FileInfo, x0: int, x1: int) -> np.ndarray:
     lengths, offsets, start, heap = rows
     block, bytepix = info.flags_rice
     out = np.empty((len(lengths), x1 - x0), dtype=np.int32)
+    decode = rice_decoder()
     for row in range(len(lengths)):
         begin = int(offsets[row]) - start
-        tile = decompress_rice_1_c(heap[begin:begin + int(lengths[row])], block, bytepix, info.nx)
+        tile = decode(heap[begin:begin + int(lengths[row])], block, bytepix, info.nx)
         out[row] = np.frombuffer(tile, dtype=f"i{bytepix}")[x0:x1]
     return out
 

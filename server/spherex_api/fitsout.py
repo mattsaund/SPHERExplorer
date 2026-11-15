@@ -8,7 +8,6 @@ import io
 import zipfile
 
 import numpy as np
-from astropy.io import fits
 
 from . import calib, config
 from .cutout import _window, _zeros, read_flags, read_rows
@@ -57,6 +56,9 @@ def wcs_cards(cards: dict, x0: int, y0: int) -> list[tuple[str, object]]:
 def build(key: str, cards: dict, version: str, x0: int, y0: int, image, flags, variance,
           wavelength: float, bandwidth: float) -> bytes:
     """Assemble the FITS file: an empty primary header, then IMAGE, FLAGS, and VARIANCE."""
+    # Loaded here, not at the top: only a FITS download needs Astropy's FITS writer.
+    from astropy.io import fits
+
     source = key.rsplit("/", 1)[-1]
     primary = fits.Header()
     primary["ORIGIN"] = ("SPHERExplorer", "cutout made by the SPHERExplorer web tool")

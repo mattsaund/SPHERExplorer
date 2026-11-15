@@ -21,9 +21,15 @@ SWEEP_SECONDS = 600
 
 
 async def _warm_up() -> None:
-    """Load the exposure index and Astropy's machinery before the first visitor needs them."""
+    """Load the exposure index and Astropy's machinery before the first visitor needs them.
+
+    This runs after the server is up, so the page itself is served without waiting for it.
+    Astropy loads on a thread, in the order a first study needs it: the decoder for the
+    flags, then the coordinate tools.
+    """
     try:
         await exposures.get_index()
+        await asyncio.to_thread(cutout.rice_decoder)
         await resolve.warm()
     except Exception:  # noqa: BLE001 (a slow start beats a failed one)
         pass

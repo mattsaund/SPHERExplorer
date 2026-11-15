@@ -43,13 +43,16 @@ gcloud run deploy spherexplorer \
   --source . \
   --region us-east4 \
   --allow-unauthenticated \
-  --memory 2Gi --cpu 2 --cpu-boost \
-  --concurrency 40 --min-instances 0 --max-instances 4 \
-  --timeout 300
+  --execution-environment gen2 \
+  --memory 4Gi --cpu 4 --cpu-boost \
+  --concurrency 40 --min-instances 0 --max-instances 2 \
+  --timeout 300 \
+  --update-env-vars SPX_FRAME_CACHE_MB=1024
 ```
 
 The first deploy offers to create a `cloud-run-source-deploy` repository for the built images. Answer Y. Cloud Build then runs the `Dockerfile`, which takes several minutes, and the command prints the public address.
 
+- `--execution-environment gen2`, `--cpu 4`, `--memory 4Gi`, and `--max-instances 2` are explained under "Size" below.
 - `--cpu-boost` gives a starting instance more processor until it is ready, which shortens a cold start.
 - `--min-instances 1` keeps one instance always running. Then nobody meets a cold start, and the images of a target someone has opened stay in memory for the next visitor. It costs money all day, so use it for the judging weeks (early December through January 26) and go back to 0 after.
 
@@ -70,7 +73,9 @@ A push to `main` deploys itself once CI passes (see "Continuous deployment" belo
 
 `.github/workflows/deploy.yml` waits for the CI workflow to finish on a push to `main`. If every CI job passed, it deploys that exact commit with `gcloud run deploy --source`, then checks `/api/health`. A failed CI run deploys nothing, and pull requests never deploy.
 
-- Only the code changes. Settings made by hand (memory, CPU, instance counts, public access) carry over to each new revision.
+- Each deploy sets the code and the size of the service: the runtime, processors, memory, the instance ceiling, and the frame memory. Change those in `deploy.yml`, because a value set by hand lasts only until the next deploy.
+- Settings the workflow does not name (public access, concurrency, the timeout, the instance minimum) carry over to each new revision.
+- If Google refuses a size, the deploy fails and the revision already running keeps serving. Trial accounts cannot ask for a larger quota.
 - If the new container fails to start, Cloud Run keeps the old revision serving and the job fails.
 - GitHub signs in to Google Cloud with Workload Identity Federation. No key is stored anywhere. Google accepts tokens only from this repository's `main` branch.
 - Each deploy runs Cloud Build for a few minutes and stores one more image in Artifact Registry.
@@ -132,7 +137,7 @@ All optional. Set with `--set-env-vars NAME=value`.
 | `SPX_INDEX_SEED` | set in the container | A copy of the exposure index inside the image, so a new instance can search at once |
 | `SPX_CACHE_DIR` | `/tmp/spherexplorer` | Where file layouts, calibration tables, and color tiles are kept |
 | `SPX_CACHE_MAX_MB` | 300 in the container | Ceiling on that folder. Cloud Run keeps `/tmp` in memory, so it must stay small. The oldest files go first |
-| `SPX_FRAME_CACHE_MB` | 256 | Memory for finished frames. About 40,000 frames fit, so a target someone has opened reloads at once |
+| `SPX_FRAME_CACHE_MB` | 256, and 1024 on the live site | Memory for finished frames, so a target someone has opened reloads at once. A 5 arcminute frame takes about 8 kB and a 30 arcminute frame about 200 kB, so one 30 arcminute load of 380 images is about 80 MB |
 
 ## What starts cold
 
@@ -157,9 +162,22 @@ Measured on a development machine, on a first load of 334 images that nothing ha
 - A view of the sky map asks for its object list once, and the browser keeps the answer for an hour. Before, the page asked twice at every start. A return visit to the plain page now downloads about 4 kB.
 - After a deploy, open each of NASA's five test targets once. Their images then sit in the instance's memory for everyone who follows, as long as the instance lives.
 
+## Size
+
+Matt chose these on Nov 14, after loads of larger fields were slow on the live site. `deploy.yml` sets them on every deploy.
+
+| Setting | Value | Why |
+|---|---|---|
+| `--execution-environment gen2` | second generation | Google's newer runtime has the faster processor and network. A first load is mostly reading the archive, so that is where the time goes. It costs the same as the first generation and starts a little slower |
+| `--cpu 4` | 4 processors | One target's reads and math run on every processor at once. They cost twice as much per second as 2 and finish sooner |
+| `--memory 4Gi` | 4 GB | Room for a larger frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready |
+| `--max-instances 2` | 2 instances | Keeps the worst-case cost where four 2-processor instances had it. It also means a returning visitor more often meets the instance that holds their images |
+
+Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on is a decision for Matt and Austin.
+
 ## Memory
 
-With the defaults an instance uses about 1 GB at most: 256 MB of frames, 300 MB of cache folder, and the rest for the index, the PSF tables, and Python. The 2 GB setting leaves room for requests in flight.
+An instance uses about 2 GB at most: 1024 MB of frames, 300 MB of cache folder, and the rest for the index, the PSF tables, Python, and images being built. The 4 GB setting leaves room for several large requests in flight.
 
 ## Security
 
@@ -172,7 +190,7 @@ What is in place.
 - The container runs as a user with no rights, from a fixed installer version, with nothing private in its build context.
 - `.gitignore` keeps keys, tokens, environment files, and cloud credentials out of the repository. The history was scanned and holds none. GitHub's secret scanning and push protection are on.
 - `npm audit` reports no known vulnerabilities in the web app's libraries.
-- `--max-instances 4` caps what a flood of requests can cost.
+- `--max-instances 2` caps what a flood of requests can cost.
 
 For Matt or Austin to switch on, since they are account settings.
 
@@ -184,10 +202,13 @@ For Matt or Austin to switch on, since they are account settings.
 
 These are rough figures from Google's list prices. Check https://cloud.google.com/run/pricing before relying on them.
 
-- The free tier covers about 25 busy hours a month of one instance with 2 CPUs. Idle time costs nothing.
-- Past that, each busy instance costs about $0.19 an hour.
-- All four instances busy around the clock would cost about $18 a day. The budget alert is there for that case.
-- `--min-instances 1` removes the cold start for judges. One instance is then billed around the clock at the idle rate.
+- An instance is billed per second that it is handling a request, for its 4 processors and 4 GB. Idle time costs nothing.
+- The free tier covers about 12.5 busy hours a month of one instance. A faster instance finishes a load sooner, so one load costs about the same as it did on 2 processors.
+- Past that, each busy instance costs about $0.38 an hour.
+- Both instances busy around the clock would cost about $18 a day. The budget alert is there for that case.
+- `--min-instances 1` removes the cold start for judges. One instance is then billed around the clock at the idle rate, about $1.73 a day.
+- Data sent to visitors is billed apart, at about $0.12 per GB after the first GB each month.
+- The trial credit pays for all of it. If the credit ran out, Google would stop the site, not charge the card.
 
 ## Custom domain
 

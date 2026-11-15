@@ -65,8 +65,15 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_DEPLOY_SA }}
       - uses: google-github-actions/setup-gcloud@v3
-      # Only the code changes. Memory, CPU, instance counts, and public access keep their current settings.
+      # The code, plus the size of the service (Matt's decision, Nov 14, see docs/deploy.md "Size").
+      # gen2 has the faster processor and network. 4 processors serve one target in parallel.
+      # Two instances cap the cost at what four smaller ones could reach. The larger frame memory
+      # uses the extra room. Public access, concurrency, the timeout, and the instance minimum
+      # are not named here, so they keep their current settings.
       - name: Build and deploy
-        run: gcloud run deploy spherexplorer --source . --region us-east4 --quiet
+        run: >-
+          gcloud run deploy spherexplorer --source . --region us-east4 --quiet
+          --execution-environment gen2 --cpu 4 --memory 4Gi --max-instances 2
+          --update-env-vars SPX_FRAME_CACHE_MB=1024
       - name: Check that the live site answers
         run: curl -fsS --retry 5 --retry-delay 10 --retry-all-errors https://spherexplorer-112779026983.us-east4.run.app/api/health

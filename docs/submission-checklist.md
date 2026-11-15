@@ -11,6 +11,8 @@ Deadline: our Local Event needs the video uploaded and "Submit for Judging" clic
 
 ## Project page fields
 
+The text for each field, and the claims to recheck before submitting, is in `docs/submission-text.md`.
+
 - [ ] Project name.
 - [ ] High-level summary: what we built, how it addresses the challenge, why it matters.
 - [ ] Demo link (public, no login).

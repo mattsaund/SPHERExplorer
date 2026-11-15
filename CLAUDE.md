@@ -129,5 +129,6 @@ Details in `docs/research/`.
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |
 | `docs/submission-checklist.md` | Everything the Space Apps submission needs |
+| `docs/submission-text.md` | The text for each project page field, and the claims to recheck before submitting |
 | `docs/research/` | Research on the challenge, data, targets, services, and partner data |
 | `docs/team/workflow.md` | Collaboration and Claude Code workflow |

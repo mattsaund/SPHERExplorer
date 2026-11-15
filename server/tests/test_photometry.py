@@ -3,9 +3,9 @@
 
 import numpy as np
 
-from spherex_api import cutout, photometry
-from spherex_api.calib import Epsf
-from spherex_api.instrument import BAD_MASK, CHANNELS, channel_index
+from spherex_api.images import cutout, photometry
+from spherex_api.images.calib import Epsf
+from spherex_api.images.instrument import BAD_MASK, CHANNELS, channel_index
 
 
 def gaussian_epsf(fwhm_px: float = 1.3, oversample: int = 5, size: int = 33) -> Epsf:

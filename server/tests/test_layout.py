@@ -4,9 +4,10 @@
 
 import numpy as np
 
-from spherex_api import layout, net
-from spherex_api.fitshdr import padded, parse_header
-from spherex_api.layout import FileInfo, Template
+from spherex_api.images import layout
+from spherex_api import net
+from spherex_api.images.fitshdr import padded, parse_header
+from spherex_api.images.layout import FileInfo, Template
 
 PLANE = padded(2040 * 2040 * 4)
 TEMPLATE = Template(flags_hdr=17280, theap=16320, flags_desc=8, flags_rice=(32, 4), var_hdr=11520, zodi_hdr=11520, after_zodi=3873600, wave_total=40320)

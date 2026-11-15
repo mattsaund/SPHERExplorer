@@ -6,9 +6,9 @@ from pathlib import Path
 import numpy as np
 
 from spherex_api import exposures, index_build
-from spherex_api.fitshdr import parse_header
-from spherex_api.pointing import detector_frame, polar, sip_inverse, tangent_basis, unit_vector
-from spherex_api.wcs import TanSip
+from spherex_api.images.fitshdr import parse_header
+from spherex_api.images.pointing import detector_frame, polar, sip_inverse, tangent_basis, unit_vector
+from spherex_api.images.wcs import TanSip
 
 HEAD = (Path(__file__).parent / "data" / "d6_head.bin").read_bytes()
 

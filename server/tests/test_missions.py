@@ -1,7 +1,7 @@
 # Other-mission data: unit conversion and catalog parsing.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import missions
+from spherex_api.telescopes import missions
 
 VIZIER_ANSWER = """#
 #   VizieR Astronomical Server

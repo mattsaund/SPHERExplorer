@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from spherex_api import spacecraft
+from spherex_api.telescopes import spacecraft
 
 
 class FakeIndex:

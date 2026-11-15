@@ -1,7 +1,7 @@
 # Distances from parallax, published values, and redshift.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import distance
+from spherex_api.objects import distance
 
 
 def test_parallax():

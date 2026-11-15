@@ -9,9 +9,9 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from spherex_api.calib import WaveGrid
-from spherex_api.fitshdr import data_size, padded, parse_header, table_dtype
-from spherex_api.wcs import TanSip
+from spherex_api.images.calib import WaveGrid
+from spherex_api.images.fitshdr import data_size, padded, parse_header, table_dtype
+from spherex_api.images.wcs import TanSip
 
 DATA = Path(__file__).parent / "data"
 HEAD = (DATA / "d6_head.bin").read_bytes()

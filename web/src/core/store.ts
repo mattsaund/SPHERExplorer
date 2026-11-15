@@ -5,7 +5,7 @@ import { ApiError, getKnown, getMeta, getMissions, getNeossat, getObjects, getSp
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
-import { isStudied } from "./field";
+import { bodyNow, isStudied } from "./field";
 import { watchSums } from "./layers";
 import { COLOR_PRESETS } from "./colorBands";
 import { BASE_PIXELS, pixelBudget, thisDevice } from "./device";
@@ -477,8 +477,9 @@ async function load(target: Target, fieldSize: number, fly = true, place: Place 
       const last = frames[frames.length - 1].track;
       target = { ...target, ra: last.ra, dec: last.dec };
       set({ target });
-      // The map goes to where the body was in its first image, the one that comes on screen.
-      if (fly) actions.flyTo(frames[0].track, Math.min(get().map.fov, MAP_NEAR));
+      // A body the map marks has its square on its marker, and the map is there already.
+      // Any other body: the map goes to where it was in its first image, the one that comes on screen.
+      if (fly && !bodyNow(target)) actions.flyTo(frames[0].track, Math.min(get().map.fov, MAP_NEAR));
     }
     set({
       frames,
@@ -770,8 +771,10 @@ export const actions = {
   goTo(target: Target, options: { fly?: boolean } = {}): void {
     const fly = options.fly !== false;
     // Keep a wide map view wide enough to show context, but come in close from an all-sky view.
-    // A solar system body's position is known only after its images are found.
-    if (!target.moving && fly) actions.flyTo(target, Math.min(get().map.fov, MAP_NEAR));
+    // A star is where its coordinates say, and a body the map marks is on its marker. Any
+    // other solar system body's place is known only after its images are found.
+    const place = target.moving ? bodyNow(target) : target;
+    if (place && fly) actions.flyTo(place, Math.min(get().map.fov, MAP_NEAR));
     void load(target, get().fieldSize, fly);
   },
 
@@ -1159,15 +1162,15 @@ export const actions = {
   /**
    * A click on an object on the sky map. It becomes the study at once, with its view box
    * around it, as a click on empty sky does (Matt's decision), and its card shows its facts.
-   * A star or galaxy is where it was clicked, so the map stays put. A planet, asteroid, or
-   * comet was somewhere else when its images were taken, so the map goes to the first of them.
-   * The Sun and the Moon have no images, so their card is all there is.
+   * The object is where it was clicked, so the map stays put. That holds for a planet,
+   * asteroid, or comet too: its box stays on its marker, though its images are of the places
+   * it was. The Sun and the Moon have no images, so their card is all there is.
    */
   chooseObject(object: SkyObject): void {
     actions.selectObject(object);
     if (isStudied(get(), object)) return; // already the study
     if (object.solar) {
-      if (object.solar.query) void actions.search(object.solar.query);
+      if (object.solar.query) void actions.search(object.solar.query, { fly: false });
       return;
     }
     actions.studyObject(object, { fly: false });

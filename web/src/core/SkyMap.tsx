@@ -9,7 +9,7 @@ import { apiUrl, coverageUrl, getObjects } from "./api";
 import { SKY_LAYERS, type SkyLayer } from "./skyLayers";
 import { solarPlaces } from "./solar";
 import { formatDate, separation, skyOffset, skyPath } from "./astro";
-import { fieldCenter, fieldDate, isStudied } from "./field";
+import { bodyNow, fieldCenter, fieldDate, isStudied } from "./field";
 import { actions, useStore, type AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
 
@@ -208,6 +208,12 @@ export function SkyMap({ className }: { className?: string }) {
       planets.addSources(solarNow.map((object) => A.source(object.ra, object.dec, { name: object.name, object })));
       discs.removeAll();
       discs.addSources(solarNow.filter((object) => object.solar?.disc).map((object) => A.source(object.ra, object.dec, { name: object.name, object })));
+      // A studied body's square sits on its marker, so it moves along with the markers.
+      const state = useStore.getState();
+      if (state.target?.moving && state.map.fieldShown && applied) {
+        drawMarks(state);
+        applied.field = fieldCenter(state);
+      }
     }
 
     /** How many screen pixels a length on the sky covers near the middle of the map. `degrees` is that length. */
@@ -346,13 +352,14 @@ export function SkyMap({ className }: { className?: string }) {
 
     /**
      * The name to write beside the studied field's square, or "" for none: a named target
-     * gets its name, and a moving body also the date of the image on screen, because its
-     * square is where it was on that date and not where it is now.
+     * gets its name. A moving body that the map does not mark also gets the date of the
+     * image on screen, because its square is where it was on that date and not where it is now.
      */
     function captionText(state: AppState): string {
       const target = state.target;
       if (!target?.name || (state.map.picked && state.map.pickedIn === "map")) return "";
-      if (!target.moving) return target.name;
+      // A star, or a body whose square sits on its own marker, where it is today.
+      if (!target.moving || bodyNow(target)) return target.name;
       const date = fieldDate(state);
       return date === null ? target.name : `${target.name}, ${formatDate(date)}`;
     }

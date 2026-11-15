@@ -50,6 +50,7 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 
 - State. `useStore(selector)` reads state. The fields are documented on `AppState` in `core/store.ts`.
 - Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
+- Helpers that read the state. `fieldCenter(state)` is where the studied field is on the sky (it moves with the film for a planet or comet), `fieldDate(state)` the date of the image on screen, and `isStudied(state, object)` whether an object from the map is the study's target.
 - Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, `Timeline`, and `OrbitView` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
 - Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
 - The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
@@ -72,7 +73,7 @@ One full screen between a top bar and a bottom bar. Both bars expand. Austin's s
 - `ui/ChangesPanel.tsx`, `ui/FeaturesList.tsx`, and `ui/SearchBox.tsx` are self-contained pieces with their own style files.
 - `ui/Embed.tsx` is the compact layout used when the address holds `embed=1`.
 - A new study, from a search or a click on the map, brings the images up beside the map on a wide screen (the Both view). The sky map centers on the target and shows its yellow square. A narrow screen keeps its view, and the status line says where the images are.
-- `ui/cards.tsx` holds the cards laid over the stage. On the map: the selected area (Copy Coordinates, Close) or an object chosen on the map. A click on the map selects an area and loads it at once. Close ends the study, removes the square, and puts the image study away. Along the top of the images: one list of every object in the field on the left, folded at first, and the details box on the right. A spot clicked in the images gets its own card.
+- `ui/cards.tsx` holds the cards laid over the stage. On the map: the selected area (Copy Coordinates, Close) or an object chosen on the map. A click on the map selects an area and loads it at once. A click on an object's label does the same for that object, and its card shows its facts. A planet, asteroid, or comet shows its card first. Close ends the study, removes the square, and puts the image study away. Along the top of the images: one list of every object in the field on the left, folded at first, and the details box on the right. A spot clicked in the images gets its own card.
 - The lower left of the map shows the coordinates under the pointer and at the center, with a Copy button, and the measured angle while the measure tool is on.
 - NASA's test targets are in the Find dropdown and in the image view before a target is chosen.
 - Space plays and pauses. The left and right arrows step.

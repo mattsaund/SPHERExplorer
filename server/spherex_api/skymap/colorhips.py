@@ -10,7 +10,7 @@ import re
 
 import numpy as np
 
-from . import config, net
+from .. import config, net
 
 # Pillow is loaded inside the functions that use it. Only the color sky layer needs it, so a
 # new instance does not load it before its first answer.

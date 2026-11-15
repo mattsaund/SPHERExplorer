@@ -18,8 +18,8 @@ from urllib.parse import quote
 
 import numpy as np
 
-from . import cache, config, net
-from .pointing import project, unit_vector
+from .. import cache, config, net
+from ..images.pointing import project, unit_vector
 
 SBDB = "https://ssd-api.jpl.nasa.gov/sbdb.api"
 HORIZONS = "https://ssd.jpl.nasa.gov/api/horizons.api"

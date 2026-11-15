@@ -7,8 +7,8 @@
 import math
 import re
 
-from . import config, net
-from .cache import LRU
+from .. import config, net
+from ..cache import LRU
 
 SKYBOT = "https://ssp.imcce.fr/webservices/skybot/api/conesearch.php"
 TIMEOUT = 60.0

@@ -16,8 +16,8 @@ import httpx
 import numpy as np
 
 from . import config
+from .images.pointing import project, unit_vector
 from .index_build import INDEX_PATH, MISSING, file_key
-from .pointing import project, unit_vector
 
 # Detector 1 sits at one end of the focal plane. Detector 3 is 7.7 degrees away,
 # so any exposure that can hold the target has its detector 1 center within this radius.

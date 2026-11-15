@@ -19,6 +19,12 @@ API_TARGET=https://spherexplorer.earth npm run dev
 | Folder | What it holds |
 |---|---|
 | `server/` | The Python API. It searches the exposure index, reads SPHEREx pixels from the public S3 bucket, and relays services that browsers can't call. |
+| `server/spherex_api/` | The package. Its top holds the routes (`main.py`), the settings, the shared network and cache code, and the exposure index. |
+| `server/spherex_api/images/` | Reading SPHEREx files: layouts, calibration, cutouts, brightness, and FITS output. |
+| `server/spherex_api/objects/` | Name lookup, catalogs, distances, and solar system bodies. |
+| `server/spherex_api/telescopes/` | Partner images, nearby catalog sources, and where SPHEREx is now. |
+| `server/spherex_api/skymap/` | The coverage maps and color tiles that the sky map draws. |
+| `server/tests/` | The API tests. |
 | `web/src/core/` | The engine in the browser: state, image math, the WebGL renderer, the sky map wrapper, and plots. Everything it offers goes through `web/src/core/index.ts`. |
 | `web/src/core/state/` | The store, the link in the address bar, and the selected field. |
 | `web/src/core/search/` | The search box's suggestions and its lists of well-known objects. |

@@ -6,8 +6,9 @@
 import asyncio
 import re
 
-from . import net, resolve, solarsystem
-from .cache import LRU
+from .. import net
+from ..cache import LRU
+from . import resolve, solarsystem
 
 # Letters, digits, and the few marks that appear in names and designations.
 SAFE = re.compile(r"[A-Za-z0-9 /'\-]{3,40}")

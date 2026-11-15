@@ -1,7 +1,7 @@
 # Search box suggestions: reading Small-Body Database answers, and what is never looked up.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import suggest
+from spherex_api.objects import suggest
 
 
 def test_a_list_of_matches_becomes_rows():

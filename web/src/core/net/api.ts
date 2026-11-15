@@ -147,7 +147,7 @@ export function searchFrames(ra: number, dec: number, signal?: AbortSignal): Pro
   return getJson<SearchResult>(`/search?ra=${ra.toFixed(7)}&dec=${dec.toFixed(7)}`, signal);
 }
 
-/** Header of one frame on the wire. Mirrors server/spherex_api/cutout.py. */
+/** Header of one frame on the wire. Mirrors server/spherex_api/images/cutout.py. */
 export interface WireHeader {
   v: number;
   key: string;

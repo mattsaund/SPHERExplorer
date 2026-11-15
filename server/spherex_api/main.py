@@ -15,7 +15,11 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, fitsout, instrument, layout, missions, net, partners, resolve, sia, site, skybot, solarsystem, spacecraft, suggest
+from . import __version__, cache, config, exposures, net, site
+from .images import cutout, fitsout, instrument, layout, sia
+from .objects import catalogs, resolve, skybot, solarsystem, suggest
+from .skymap import colorhips, coverage
+from .telescopes import missions, partners, spacecraft
 
 SWEEP_SECONDS = 600
 

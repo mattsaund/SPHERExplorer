@@ -8,7 +8,7 @@ import json
 import math
 import time
 
-from . import net
+from .. import net
 
 MAST = "https://mast.stsci.edu/api/v0/invoke"
 VIZIER = ("https://vizier.cfa.harvard.edu", "https://vizier.idia.ac.za", "https://vizier.cds.unistra.fr")

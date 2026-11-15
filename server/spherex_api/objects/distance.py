@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 
-from . import net
+from .. import net
 
 SIMBAD_TAP = (
     "https://simbad.cfa.harvard.edu/simbad/sim-tap/sync",

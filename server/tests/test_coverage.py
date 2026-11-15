@@ -4,7 +4,8 @@
 import httpx
 import pytest
 
-from spherex_api import coverage, net
+from spherex_api.skymap import coverage
+from spherex_api import net
 
 FITS = b"SIMPLE  =                    T / a small stand-in for a FITS file"
 

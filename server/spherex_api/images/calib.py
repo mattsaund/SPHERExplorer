@@ -6,7 +6,7 @@ import asyncio
 
 import numpy as np
 
-from . import cache, net
+from .. import cache, net
 from .fitshdr import parse_header, table_dtype
 from .layout import FileInfo
 

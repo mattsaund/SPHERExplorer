@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import cache, net
+from .. import cache, net
 from .fitshdr import data_size, padded, parse_header
 from .wcs import TanSip
 

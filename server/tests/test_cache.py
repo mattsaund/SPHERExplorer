@@ -4,7 +4,8 @@
 import asyncio
 import os
 
-from spherex_api import cache, config, cutout
+from spherex_api import cache, config
+from spherex_api.images import cutout
 
 
 def test_byte_lru_keeps_the_most_recent_items_within_its_budget():

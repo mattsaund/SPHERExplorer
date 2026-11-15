@@ -27,6 +27,17 @@ How SPHERExplorer is built and why: its parts, the data flow, and the contract b
 | `export/` | Saved pictures, animations, and FITS files |
 | `views/` | The React components that draw the map, the images, and the plots |
 
+## The server's folders
+
+`server/spherex_api/` is one Python package. Its top holds the routes (`main.py`), the settings (`config.py`), the shared network and cache code, and the exposure index (`index_build.py` and `exposures.py`).
+
+| Folder | What it holds |
+|---|---|
+| `images/` | Reading SPHEREx files from the archive: layouts, calibration, cutouts, brightness, and FITS output |
+| `objects/` | What a name means and what is at a place: name lookup, catalogs, distances, and solar system bodies |
+| `telescopes/` | The other telescopes: partner images, nearby catalog sources, and where SPHEREx is now |
+| `skymap/` | What the sky map draws from SPHEREx: coverage maps and color tiles |
+
 ## Why this design
 
 - IRSA search, TAP, and cutouts send no CORS headers, so a relay is required.

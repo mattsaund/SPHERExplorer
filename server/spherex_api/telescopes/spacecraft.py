@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from . import cache, net
+from .. import cache, net
 
 NORAD_ID = 63182
 CELESTRAK = "https://celestrak.org/NORAD/elements/gp.php?CATNR={norad}&FORMAT=json"

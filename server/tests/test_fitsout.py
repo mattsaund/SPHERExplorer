@@ -8,7 +8,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from spherex_api import fitsout
+from spherex_api.images import fitsout
 
 # A plain tangent-plane image header, 6.15 arcsec pixels, with one small distortion term.
 CARDS = {

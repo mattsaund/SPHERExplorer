@@ -9,10 +9,11 @@ import zipfile
 
 import numpy as np
 
-from . import calib, config
+from .. import config
+from ..objects.solarsystem import topocentric
+from . import calib
 from .cutout import _window, _zeros, read_flags, read_rows
 from .layout import WCS_KEY, get_head, get_layout
-from .solarsystem import topocentric
 
 # Header keys of the parent image that are worth carrying into a cutout.
 KEEP = (

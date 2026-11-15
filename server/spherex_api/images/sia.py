@@ -10,7 +10,8 @@ import time
 
 import numpy as np
 
-from . import calib, config, net
+from .. import config, net
+from . import calib
 from .instrument import channel_index
 from .layout import get_layout
 from .wcs import D2R, gnomonic
@@ -191,7 +192,7 @@ async def search_index(index, ra: float, dec: float) -> dict:
 
 async def search_moving(index, path) -> dict:
     """Every image that caught a moving body, with the body's position at each exposure."""
-    from .solarsystem import find_moving  # imported here to keep module load order simple
+    from ..objects.solarsystem import find_moving  # imported here to keep module load order simple
 
     rows, detectors, x, y, ra, dec, delta, r, mag = find_moving(index, path)
     keys = [index.key(int(row), int(det)) for row, det in zip(rows, detectors)]
@@ -238,7 +239,7 @@ async def search(ra: float, dec: float, radius: float = 0.001) -> dict:
 
     Uses the exposure index when one is loaded. Falls back to IRSA SIA otherwise.
     """
-    from .exposures import get_index  # imported here to keep module load order simple
+    from ..exposures import get_index  # imported here to keep module load order simple
 
     index = await get_index()
     if index is not None:

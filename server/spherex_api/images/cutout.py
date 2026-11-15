@@ -18,11 +18,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from . import calib, config, net, photometry
-from .cache import ByteLRU
+from .. import config, net
+from ..cache import ByteLRU
+from ..objects.solarsystem import topocentric
+from . import calib, photometry
 from .instrument import BAD_MASK, channel_index
 from .layout import FileInfo, flags_table, get_head, get_layout
-from .solarsystem import topocentric
 
 MAGIC = b"SPXF"      # a plain frame: header, then the planes as they are
 PACKED = b"SPXZ"     # a packed frame, the form the web app is sent

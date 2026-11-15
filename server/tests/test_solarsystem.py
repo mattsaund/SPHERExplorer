@@ -6,7 +6,8 @@ import asyncio
 import numpy as np
 import pytest
 
-from spherex_api import net, solarsystem
+from spherex_api import net
+from spherex_api.objects import solarsystem
 
 HORIZONS_ANSWER = """*******
 Date_________JDUT, , , R.A._(ICRF), DEC_(ICRF),    APmag,  S-brt,                r,       rdot,             delta,     deldot,

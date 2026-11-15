@@ -8,7 +8,7 @@ import time
 
 import httpx
 
-from . import net
+from .. import net
 
 MAPS = {
     "spectral-images": "https://irsa.ipac.caltech.edu/data/MOC/spherex.obscore.moc.fits",

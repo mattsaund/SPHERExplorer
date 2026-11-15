@@ -9,7 +9,8 @@ import urllib.parse
 import warnings
 import xml.etree.ElementTree as ElementTree
 
-from . import cache, distance, net
+from .. import cache, net
+from . import distance
 
 # Astropy's coordinate tools are loaded inside the function that needs them, not here. They
 # are a large share of what a new instance loads, and the server should answer its first

@@ -8,7 +8,7 @@ import csv
 import io
 import time
 
-from . import net
+from .. import net
 
 CADC_TAP = "https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/argus/sync"
 CADC_FILES = "https://ws.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/raven/files/cadc:NEOSSAT/"

@@ -8,7 +8,8 @@ import math
 import re
 import time
 
-from . import distance, net
+from .. import net
+from . import distance
 from .resolve import REFERENCE_EPOCH, built_in, kind_of
 
 # SIMBAD TAP endpoints, fastest first.

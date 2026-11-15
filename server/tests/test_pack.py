@@ -9,7 +9,8 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from spherex_api import cache, cutout
+from spherex_api import cache
+from spherex_api.images import cutout
 from spherex_api.main import app
 
 

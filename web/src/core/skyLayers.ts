@@ -24,18 +24,18 @@ const IRSA = "https://irsa.ipac.caltech.edu/data/hips/";
 
 export const SKY_LAYERS: SkyLayer[] = [
   {
-    id: "spherex", name: "SPHEREx all-sky", mission: "NASA SPHEREx", light: "Near infrared, 102 colors",
-    about: "The whole sky in 102 infrared colors from SPHEREx's first year. Slide through the colors.",
+    id: "spherex", name: "SPHEREx all-sky", mission: "NASA SPHEREx", light: "Near infrared, 102 bands",
+    about: "The whole sky in 102 infrared bands from SPHEREx's first year. The slider steps through the bands.",
     url: IRSA + "SPHEREx/spherex_allsky_cube", cube: true,
   },
   {
-    id: "spherex-color", name: "SPHEREx full color", mission: "NASA SPHEREx", light: "Near infrared, three colors",
-    about: "Three SPHEREx colors at once: 1.25 microns as blue, 2.2 as green, and 4.6 as red. Stars are blue. Dust and cool gas glow red.",
+    id: "spherex-color", name: "SPHEREx full color", mission: "NASA SPHEREx", light: "Near infrared, three bands",
+    about: "Three SPHEREx bands at once: 1.25 microns as blue, 2.2 as green, and 4.6 as red. Stars appear blue. Dust and cool gas appear red.",
     url: IRSA + "SPHEREx/spherex_allsky_cube", color: [90, 47, 22],
   },
   {
     id: "2mass", name: "2MASS color", mission: "2MASS", light: "Near infrared",
-    about: "The infrared sky in three colors (1.2, 1.7, and 2.2 microns). Sees through dust to cool stars.",
+    about: "The infrared sky in three bands (1.2, 1.7, and 2.2 microns). Sees through dust to cool stars.",
     url: IRSA + "CDS/2MASS/Color",
   },
   {

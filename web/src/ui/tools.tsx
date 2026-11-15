@@ -181,7 +181,7 @@ function Graphs() {
         </section>
         <section className="graph" aria-label="Timeline">
           <h2>When SPHEREx looked</h2>
-          <p className="muted">Each dot is one image. On every visit the telescope steps the target through all its colors. Click a dot to see that image.</p>
+          <p className="muted">Each dot is one image. On every visit the telescope steps the target through all its bands. Click a dot to see that image.</p>
           <div className="plot"><Timeline /></div>
         </section>
       </div>

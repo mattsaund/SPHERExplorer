@@ -20,18 +20,26 @@ permissions:
 
 jobs:
   newest:
-    name: Still the newest commit on main
+    name: Newest commit on main, pushed before the freeze
     # A pull request from a fork can have a branch named main too, so the event must be a push.
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     outputs:
       deploy: ${{ steps.compare.outputs.deploy }}
     steps:
+      # Deploys freeze at the submission deadline, Nov 15, 11:59 pm Eastern. A commit pushed before
+      # it still deploys, so the judged site matches the code as it stood at the deadline.
       # CI runs can finish out of order, and an old run can be re-run. Neither may roll the site back.
       - id: compare
         env:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PUSHED_AT: ${{ github.event.workflow_run.created_at }}
+          FREEZE_AT: "2026-11-16T04:59:00Z"
         run: |
+          if [[ ! "$PUSHED_AT" < "$FREEZE_AT" ]]; then
+            echo "::notice::Not deployed. Deploys froze at the submission deadline."
+            exit 0
+          fi
           newest="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"
           if [[ "$newest" == "$HEAD_SHA" ]]; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"

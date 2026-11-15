@@ -24,7 +24,7 @@ Every step here is an open box further down. All of it is for Matt or Austin, in
 
 1. Team page, Members tab: both of you are listed, and both are confirmed at the same Local Event.
 2. Project tab, Edit, and switch the Lock on. One person edits at a time.
-3. In the form: paste the project details again (the page has the text of 1:12 pm), add the 26 code and tool rows under Space Agency Partner & Other Data, and check that the SI answer is in and says "Four commits". Click Save Progress after each. The summary, both links, and both link lists are already on the page.
+3. In the form: paste the project details again (the page has the text of 1:12 pm), add the 26 code and tool rows from `docs/submission/submissionreferences.md` under Space Agency Partner & Other Data, and check that the SI answer is in and says "Four commits". Click Save Progress after each. The summary, both links, and both link lists are already on the page.
 4. Upload pictures if you want them on the page. Four are ready in `media/pictures/`.
 5. Tick the two boxes and click Submit for Judging. Look for the banner and the confirmation message.
 6. Open the public project page in a private window. Read every field and click every link.
@@ -57,7 +57,7 @@ The text for each field, and the claims to recheck before submitting, is in `doc
 - [ ] Use of Super Intelligence (SI). Draft ready, needs approval. Changed at 2:50 pm: it now says four commits carry no SI line, not three. Judges don't see this answer, and it does not show on the page, so check it in the form.
 - [x] NASA Data. All 14 links are on the page, in order (screenshots, 2:56 pm). A screenshot does not show their addresses, so click each one once.
 - [x] Space Agency Partner Data. All 14 links are on the page, in order, under "Space Agency Partner & Other Data" (screenshots, 2:56 pm). A screenshot does not show their addresses, so click each one once.
-- [ ] Code, tools, and references. The form has no References field (screenshots, 3:05 pm). It has two link lists, and the second asks for "any code, text, and images" used. The 26 rows under "Code and tools" in `submission-text.md` go there: the code inside the tool, the SI tool, the build and hosting tools, the video tools, and a link to the complete list in `docs/references.md`. Each row was checked against the code and each link answered (3:11 pm). The second box you tick says every external resource is listed.
+- [ ] Code, tools, and references. The form has no References field (screenshots, 3:05 pm). It has two link lists, and the second asks for "any code, text, and images" used. The 26 rows under "Code and tools" in `docs/submission/submissionreferences.md` go there: the code inside the tool, the SI tool, the build and hosting tools, the video tools, and a link to the complete list in `docs/references.md`. Each row was checked against the code and each link answered (3:11 pm). The second box you tick says every external resource is listed.
 - [ ] Pictures, if wanted. The page has none (screenshots, 2:56 pm). It takes JPG, PNG, and GIF up to 10 MB. The four in `media/pictures/` are 0.5 to 0.6 MB each. Videos and documents must be links.
 
 ## Demo

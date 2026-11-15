@@ -135,6 +135,7 @@ Details in `docs/research/`.
 | `scripts/update_solar.py` | Renews the orbits behind the solar system marks on the sky map. Run every few months |
 | `docs/embedding.md` | Link options and how to embed the viewer in another page |
 | `docs/submission/video.md` | The demo video (built by `media/code/`) and the backup slide deck |
+| `docs/submission/submissionreferences.md` | The rows for the form's two link lists, as Link Text and Link Url, checked against the code |
 | `docs/submission/livepresentation.md` | The 5-minute live presentation: the run of show, the notes and talking points, and the eight demo objects |
 | `media/` | What the team shows people: `videos/`, `slides/`, `pictures/`, and the code that makes the demo video (`media/code/`) |
 | `docs/decisions.md` | Human decision log |

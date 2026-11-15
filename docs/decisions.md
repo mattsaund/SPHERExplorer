@@ -6,6 +6,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 |---|---|---|---|
 | 2026-11-14 | A click on an object's label loads its images at once, with the view box around it, the same as a click on empty sky | Matt | Chosen over keeping the card first. Planets, asteroids, and comets keep the card first, because their images are elsewhere on the sky |
 | 2026-11-14 | The Sun and the Moon are drawn at their true size on the sky map | Matt reported that there was nothing to see at their labels | Discs half a degree wide, the Moon with its lit share. They are drawings over the map. SPHEREx never images either one |
+| 2026-11-14 | App wording is technical and plain: bands and objects, not colors and things. No sales wording and no calls to action in the tour | Austin | Rules and notes in `docs/language-refining.md`. Austin approved each tour step's new wording |
 | 2026-11-14 | The player bar is on the page only while the image study is up | Matt | It goes away with the images on the map-only screen. Space and the arrow keys still work |
 | 2026-11-14 | Only one thing is selected at a time | Matt reported two selections at once as a glitch | A new study lets go of the object chosen before it |
 | 2026-11-14 | A directly selected object still gets the view box, so its zoom and framing can be changed | Matt | Every study has the yellow square with the target's name on it. A planet or comet moves, so its square is where the image on screen was taken, and the map follows it |

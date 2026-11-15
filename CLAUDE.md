@@ -8,7 +8,8 @@ Read this file first. Details live in `docs/`.
 ## Hackathon window
 
 - Started Sat Nov 14, 2026, 9:00 am local time (Eastern for Matt).
-- Submission closes Sun Nov 15, 11:59 pm, local time of our Local Event. Confirm any earlier local cutoff with the Local Lead.
+- Our Local Event (Bethesda, MD) needs the demo video uploaded and the project submitted by Sun Nov 15, 4:20 pm Eastern.
+- The global form closes Sun Nov 15, 11:59 pm Eastern. Automatic deploys freeze at 11:00 pm.
 - Results: Global Nominees Dec 3, Global Finalists Dec 17, Global Winners Jan 26, 2027. The public site must stay up through judging.
 
 ## Rule 1: the idea belongs to the humans
@@ -128,5 +129,6 @@ Details in `docs/research/`.
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |
 | `docs/submission-checklist.md` | Everything the Space Apps submission needs |
+| `docs/submission-text.md` | The text for each project page field, and the claims to recheck before submitting |
 | `docs/research/` | Research on the challenge, data, targets, services, and partner data |
 | `docs/team/workflow.md` | Collaboration and Claude Code workflow |

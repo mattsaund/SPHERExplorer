@@ -4,6 +4,7 @@ Matt and Austin record project decisions here, newest first. The log shows which
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-14 | Finish the video and the submission by 4:20 pm Eastern on Sunday, our Local Event's cutoff. Deploys still freeze at 11:00 pm | Austin | The Local Event set the earlier cutoff. The live site keeps improving after the local submission, until the freeze |
 | 2026-11-14 | The tutorial uses Barnard's Star alone, not all five test targets, and its text goes back to what it was | Matt | Replaces the five-target card on the tour's first step, which was live for about half an hour. The other four targets stay in the Find dropdown |
 | 2026-11-14 | The deploy freeze moves to 11:00 pm Eastern on Nov 15, an hour before the submission deadline | Austin | To be safe. It leaves an hour to check the last deploy. Replaces the 11:59 pm freeze below |
 | 2026-11-14 | Next builds, in this order: a visible start for judges, a higher image cap on bigger computers, and keeping the place in the film when the field size changes. The first is done by putting all of the example objects in the tutorial | Matt | Claude listed the options. Matt chose these three and said how the first is done |

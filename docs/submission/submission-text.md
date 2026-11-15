@@ -2,7 +2,7 @@
 
 The text for each field of the Space Apps project page, kept here so it can be checked against the app before the final submission. Claude drafted it from the repository docs. Austin and Matt approve it, and the project page is the copy judges see.
 
-Status, Nov 15, noon: the summary and the project details were pasted into the form on Nov 14, and both have changed since (see the claims table), so they need pasting again. The project link is chosen. The two data fields, the References field, and the SI answer are drafted below and wait for approval. The demo video is rendered and waits for an upload. Matt set 4:00 pm Eastern on Sun Nov 15 as the team's deadline for all of it. The Local Event's cutoff on record is 4:20 pm.
+Status, Nov 15, noon: the summary and the project details were pasted into the form on Nov 14, and both have changed since (see the claims table), so they need pasting again. The project link is chosen. The two data fields, the References field, and the SI answer are drafted below and wait for approval. The demo video is on YouTube, and its link is under "Project demonstration". Matt set 4:00 pm Eastern on Sun Nov 15 as the team's deadline for all of it. The Local Event's cutoff on record is 4:20 pm.
 
 To paste the project details with their formatting, copy them from a rendered view of this file (GitHub's file view works), not from a terminal.
 
@@ -22,7 +22,9 @@ SPHEREx data is open to everyone but hard to use. SPHERExplorer opens it to stud
 
 ## Project demonstration
 
-To do. The video is rendered: 29.0 s, from the live site, with the SI watermark on every frame (`docs/submission/video.md`). It needs an upload to a public host, with its description, and the full `https://` link pasted here.
+https://www.youtube.com/watch?v=EtcNxZPPJSA
+
+The demo video on YouTube, uploaded by Matt on Nov 15 at 2:27 pm Eastern. Checked at 2:28 pm with no login: it is public, YouTube's player shows 29 seconds, and its description carries the SI statement and the acknowledgments. Paste the full link into the form.
 
 ## Project link
 
@@ -252,4 +254,5 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
 | The SI answer says every source file and every pull request is labeled, and that three commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and three commits on `main` carry no trailer (`ec252a2`, `80d2140`, and `e79c16e`). `docs/si-usage.md` names all three |
+| The demo is 30 seconds or less and opens with no login | Demo | YouTube's player shows 29 seconds. Opened with no login on Nov 15 at 2:28 pm |
 | The References field lists every resource in use | References | Build it again from `docs/references.md` after any change to that file |

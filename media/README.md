@@ -4,7 +4,7 @@ What the team shows people, and the code that makes the video.
 
 | Folder | What it holds |
 |---|---|
-| `videos/` | The demo video, `spherexplorer-demo.mp4`, 29 seconds. It is SI-generated: built by `code/` from real captures of the live site, with a visible SI watermark on every frame and an SI statement in its metadata |
+| `videos/` | The demo video, `spherexplorer-demo.mp4`, 29 seconds. It is also on YouTube at https://www.youtube.com/watch?v=EtcNxZPPJSA. It is SI-generated: built by `code/` from real captures of the live site, with a visible SI watermark on every frame and an SI statement in its metadata |
 | `slides/` | The backup slide deck, `spherexplorer-slides.pdf`: seven slides with real screenshots of the live site, drafted with Claude Code, which each slide's footer says. `speaker-notes.md` holds about 30 seconds of notes a slide |
 | `pictures/` | Pictures of the project, listed below |
 | `code/` | The code that makes the video. `capture.mjs` takes the captures from the live site, `scenes.js` lays out any moment of the video, and `render.mjs` renders every frame and encodes the file. Its captures, frames, and installed packages stay out of the repo |

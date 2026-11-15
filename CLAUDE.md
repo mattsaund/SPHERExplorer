@@ -11,9 +11,9 @@ Read this file first. Details live in `docs/`.
 
 - Started Sat Nov 14, 2026, 9:00 am local time (Eastern for Matt).
 - Our Local Event (Bethesda, MD) needs the demo video uploaded and the project submitted by Sun Nov 15, 4:20 pm Eastern.
-- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:10 and 3:40 pm. The plan is in `docs/video.md`.
+- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:00 and 5:00 pm, while the site is kept warm for it. The plan is in `docs/video.md`.
 - The global form closes Sun Nov 15, 11:59 pm Eastern. Automatic deploys freeze at 11:00 pm.
-- The repo and the project page don't change after Sun Nov 15, 11:59 pm Eastern (Matt's reading of the rules, Nov 15). The live site's data keeps updating through the scheduled index refresh.
+- The repo freezes at 11:30 pm Eastern on Sun Nov 15, half an hour before the form closes (Matt, Nov 15). No commit, merge, or push after that, to any branch. A change to the site must be merged before the deploy freeze at 11:00 pm. The live site's data keeps updating through the scheduled index refresh.
 - Results: Global Nominees Dec 3, Global Finalists Dec 17, Global Winners Jan 26, 2027. The public site must stay up through judging.
 
 ## Rule 1: the idea belongs to the humans

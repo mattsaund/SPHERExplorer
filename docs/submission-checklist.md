@@ -1,7 +1,7 @@
 # Submission checklist
 
 From the 2026 Project Submission Guide and the 2026 Judging and Awards Guide.
-Deadline: click "Submit for Judging" before Sun Nov 15, 11:59 pm, local time of our Local Event.
+Deadline: our Local Event needs the video uploaded and "Submit for Judging" clicked by Sun Nov 15, 4:20 pm Eastern. The global form closes at 11:59 pm Eastern.
 
 ## Eligibility
 

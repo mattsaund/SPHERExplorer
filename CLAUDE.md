@@ -134,7 +134,8 @@ Details in `docs/research/`.
 | `docs/ui-checklist.md` | Every tool the UI must offer, checked in CI |
 | `scripts/update_solar.py` | Renews the orbits behind the solar system marks on the sky map. Run every few months |
 | `docs/embedding.md` | Link options and how to embed the viewer in another page |
-| `docs/submission/video.md` | The demo video (built by `video/`), the backup slide deck, and the plan for the 5-minute live presentation |
+| `docs/submission/video.md` | The demo video (built by `media/code/`), the backup slide deck, and the plan for the 5-minute live presentation |
+| `media/` | What the team shows people: `videos/`, `slides/`, `pictures/`, and the code that makes the demo video (`media/code/`) |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |

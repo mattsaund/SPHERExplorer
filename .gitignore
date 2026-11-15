@@ -96,7 +96,8 @@ CLAUDE.local.md
 # Local API cache of calibration tables and file layouts
 server/.cache/
 
-# The demo video: captures, rendered frames, and the encoded file are built, not kept.
-video/captures/
-video/frames/
-video/out/
+# The demo video's raw material: captures, rendered frames, and single pictures are built, not kept.
+# The finished video, media/videos/spherexplorer-demo.mp4, is kept.
+media/code/captures/
+media/code/frames/
+media/code/out/

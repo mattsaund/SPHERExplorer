@@ -7,6 +7,7 @@
 **/.cache
 **/.pytest_cache
 docs
+media
 *.md
 
 # Nothing private or local ever goes into the build, even if it sits in the folder.

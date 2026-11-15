@@ -1,161 +1,87 @@
-# Demo video
+# Demo video and live presentation
 
-Status: draft scope, Nov 14. Matt and Austin approve the on-screen text and the open decisions before the final render.
+Status, Nov 15 at noon: Matt and Austin record the 30-second video themselves. Claude helps write and time the script. The automated cut that Matt's Claude built from code stays ready as the fallback.
 
-The video is made by agents from code: real captures of the live site, laid out and animated by a script, rendered frame by frame. It should make people want to use SPHERExplorer by showing plainly what it is, the mission behind it, what it solves, and who it is for. Calm, exact, and professional. Not flashy.
+Two deliverables are due today, Sunday, Nov 15, Eastern time.
+
+| What | When | Limit |
+|---|---|---|
+| Live presentation at our Local Event | 3:30 pm | 5 minutes at most |
+| Video link in the form, and Submit for Judging | before 4:20 pm | 30 seconds at most |
+
+## What Space Apps asks for
+
+From the Project Submission Guide, "Visual Storytelling":
+
+> Your goal should be to quickly communicate the importance and relevance of your project to someone who has no context, technical background, or previous knowledge of your subject. Regardless of your demo's format, be sure to use strong visuals and ensure readability.
+
+> The video pitch must be 30 seconds or less.
+> - [0:00] Introduce yourself: What is your name and your team's name?
+> - [0:02] Lead us in: What challenge does your project address? What inspired you to choose this challenge?
+> - [0:05] Name your project: Share your project's title and tagline to catch your audience's attention.
+> - [0:10] Describe your idea: How does it work? Display images or a prototype, describe a user's experience, and share how using NASA's free and open data and Space Agency Partner data made your proposed solution possible.
+> - [0:20-0:30] Look into the future: Paint a picture! Captivate your audience with what it could be; What can your proposed solution do for people, the world, and beyond?
+
+The audience has no background, so the pitch uses everyday words. The technical-word rule in `docs/language-refining.md` is for the app and the docs, not for this pitch.
 
 ## Hard requirements
 
-From the project submission form, the Project Submission Guide, and `CLAUDE.md`.
+- 30 seconds or less, or the project loses Global Judging. Aim for 27 to 28 seconds.
+- A public link with no password, permission, or registration. YouTube, Google Drive, GitHub, OneDrive, or Dropbox. The full `https://` URL goes in the form. Test it in a private window.
+- English. Captions help readability.
+- No NASA logos, flags, or mission patches anywhere in the frame. That includes other browser tabs, bookmarks, and the desktop.
+- No copyrighted music. The plan has none.
+- Nobody under 18 seen or heard.
+- SI disclosure. A screen recording of the app with our own voices is not SI-generated video, so it needs no watermark. Claude's help with the script goes in the video description and in the form's SI question. Any frame that SI did make, such as the fallback cut, keeps its watermark.
 
-- Our Local Event (Bethesda, MD) needs the video uploaded and the project submitted by 4:20 pm Eastern on Sunday, Nov 15.
-- 30 seconds or less, or the project loses Global Judging. Target 28.5 s. The render script fails anything over 29.5 s.
-- A public link that needs no password, permission, or registration. YouTube, Google Drive, GitHub, OneDrive, or Dropbox. Paste the full URL, starting with `https://`. Test it in a private window.
-- English.
-- "Images and videos: Must include a visible watermark indicating they are SI-generated." The watermark stays on every frame.
-- SI-generated audio, if any, is acknowledged in the description text and in the file metadata.
-- No NASA logos, insignia, logotype, flags, or mission identifiers such as mission patches. No phrase like "according to NASA". Nothing that implies NASA endorsement.
-- No copyrighted music, images, text, or fonts without permission. Every one goes in `docs/references.md` and in the form's "Space Agency Partner & Other Data" field.
-- No images, video, or audio of anyone under 18. This plan shows no people at all.
-- Credit on screen for SPHEREx and IRSA, and for each partner dataset shown.
-- `CLAUDE.md` design rules: no glow, bloom, or neon. One highly readable sans-serif.
+## Script
 
-## What the video says
+A draft of about 85 words. A natural pitch runs 2.5 to 3 words a second, so 30 seconds holds 75 to 85 words. The words in brackets are for Matt and Austin to fill in, because the reason for choosing the challenge is theirs. Keep it to three or four words.
 
-Four messages, in this order.
+The guide's times are approximate. The first two beats are the most crowded, so let them run to about 0:06. The title beat has room to absorb it. Read the script aloud with a stopwatch. If a take runs over 28 seconds, cut words rather than talk faster. "like this brown dwarf" is the first cut.
 
-1. The mission. SPHEREx images the whole sky in 102 infrared bands.
-2. The problem. Objects that move are hidden across thousands of separate images.
-3. The product. SPHERExplorer plays every image of any spot in time order, with spectra, change finding, and partner data.
-4. The use. Classrooms, researchers, and anyone curious, and it keeps up with new data.
-
-The video builds interest through clear writing and steady pacing, not effects. One idea per shot.
-
-## Storyboard
-
-28.5 s at 30 fps, 1920 by 1080. The beats follow the timing the Project Submission Guide suggests. All on-screen text is a draft for approval.
-
-| Time (s) | Beat | Picture | On-screen text |
+| Time | Beat | Words | On screen |
 |---|---|---|---|
-| 0.0 to 2.5 | Names and team | Plain title card on the app background | "Turing Complete" / "Matt and Austin" / "NASA Space Apps Challenge 2026" |
-| 2.5 to 5.5 | The challenge | The app's sky map with the SPHEREx color layer, drifting slowly | "Planet X and SPHEREx" / "Find what moves in SPHEREx's all-sky infrared images." |
-| 5.5 to 9.5 | Title and tagline | Name set in type, over a still of the whole app | "SPHERExplorer" / "Explore SPHEREx images of the sky and how they change over time." (the README line) |
-| 9.5 to 12.25 | How it works 1 | The search box takes "WISE 0855". The map centers and the yellow square appears | "Search any object or coordinates." |
-| 12.25 to 15.0 | How it works 2 | The image study steps through visits. The brown dwarf moves between frames | "Play every visit. Moving objects step across the frame." |
-| 15.0 to 17.75 | How it works 3 | The spectrum of Epsilon Indi B with water and methane marked | "102 infrared bands. A spectrum for any point." |
-| 17.75 to 20.5 | How it works 4 | Blink against WISE, or the partner overlays | "Checked against Gaia, 2MASS, WISE, and NEOSSat." |
-| 20.5 to 25.5 | Uses and the future | A 2 by 2 grid of real fields: WISE 0855, Barnard's Star, 3I/ATLAS, M 42 in color | "For classrooms, researchers, and anyone curious." for 2.5 s, then "Built to update with every new SPHEREx data release." for 2.5 s |
-| 25.5 to 28.5 | End card | The address, large | "spherexplorer.earth" / "Open source, Apache-2.0" / short credits / "Independent project. Not endorsed by NASA." |
+| 0:00 to 0:02 | Who we are | "We're Matt and Austin, team Turing Complete." | Shot 1 |
+| 0:02 to 0:05 | The challenge and why | "We chose Planet X and SPHEREx because [your reason, three or four words]." | Shot 1 |
+| 0:05 to 0:10 | Name and tagline | "This is SPHERExplorer. Explore the sky, and how it changes over time." | Shot 2 |
+| 0:10 to 0:20 | How it works, and the data | "Search any object, like this brown dwarf, and watch it move. One click finds what changed. It's built on NASA's open SPHEREx data, with ESA's Gaia and Canada's NEOSSat." | Shots 3 and 4 |
+| 0:20 to 0:30 | The future | "Next, any classroom or scientist can hunt for hidden worlds, map our solar system, and watch the universe change. Try it at spherexplorer dot earth." | Shot 5 |
 
-On every frame, lower left: "SI-generated video. Made with Claude Code (Anthropic)."
+The tagline is the README's first line, shortened. The future line comes from `docs/concept.md`: research of every kind, a fully mapped solar system, and a map that keeps updating. Change any word that doesn't sound like you.
 
-During data shots, lower right, short credits.
+## Shots
 
-- SPHEREx shots: "SPHEREx data: NASA, JPL-Caltech, IPAC IRSA"
-- Partner shot: "Gaia: ESA, DPAC. NEOSSat: CSA. 2MASS and WISE: NASA, IPAC"
+Every shot is the live site. Open each link in its own tab before recording and let the images finish loading, so nothing is loading mid-take.
 
-The full acknowledgment texts from `docs/references.md` go in the video description. The NEOSSat line there is required: "Contains information licensed under the Open Government Licence - Canada."
-
-## Style
-
-- Type: Inter (SIL Open Font License 1.1), bundled with the video so it renders the same everywhere. Title 120 px, headings 64 px, captions 48 px, credits and watermark 24 px or larger.
-- Colors: the app's own tokens. Background `#0f1215`, text `#e8ebee`, muted `#a3acb5`, accent `#4c9be8`. Callouts use the target marker yellow `#ffd24a`.
-- Captions: one at a time, 10 words or fewer, on screen for at least 2.5 s. In: fade with a 12 px rise over 300 ms. Out: fade over 200 ms.
-- Callouts: a 2 px yellow outline around the part of the page being described. It fades in over 200 ms. No shadow and no glow.
-- Cuts, or crossfades of 300 ms. A slow push-in of at most 4 percent over one shot. Pans only to follow real action in the app.
-- Only real captures of the app and real SPHEREx data. No generated pictures of space.
-- Never: particles, fake starfields, lens flares, light leaks, glitch effects, whip pans, zoom blur, 3D flips, bouncing type, whooshes, or risers.
-
-## Pipeline
-
-Everything lives in a new `video/` folder with its own `package.json`, apart from the web app.
-
-1. Capture, `video/capture.mjs`. Playwright drives https://spherexplorer.earth at 1920 by 1080. It waits until the status line has finished loading images, then saves stills. For playback it steps the image player and saves one screenshot per step, so the motion is frame-exact.
-2. Compose, `video/scenes.html`. One page with a pure function `render(t)` that lays out every scene for time `t` in seconds, from the captures.
-3. Render, `video/render.mjs`. Playwright opens the scenes page. For each frame it sets `t = frame / 30`, waits for fonts and images, and saves `frames/0000.png` onward.
-4. Encode with ffmpeg: H.264, `yuv420p`, CRF 18, 30 fps, `+faststart`. The file's title and comment metadata carry the SI statement. An audio track, if any, is AAC at 160 kbps.
-5. Verify. Duration is at most 29.5 s and the frame count matches. The watermark is visible on the first, middle, and last frames. Scene text passes `scripts/check_text.py`, which already reads every tracked file.
-6. Publish. Upload, add the description with the SI statement and the credits, test the link in a private window, then paste the full URL into the form.
-
-Austin's Mac has no ffmpeg, Chrome, or Playwright. Render on Matt's machine, or add a manual GitHub Actions workflow that installs both and saves the MP4 as a run artifact.
-
-New dependencies, all in `video/` and none in the site:
-
-| Name | License | Weight |
+| Shot | Link | What to do |
 |---|---|---|
-| Playwright | Apache-2.0 | The npm package plus a Chromium download of about 150 MB |
-| ffmpeg | LGPL or GPL, a system tool, not shipped | One install on the rendering machine |
-| Inter | SIL Open Font License 1.1 | One font file of a few hundred KB |
-| Music, only if chosen | CC0, or CC-BY with credit | One audio file |
+| 1 | https://spherexplorer.earth/?view=map&layer=spherex-color | The SPHEREx all-sky map in color. A slow drag, or hold still |
+| 2 | https://spherexplorer.earth/?target=WISE%200855-0714&mode=visits&det=56 | The whole app, with its name in the top bar |
+| 3 | https://spherexplorer.earth/?target=WISE%200855-0714&mode=visits&det=56&follow=0&zoom=3&smooth=1&play=1 | The brown dwarf steps west while the stars hold still. Matt's draft found this the clearest motion shot |
+| 4 | https://spherexplorer.earth/?target=Barnard%27s%20Star&blink=wise-w1 | Blink against WISE from 2010. The star jumps more than 2.5 arcminutes. Or click Measure Changes in the Studies tab, to match "one click finds what changed" |
+| 5 | https://spherexplorer.earth/?view=map | The sky map with the solar system on it. End with the address bar visible |
 
-Rejected alternatives:
+## Recording
 
-- Remotion. A strong React video framework, but its license is not OSI approved and it brings a large toolchain for 28 seconds of simple scenes.
-- Generative video models. They cannot show the real product, they can invent imagery that looks like real data, and they can produce NASA-like marks.
-- Real-time screen recording. Uneven frame timing, it needs the operating system's screen recording permission, and it cannot be repeated exactly.
+QuickTime Player is on Austin's Mac, so nothing needs installing.
 
-## Who does what
+1. Set up the screen. One browser window, maximized, with the bookmarks bar hidden. Browser zoom at about 125 percent so text reads on a phone. Do Not Disturb on.
+2. Record. Press Cmd+Shift+5, choose Record Selected Portion around the browser window, and set Options to the microphone. A headset in a quiet room sounds best. One narrator, or take turns by beat.
+3. Record a few full takes. If one take won't fit, record by beat and join the clips with Edit, then Add Clip to End.
+4. Trim the dead air with Edit, then Trim. Check the length in Window, then Show Movie Inspector. It must read 30 seconds or less.
+5. Export with File, Export As, 1080p.
 
-| Who | Work |
-|---|---|
-| Matt and Austin | Approve the on-screen text and the open decisions. Watch every cut. Upload, paste the link, and test it |
-| Matt's Claude (Fable 5.2) | Build `video/`: capture, scenes, render, encode. Make each cut |
-| Austin's Claude | Keep this spec current. Check every render against the requirements. Add the references, the SI log rows, and the video description |
+## Upload
 
-## Open decisions
+1. Upload to YouTube as Public or Unlisted. Both open without a login. Not made for kids.
+2. Title: "SPHERExplorer, NASA Space Apps 2026, Planet X and SPHEREx".
+3. Paste the description below.
+4. Add captions. Claude can turn the final script and the take's timings into a caption file to upload.
+5. Open the link in a private window. Check the length the player shows.
+6. Paste the full `https://` link into Project Demonstration and Save Progress.
 
-1. Names on the team card: first names, or full names.
-2. Tagline: the README line as drafted, or another.
-3. The future line: "Built to update with every new SPHEREx data release.", or another plan from `docs/concept.md`.
-4. Audio: none, a CC0 instrumental, a voiceover read by Matt or Austin, or SI-generated audio, which must be disclosed in the description and the metadata.
-5. The motion shot: WISE 0855, one of NASA's test targets, or a fast asteroid or comet whose motion reads at a glance. Decide from the first captures.
-6. Host: YouTube, public or unlisted, is recommended. Decide whose account.
-7. Ownership of the new `video/` folder. Proposed: Matt's side, since Matt's Claude builds it.
-
-## Draft cut, Nov 15
-
-Matt asked Claude for a draft of the video on the morning of Nov 15. It is built and runs end to end. Nothing in it is approved yet.
-
-How to make it, on Matt's machine:
-
-```sh
-cd video
-npm install
-node capture.mjs          # the pictures, from the live site (SITE=http://127.0.0.1:5173 for the local preview)
-node render.mjs           # every frame, then out/spherexplorer-demo.mp4
-node render.mjs 7.5 22    # single frames at those seconds, to look at
-```
-
-What the draft is:
-
-- 28.5 s, 855 frames at 30 a second, 1920 by 1080, H.264, no sound, 12 MB.
-- Nine scenes on the storyboard's timings, with its on-screen text word for word.
-- The app is shown whole, in a frame above the caption, so no part of it is covered or cut.
-- The SI watermark is on every frame, above every scene. The render stops if it is ever covered.
-- The file's title, comment, and description metadata carry the SI statement.
-- `render.mjs` refuses a video over 29.5 s, before and after encoding.
-
-Where the draft differs from the plan above:
-
-- The browser is driven with puppeteer-core and the Chrome already on Matt's machine, not Playwright. It does the same job without a 150 MB download.
-- The captures were taken from the live site at 10:22 am on Nov 15. Take them again if the site changes before the final cut.
-- The motion shot is WISE 0855 by visit with the sky held still (`follow=0`), zoomed three times and smoothed. The brown dwarf then steps west while the stars stay put. Barnard's Star was tried and saturates into a blur at that zoom.
-- The spectrum shot outlines the plot. The other shots have no callout except the search box.
-- The partner shot is Blink on Barnard's Star, the SPHEREx image of August 2025 against the WISE 3.4 micron survey of 2010. The star jumps more than 2.5 arcminutes between the two, which is its own motion over 15 years.
-
-What the draft assumes for the open decisions below, until Matt and Austin choose:
-
-1. Names: "Matt and Austin".
-2. Tagline: the README line as drafted.
-3. The future line as drafted.
-4. No audio.
-5. The motion shot: WISE 0855.
-6. Host: not chosen. The upload is Matt's or Austin's to do.
-7. `video/` is on Matt's side.
-
-### Draft description for the host page
-
-A draft for Matt and Austin to approve. It goes in the description box of the page that hosts the video. It carries the SI statement and the full acknowledgments, which the frames have no room for. The quoted lines are each archive's own required text from `docs/references.md`.
+Description:
 
 ```text
 SPHERExplorer: explore SPHEREx images of the sky and how they change over time.
@@ -164,34 +90,45 @@ Code, Apache-2.0: https://github.com/mattsaund/SPHERExplorer
 
 Team Turing Complete (Matt and Austin). NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
 
-This video is SI-generated. It was built from code with Claude Code (Anthropic), from real captures of the SPHERExplorer web tool. Every picture of the sky in it is real data, shown the way the tool shows it. The video has no sound.
+Recorded by the team on the live site. The script was written with help from Claude Code (Anthropic), a Super Intelligence (SI) tool.
 
 This is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
-Acknowledgments
-
-This publication makes use of data products from the Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer (SPHEREx), which is a joint project of the Jet Propulsion Laboratory and the California Institute of Technology, and is funded by the National Aeronautics and Space Administration.
-
-This research has made use of the NASA/IPAC Infrared Science Archive, which is funded by the National Aeronautics and Space Administration and operated by the California Institute of Technology.
-
-This publication makes use of data products from the Wide-field Infrared Survey Explorer, which is a joint project of the University of California, Los Angeles, and the Jet Propulsion Laboratory/California Institute of Technology, funded by the National Aeronautics and Space Administration.
-
-This publication makes use of data products from the Two Micron All Sky Survey, which is a joint project of the University of Massachusetts and the Infrared Processing and Analysis Center/California Institute of Technology, funded by the National Aeronautics and Space Administration and the National Science Foundation.
-
-This work has made use of data from the European Space Agency (ESA) mission Gaia (https://www.cosmos.esa.int/gaia), processed by the Gaia Data Processing and Analysis Consortium (DPAC, https://www.cosmos.esa.int/web/gaia/dpac/consortium). Funding for the DPAC has been provided by national institutions, in particular the institutions participating in the Gaia Multilateral Agreement.
-
-NEOSSat, Canadian Space Agency: Contains information licensed under the Open Government Licence - Canada.
-
-This research has made use of the SIMBAD database, CDS, Strasbourg Astronomical Observatory, France.
-
-This research has made use of the VizieR catalogue access tool, CDS, Strasbourg Astronomical Observatory, France.
-
-The sky map is drawn with Aladin Lite (CDS, Strasbourg Astronomical Observatory). Typeface: Inter by Rasmus Andersson, SIL Open Font License 1.1. Every source and license is listed in docs/references.md in the repository.
+Data: NASA SPHEREx through the NASA/IPAC Infrared Science Archive (IRSA). ESA Gaia. NEOSSat, Canadian Space Agency, which contains information licensed under the Open Government Licence - Canada. 2MASS and WISE. SIMBAD and VizieR (CDS). Every source, acknowledgment, and license is in docs/references.md in the repository.
 ```
 
-If audio is added (decision 4), the description must also name the track, its author, and its license, or say that the audio is SI-generated.
+## Fallback: the automated cut
 
-Still to do: approval of the text and the seven decisions, a new capture if the site changes, the upload with the description above, and the link in the form.
+If the recording isn't uploaded by 2:15 pm, upload the cut that Matt's Claude built from code instead. It is in `video/`, made with `node capture.mjs` and then `node render.mjs` on Matt's machine. It is 28.5 seconds, silent, and carries the SI watermark on every frame. That cut is SI-generated, so it uses the longer description in the git history of this file (commit 9c1438d), which says so.
+
+## Live presentation, 3:30 pm
+
+Five minutes at most. Aim for 4 minutes 30 seconds, and leave the rest for the room. The content and the words are Matt and Austin's. Claude can draft talking points on request.
+
+| Time | Part |
+|---|---|
+| 0:00 to 0:30 | Who we are, and the challenge. Playing the 30-second video works as the opener |
+| 0:30 to 3:00 | Live demo on the site: search, playback by visit, the spectrum, Measure Changes, Blink, and the sky map |
+| 3:00 to 3:45 | How it works, the data from NASA, ESA, and the Canadian Space Agency, and how the results were checked (`docs/methods.md`, section 9) |
+| 3:45 to 4:30 | Who it helps, and what comes next |
+| 4:30 to 5:00 | Thanks, and the address on screen |
+
+Before going on:
+
+- Check the projector early. Set the browser zoom so the back row can read it.
+- Ten minutes before, open each of the five test targets once. Their images then usually sit in the server's memory, and the demo loads at once. The site can run two instances, and each has its own memory, so this isn't guaranteed.
+- Don't merge to `main` between 3:10 and 3:40 pm. A merge deploys about four minutes later, and a new deploy starts with empty memory.
+- If the venue network blocks the new domain, use https://spherexplorer-112779026983.us-east4.run.app instead.
+- If the network fails, play the video file and show screenshots from the laptop.
+- Agree who says which part, and run it once with a timer.
+
+## Who does what
+
+| Who | Work |
+|---|---|
+| Matt and Austin | Fill in the bracketed line, approve the script, record, upload, and present |
+| Austin's Claude | Edit and time the script, write the captions, keep this plan current, and check the final file against the requirements. Talking points for the presentation on request |
+| Matt's Claude | Keep the automated cut ready as the fallback |
 
 ## Schedule
 
@@ -199,24 +136,25 @@ Sunday, Nov 15, Eastern time.
 
 | Time | Milestone |
 |---|---|
-| Saturday night | Scope and decisions 1 to 4 approved |
-| 9:00 am | The pipeline runs end to end with placeholder text |
-| 11:30 am | Cut 1 with real captures and the approved text |
-| 1:30 pm | Recapture from the live site, cut 2 |
-| 2:30 pm | Final sign-off |
-| 3:00 pm | Upload, private-window test |
-| 3:30 pm | Full URL in the form, every field done, Submit for Judging |
-| 4:20 pm | Our Local Event's cutoff for the video and the submission |
-| 11:00 pm | Deploys freeze. The live site keeps improving until then |
-| 11:59 pm | The global form closes. Don't resubmit after 4:20 pm unless the Local Lead allows it |
+| 12:15 pm | Script approved, with the bracketed line filled in |
+| 12:30 pm | Browser set up, the five links loaded, notifications off |
+| 1:00 pm | Takes recorded |
+| 1:30 pm | Trimmed and exported, 30 seconds or less |
+| 2:00 pm | Uploaded with the description and captions, tested in a private window |
+| 2:15 pm | Decide: the recording, or the fallback cut |
+| 2:45 pm | Link in the form, every field done, Submit for Judging |
+| 3:10 pm | Presentation setup. No merges to `main` until 3:40 pm |
+| 3:30 pm | Live presentation |
+| 4:20 pm | Local Event cutoff. Resubmit only if something must change |
+| 11:00 pm | Deploys freeze |
+| 11:59 pm | The global form closes |
 
 ## Final checks
 
-- [ ] 29.5 s or less, measured on the file and on the host's player.
-- [ ] The SI watermark is visible on every frame.
-- [ ] No NASA logos, flags, or mission patches, and no "according to NASA".
-- [ ] On-screen credit for SPHEREx, IRSA, and each partner dataset shown. Full acknowledgments in the description.
-- [ ] Every font, track, and tool is in `docs/references.md` and in the form.
-- [ ] The SI statement is in the description and in the file metadata.
-- [ ] Every line is English and readable on a phone.
+- [ ] 30 seconds or less on the file and on the host's player.
+- [ ] Every beat is there: names, challenge, title and tagline, how it works with NASA and partner data, the future.
+- [ ] Text on screen reads clearly at phone size.
+- [ ] No NASA logos, flags, or mission patches in the frame, and no "according to NASA".
+- [ ] No music, and no one under 18.
+- [ ] The description names Claude's help with the script, and the SI question in the form says so too.
 - [ ] The link works in a private window, and the form has the full `https://` URL.

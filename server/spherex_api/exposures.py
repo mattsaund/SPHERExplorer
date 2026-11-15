@@ -8,6 +8,7 @@ import math
 import os
 import shutil
 import time
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -156,6 +157,7 @@ async def get_index() -> ExposureIndex | None:
             fresh = ExposureIndex()
             fresh.loaded_from = modified
             _index = fresh
-    except (OSError, ValueError, KeyError):
-        pass  # keep whatever was loaded before
+    except (OSError, ValueError, KeyError, EOFError, zipfile.BadZipFile):
+        # The file is missing a part, empty, or cut short. Keep whatever was loaded before.
+        pass
     return _index

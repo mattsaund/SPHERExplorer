@@ -1,5 +1,7 @@
 # SPHERExplorer
 
+This file instructs the Claude Code agents that work in this repository. People new to the project should start with `README.md`.
+
 Team repo for the NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
 Team: Turing Complete (Matt and Austin). Two Claude Code accounts work in this repo at the same time.
 
@@ -9,7 +11,9 @@ Read this file first. Details live in `docs/`.
 
 - Started Sat Nov 14, 2026, 9:00 am local time (Eastern for Matt).
 - Our Local Event (Bethesda, MD) needs the demo video uploaded and the project submitted by Sun Nov 15, 4:20 pm Eastern.
+- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:10 and 3:40 pm. The plan is in `docs/video.md`.
 - The global form closes Sun Nov 15, 11:59 pm Eastern. Automatic deploys freeze at 11:00 pm.
+- The repo and the project page don't change after Sun Nov 15, 11:59 pm Eastern (Matt's reading of the rules, Nov 15). The live site's data keeps updating through the scheduled index refresh.
 - Results: Global Nominees Dec 3, Global Finalists Dec 17, Global Winners Jan 26, 2027. The public site must stay up through judging.
 
 ## Rule 1: the idea belongs to the humans
@@ -119,13 +123,17 @@ Details in `docs/research/`.
 | File | Purpose |
 |---|---|
 | `docs/concept.md` | The team's concept and Matt's original notes (human-written) |
-| `docs/architecture.md` | Technical plan, stack, ownership, the frontend contract, and how to run it |
+| `CONTRIBUTING.md` | Setup, checks, rules, and the pull request flow, for any developer |
+| `docs/architecture.md` | Design: the parts, the stack, the data flow, and the frontend contract |
+| `docs/interface.md` | The page layout and how the interface behaves |
 | `docs/deploy.md` | How to put the site online (one container on Google Cloud Run) |
+| `docs/performance.md` | Load-time measurements and the server size comparison |
 | `docs/methods.md` | How each result is computed and how it was checked |
+| `docs/glossary.md` | The terms used in the app and the docs, in plain words |
 | `docs/ui-checklist.md` | Every tool the UI must offer, checked in CI |
 | `scripts/update_solar.py` | Renews the orbits behind the solar system marks on the sky map. Run every few months |
 | `docs/embedding.md` | Link options and how to embed the viewer in another page |
-| `docs/video.md` | Script, shots, and recording steps for the 30-second demo video, and the plan for the 5-minute live presentation |
+| `docs/video.md` | The demo video (built by `video/`), the backup slide deck, and the plan for the 5-minute live presentation |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |

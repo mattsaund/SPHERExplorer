@@ -17,7 +17,7 @@ The text for each field, and the claims to recheck before submitting, is in `doc
 
 - [x] Project name. SPHERExplorer.
 - [ ] High-level summary: what we built, how it addresses the challenge, why it matters. Text ready: 198 words, 1,182 characters, inside the limit of 200 and 1,500. Needs pasting again.
-- [ ] Demo link (public, no login). The team records the video (`docs/video.md`). The cut built from code is the fallback. See "Demo".
+- [ ] Demo link (public, no login). The video built from code is the demo, and a seven-slide deck is the backup (`docs/video.md`). See "Demo".
 - [ ] Final project link (public, no login): the live site (https://spherexplorer.earth) and this repo. Both answer without a login, and the repo is public. Needs pasting.
 - [ ] Project details: what it does, how it works, benefits, goals, tools, languages, hardware, software. Text ready, and its numbers were rechecked on the live site. Needs pasting again.
 - [ ] NASA data and resources used. Draft ready, needs approval.
@@ -28,18 +28,18 @@ The text for each field, and the claims to recheck before submitting, is in `doc
 
 ## Demo
 
-- [ ] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging. The fallback cut is 28.50 s by ffprobe, and its render refuses anything over 29.5 s. The team's recording must be measured too, on the file and on the host's player.
-- [ ] English, or English subtitles if the video is in another language. Slides must be in English. The script and the fallback cut are in English.
+- [ ] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging. The video is 29.00 s by ffprobe, and its render refuses anything over 29.5 s. Check the length again on the host's player.
+- [x] English, or English subtitles if the video is in another language. Slides must be in English. Every line of the video is English.
 - [ ] Hosted on YouTube, Google Drive, GitHub, OneDrive, or Dropbox with a public link. Test it in a private window.
 - [ ] Suggested video timing: 0:00 names and team (Turing Complete), 0:02 the challenge, 0:05 title and tagline, 0:10 how it works plus the NASA and partner data, 0:20 to 0:30 the future.
 - [ ] Slides show the team name, member names, the challenge, an image of the project, the user experience, and how NASA and partner data make it possible.
-- [ ] SI-generated images or video carry a visible watermark. No NASA branding in SI-generated content. The fallback cut has the watermark on every frame, and its render stops if anything covers it. A recording by the team is not SI-generated and needs none, but check every frame of it for logos, other tabs, and bookmarks.
+- [x] SI-generated images or video carry a visible watermark. No NASA branding in SI-generated content. The video has the watermark on every frame, and its render stops if anything covers it. It shows no logo of any kind except Aladin Lite's own mark on its map.
 
 ## Final checks
 
 - [ ] The live site loads from outside our network. It answers over the public internet with a valid certificate, `www` works, and `http` redirects to `https`. Still to do by hand: open it on a phone on mobile data.
 - [ ] Request a FortiGuard Web Filter Classification for any new domain so judges' networks don't block it (optional): https://www.fortiguard.com/faq/wfratingsubmit
-- [ ] No images, video, or audio of anyone under 18. The project, the repo, and the fallback cut show no people at all. The team's recording carries Matt's and Austin's voices, so this one is theirs to confirm.
+- [x] No images, video, or audio of anyone under 18. The project, the repo, and the video show no people at all, and the video is silent.
 - [x] No NASA insignia or logos. No implied endorsement. The repo tracks no image file, the app ships no icon or logo, and its About tab says it is not a NASA product.
 - [x] OSI license present (Apache-2.0). GitHub reads `LICENSE` as Apache-2.0.
 - [ ] Tick both boxes: the Terms and Conditions, and "Confirm All Work is Original" (all external resources listed in References).

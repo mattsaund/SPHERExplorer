@@ -1,9 +1,49 @@
 # Decision log
 
-Matt and Austin record project decisions here, newest first. The log shows which choices came from the team. That supports the "originality, intent" part of judging.
+Matt and Austin record project decisions here. The log shows which choices came from the team, which supports the "originality, intent" part of judging.
+
+## Major decisions
+
+The choices that shaped the project, summarized from the full log below. Each names who made it.
+
+### The project
+
+- Matt and Austin set the concept and the feature list at kickoff on Nov 14. It is recorded word for word in `docs/concept.md`.
+- Matt named the project SPHERExplorer, and Matt and Austin chose the team name, Turing Complete.
+- Matt asked for a public repository. It uses Apache-2.0, the Space Apps default license.
+- Matt set the rule that every SI use is labeled and every source is referenced.
+
+### What the tool does
+
+- The interface is one full screen between a top bar and a bottom bar, and no redesign may drop a tool (Matt). Austin's full-page layout became that interface.
+- Search takes object names and J2000 coordinates in any common written form, with a dropdown of suggestions (Matt).
+- Images can be shown in full color, from three wavelength ranges, and the sky map has a color SPHEREx layer (Matt).
+- The Studies tab holds the two change tools, Measure Changes and Measure Movement, and Blink compares an image with an older survey of the same sky (Matt).
+- The sky map carries the overlays of the IRSA site and the whole solar system: planets, dwarf planets, asteroids, comets, and interstellar objects at their current positions (Matt).
+- Every view has a link that reopens it, and the viewer can be embedded in other sites, which covers NASA's embedding consideration (Matt).
+- Pictures, animations, and data can be saved, at full quality (Matt).
+- The study area is capped at 50 arcminutes (Matt, Nov 15).
+- The app's wording is technical and plain, without sales language (Austin). The rules are in `docs/language-refining.md`.
+- Speed comes first, with no compromise on what the tool does (Matt).
+
+### Hosting and delivery
+
+- Google Cloud hosts the site and the free domain gives it an address, both from the Space Apps Global Offers (Austin).
+- The site runs as one container on Cloud Run in `us-east4`, at https://spherexplorer.earth (Austin).
+- The server uses the second generation runtime with 4 processors, 4 GB, and at most 2 instances, the fastest size measured (Matt).
+- A push to `main` deploys only after CI passes on that commit (Austin). Deploys freeze at 11:00 pm Eastern on Nov 15, so the judged site stays as submitted (Austin).
+- Work lands on a separate branch before it reaches `main` (Matt).
+
+## Full log
+
+Newest first.
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-15 | The repo and the project do not change after 11:59 pm on Nov 15. The live site's data keeps updating | Matt | His reading of the rules. Deploys freeze at 11:00 pm, and the scheduled index refresh keeps adding new exposures after that |
+| 2026-11-15 | Run the index refresh once by hand, and keep the site warm during the live presentation | Matt | The refresh passed on GitHub at 12:17 pm with the index unchanged. From 3:05 pm Claude opens the demo targets on the live site and keeps an instance running until the presentation is over |
+| 2026-11-15 | The automated cut of the video gets a short shot of Haumea, with the square moving on the map and the image study tracking it | Matt | Matt watched the cut and asked for it, with a GIF he saved from the tool as the model. The shot uses his settings: a 10 arcminute field, detector 2, and 55 images over a year. The cut is now 29.0 s |
+| 2026-11-15 | The demo is the video that Matt's Claude built from code. A seven-slide deck is the backup | Austin | The team first planned to record the video itself, then switched to slides, then kept the finished automated video. Plan in `docs/video.md` |
 | 2026-11-15 | Matt and Austin record the demo video themselves, on the live site with their own voices. Claude helps write and time the script. The automated cut is the fallback | Austin | Follows the Space Apps "Visual Storytelling" beats. A team recording with an SI-assisted script is disclosed in the description and the SI question |
 | 2026-11-15 | The Local Event has a live presentation at 3:30 pm, 5 minutes at most | Austin | The plan is in `docs/video.md`. Submit for Judging moves before it, to 2:45 pm |
 | 2026-11-15 | Saved pictures and animations must be high quality | Matt | Matt saved a couple of GIFs and found them very low quality. They were shrunk to 560 pixels on the longest side of the whole window, margins included, and kept 64 shades of gray. Now a saved picture is the field itself, drawn again at 1600 pixels (PNG) or 1080 (GIF), with every shade of gray, and color pictures are dithered. See `docs/methods.md` section 14 |

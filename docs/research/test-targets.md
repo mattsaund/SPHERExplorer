@@ -1,5 +1,7 @@
 # Test targets
 
+A snapshot from November 2026. Recheck anything time-sensitive against the live services.
+
 NASA asks teams to test on these five targets. Positions are propagated to epoch 2026.0 with full space motion. Pixel motions use 6.15 arcsec per pixel.
 
 ## Summary

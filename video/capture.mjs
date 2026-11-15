@@ -121,6 +121,40 @@ const SHOTS = {
     await page.close();
   },
 
+  // A dwarf planet followed through a year of images. One detector is chosen, the one where
+  // it is brightest, so the film has 55 steps. The map is set wide enough to hold its whole
+  // path, so the yellow square is seen moving across it, while the image study keeps the body
+  // under its marker.
+  async haumea() {
+    const page = await open("?target=Haumea&fov=600&smooth=1&det=2&mra=219.87&mdec=14.37&mfov=4");
+    await loaded(page);
+    await wait(5000);
+    const place = () => page.evaluate(() => (document.querySelector(".controlbar")?.innerText.match(/(\d+)\s*\/\s*(\d+)/) ?? []).slice(1).map(Number));
+    // Go back to the first step, whatever step the film opened on.
+    for (let [now] = await place(); now > 1; [now] = await place()) {
+      await page.keyboard.press("ArrowLeft");
+      await wait(120);
+    }
+    // A step forward and back. Until the film has been moved, the square sits on the body's
+    // marker, where it is today. After, it is where the image on screen was taken.
+    await page.keyboard.press("ArrowRight");
+    await wait(400);
+    await page.keyboard.press("ArrowLeft");
+    const [, total] = await place();
+    const stride = 3; // every third image, so the year passes in a couple of seconds
+    const steps = Math.ceil(total / stride);
+    for (let i = 0; i < steps; i++) {
+      await wait(1600); // the map moves its square and draws again
+      await shot(page, `haumea-${i}`);
+      for (let k = 0; k < stride; k++) {
+        await page.keyboard.press("ArrowRight");
+        await wait(150);
+      }
+    }
+    boxes.haumea = { steps, map: await boxOf(page, ".view.map"), images: await boxOf(page, ".view.images") };
+    await page.close();
+  },
+
   // The spectrum of a brown dwarf with water and methane marked.
   async spectrum() {
     const page = await open("?target=" + encodeURIComponent("Epsilon Indi B") + "&tool=graphs&feat=water,methane");

@@ -15,7 +15,6 @@ Every external resource goes here with its license and required credit. Set "In 
 | VizieR | CDS, Strasbourg (CfA and IDIA mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Yes (2MASS and AllWISE catalogs) |
 | 2MASS Point Source Catalog | UMass, IPAC/Caltech, NASA, NSF (VizieR II/246) | Public | Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003 | Yes (J, H, Ks brightness) |
 | AllWISE Source Catalog | NASA WISE, JPL, IPAC (VizieR II/328) | Public | Wright et al. 2010. Cutri et al. 2013. Flux zero points from Jarrett et al. 2011 | Yes (W1, W2 brightness) |
-| UltracoolSheet | Best et al. | CC-BY-4.0 | DOI 10.5281/zenodo.15802304 | Not yet |
 | Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck | Each survey team, HiPS built by CDS, ESA, and IPAC | Public | Layer credits in `web/src/core/skyLayers.ts`. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list | Yes (map layers) |
 
 IRSA data use terms: https://irsa.ipac.caltech.edu/data_use_terms.html
@@ -95,14 +94,11 @@ Add the license and version when a library goes into the build.
 | Type definitions for Node, React, React DOM, and topojson-client (DefinitelyTyped) | MIT | | Yes (build) |
 | Vitest 5 | MIT | | Yes (tests) |
 | matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/colormaps.ts`) |
-| astroquery | BSD-3-Clause | Ginsburg et al. 2019 | Not yet |
 | Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
 | IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied as `CLAUDE.md` Rule 5 asks) |
 | satellite.js 7.2 | MIT | Shashwat Kandadai and contributors. SGP4 orbit model by Vallado et al. 2006 | Yes (live spacecraft position) |
 | gifenc 1.0.3 | MIT | Matt DesLauriers | Yes (animation export) |
-| Mediabunny | MPL-2.0 | | Not yet |
-| sampjs | CC0 | | Not yet |
 | NEOSSat tutorial (CSA) | MIT, Crown copyright 2023 | | Reference only |
 | IRSA SIA and the AWS S3 bucket `nasa-irsa-spherex` | Public | IRSA acknowledgment | Yes (search and pixels) |
 | IRSA TAP and cutout service | Public | IRSA acknowledgment | Not used. The API reads S3 directly |

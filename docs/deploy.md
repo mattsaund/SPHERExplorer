@@ -243,7 +243,7 @@ What is in place.
 - The container runs as a user with no rights, from a fixed installer version, with nothing private in its build context.
 - `.gitignore` keeps keys, tokens, environment files, and cloud credentials out of the repository. The history was scanned and holds none. GitHub's secret scanning and push protection are on.
 - `npm audit` reports no known vulnerabilities in the web app's libraries.
-- `--max-instances 3` caps what a flood of requests can cost.
+- `--max-instances 2` caps what a flood of requests can cost.
 
 For Matt or Austin to switch on, since they are account settings.
 

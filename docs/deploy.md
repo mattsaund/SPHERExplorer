@@ -43,16 +43,16 @@ gcloud run deploy spherexplorer \
   --source . \
   --region us-east4 \
   --allow-unauthenticated \
-  --execution-environment gen1 \
-  --memory 4Gi --cpu 2 --cpu-boost \
-  --concurrency 40 --min-instances 0 --max-instances 3 \
+  --execution-environment gen2 \
+  --memory 4Gi --cpu 4 --cpu-boost \
+  --concurrency 40 --min-instances 0 --max-instances 2 \
   --timeout 300 \
-  --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=2
+  --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=4
 ```
 
 The first deploy offers to create a `cloud-run-source-deploy` repository for the built images. Answer Y. Cloud Build then runs the `Dockerfile`, which takes several minutes, and the command prints the public address.
 
-- `--execution-environment gen1`, `--cpu 2`, `--memory 4Gi`, and `--max-instances 3` are explained under "Size" below.
+- `--execution-environment gen2`, `--cpu 4`, `--memory 4Gi`, and `--max-instances 2` are explained under "Size" below.
 - `--cpu-boost` gives a starting instance more processor until it is ready, which shortens a cold start.
 - `--min-instances 1` keeps one instance always running. Then nobody meets a cold start, and the images of a target someone has opened stay in memory for the next visitor. It costs money all day, so use it for the judging weeks (early December through January 26) and go back to 0 after.
 
@@ -137,7 +137,7 @@ All optional. Set with `--set-env-vars NAME=value`.
 | `SPX_INDEX_SEED` | set in the container | A copy of the exposure index inside the image, so a new instance can search at once |
 | `SPX_CACHE_DIR` | `/tmp/spherexplorer` | Where file layouts, calibration tables, and color tiles are kept |
 | `SPX_CACHE_MAX_MB` | 300 in the container | Ceiling on that folder. Cloud Run keeps `/tmp` in memory, so it must stay small. The oldest files go first |
-| `SPX_CPUS` | what the container can see, and 2 on the live site | Processors the server may use, for sizing its compute threads. Cloud Run shows a container more processors than it allows, so `deploy.yml` sets this beside `--cpu`. Keep the two equal |
+| `SPX_CPUS` | what the container can see, and 4 on the live site | Processors the server may use, for sizing its compute threads. Cloud Run shows a container more processors than it allows, so `deploy.yml` sets this beside `--cpu`. Keep the two equal |
 | `SPX_FRAME_CACHE_MB` | 256, and 1024 on the live site | Memory for finished frames, so a target someone has opened reloads at once. A 5 arcminute frame takes about 8 kB and a 30 arcminute frame about 200 kB, so one 30 arcminute load of 380 images is about 80 MB |
 
 ## What starts cold
@@ -152,7 +152,7 @@ The frame memory starts empty too. The first visitor to a target waits for S3. E
 
 - The server reads only part of each 65 MB file from the bucket: about 1 MB per image for a 5 arcminute field, 2.5 MB for 15, and 5 MB for 30. S3 serves whole rows of an image, so a wider field costs more.
 - Google caps every Cloud Run instance at 600 Mbps and 64,000 packets a second, both directions together (https://cloud.google.com/run/quotas). Measured on Nov 15, the server takes in 62 to 77 MB a second from the bucket, which is that cap.
-- At the cap the instance uses about 1.3 processors. More processors do not make a first load faster. That was measured with 2 and with 4.
+- At the cap one load uses about one processor on the second generation runtime, and 1.3 to 1.8 on the first (see "Size"). More processors do not make a first load faster. That was measured with 2 and with 4.
 - So a first load takes as long as its bytes take to arrive: the number of images, times the megabytes per image, at about 65 MB a second.
 - The first image arrives in under half a second in every case, and the film can play while the rest come in.
 
@@ -200,18 +200,31 @@ Processor times are from a development machine. The live instance takes three to
 
 ## Size
 
-`deploy.yml` sets these on every deploy. Matt asked on Nov 15 for the best size that costs no more.
+`deploy.yml` sets these on every deploy. Matt asked on Nov 15 for the fastest site.
 
 | Setting | Value | Why |
 |---|---|---|
-| `--cpu 2` | 2 processors | A first load uses about 1.3 of them, because the instance's network limit binds first (see "Speed"). Four were tried on Nov 14 and 15: large fields loaded no faster, and every busy second cost twice as much |
+| `--execution-environment gen2` | second generation | The fastest in the comparison below. The first generation spent about twice the processor time on the same bytes, and loaded the same fields more slowly |
+| `--cpu 4` | 4 processors | The size the fastest runs were measured on. One first load uses about one of them, so several visitors can load at once |
 | `--memory 4Gi` | 4 GB | Room for 1024 MB of frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready. Memory costs a tenth of what a processor does |
-| `--max-instances 3` | 3 instances | Each instance has its own network limit, so three carry half again the traffic of the two larger ones before. At the worst they cost $15 a day, less than the $18 of either size before |
-| `--execution-environment gen1` | first generation | Google documents it as the quicker of the two to start a new instance (https://docs.cloud.google.com/run/docs/about-execution-environments), which is what a visitor to a quiet site waits for. The second generation was live on Nov 14 and 15: it read the archive no faster, and a request that found no instance running waited 6.1 s |
+| `--max-instances 2` | 2 instances | At the worst they cost $18 a day, what the service cost before Nov 15 |
 
-History: 2 processors, 2 GB, and 4 instances until Nov 14. Then 4 processors, 4 GB, 2 instances, and the second generation until Nov 15.
+The comparison, on the live site on Nov 15. First loads of the same three 5 arcminute fields, 457 to 487 images each, on an instance that had not seen them:
 
-Not yet measured: the wait when no instance is running, on this size. The measurement needs 15 minutes with no visitor at all, and the site was in use each time it was tried on Nov 15. To take it, leave the site alone for 15 minutes, then run `curl -s -o /dev/null -w '%{time_total}\n' https://spherexplorer.earth/api/health` once.
+| Setup | When | All images | Together | Processor time |
+|---|---|---|---|---|
+| 4 processors, second generation | 8:56 am | 7.5 s, 6.5 s, 6.1 s | 20.1 s | not recorded |
+| 2 processors, first generation | 10:52 am | 8.6 s, 7.6 s, 7.0 s | 23.2 s | 11.6 s, 10.3 s, 9.0 s |
+| 4 processors, first generation | 11:00 am | 7.0 s, 9.7 s, 7.2 s | 23.9 s | 12.3 s, 16.8 s, 11.9 s |
+| 4 processors, second generation | 11:06 am | 8.4 s, 7.2 s, 5.5 s | 21.1 s | 6.2 s, 5.9 s, 5.2 s |
+
+- One run each. The same field varies by a second or so from run to run, so the totals and the processor time tell the setups apart, not any single load.
+- The first generation runs the server in a sandbox that handles its network calls, and that costs processor time. More processors did not make it faster.
+- Not measured: 2 processors on the second generation. One load uses about one processor there, so it may be as fast for a single visitor, at a little over half the cost per busy second.
+- The price of the second generation is a slower start. Google documents the first generation as the quicker of the two to start a new instance (https://docs.cloud.google.com/run/docs/about-execution-environments). On the second, a request that found no instance running waited 6.1 s on Nov 15. That was before the server's own start was trimmed the same day, so it may be a little less now. Measuring it again needs 15 minutes with no visitor at all, then one run of `curl -s -o /dev/null -w '%{time_total}\n' https://spherexplorer.earth/api/health`.
+- `--min-instances 1` removes that wait. See "Cost".
+
+History: 2 processors, 2 GB, and 4 instances until Nov 14. Then 4 processors, 4 GB, 2 instances, and the second generation. For an hour on Nov 15 the first generation ran, with 2 and then 4 processors, for the comparison above.
 
 Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on is a decision for Matt and Austin.
 
@@ -242,11 +255,11 @@ For Matt or Austin to switch on, since they are account settings.
 
 These are rough figures from Google's list prices. Check https://cloud.google.com/run/pricing before relying on them.
 
-- An instance is billed per second that it is handling a request, for its 2 processors and 4 GB. Idle time costs nothing.
-- The free tier covers about 25 busy hours a month of one instance.
-- Past that, each busy instance costs about $0.21 an hour. A 30 arcminute first load, about 21 seconds, costs about a tenth of a cent.
-- All three instances busy around the clock would cost about $15 a day. The budget alert is there for that case.
-- `--min-instances 1` removes the cold start for judges. One instance is then billed around the clock at the idle rate, about $1.30 a day.
+- An instance is billed per second that it is handling a request, for its 4 processors and 4 GB. Idle time costs nothing.
+- The free tier covers about 12 busy hours a month of one instance.
+- Past that, each busy instance costs about $0.38 an hour. A 30 arcminute first load, about 21 seconds, costs about a fifth of a cent.
+- Both instances busy around the clock would cost about $18 a day. The budget alert is there for that case.
+- `--min-instances 1` removes the cold start for judges. One instance is then billed around the clock at the idle rate, about $1.70 a day.
 - Data sent to visitors is billed apart, at about $0.12 per GB after the first GB each month.
 - The trial credit pays for all of it. If the credit ran out, Google would stop the site, not charge the card.
 

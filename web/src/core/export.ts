@@ -1,21 +1,29 @@
 // Saving results: the picture on screen, the whole sequence as an animation, and the spectrum as a table.
 // Everything is built in the browser. Nothing is uploaded.
 // Written with Claude Code (Anthropic) assistance.
-import { GIFEncoder, applyPalette, quantize } from "gifenc";
+import { GIFEncoder } from "gifenc";
 import { fitsArchive, fitsUrl, type CutoutRequest } from "./api";
 import { formatDec, formatRa, mjdToDate } from "./astro";
 import { captureStep } from "./capture";
 import { describeChange } from "./changes";
 import { writeFits, type FitsCard } from "./fitsfile";
+import { indexFrame } from "./gifcolor";
 import { plainSum } from "./layers";
 import { lightCurve } from "./lightcurve";
 import { currentSpectrum } from "./measure";
 import { DEFAULT_APERTURE } from "./spectrum";
 import type { AppState } from "./store";
 
-/** Longest side of an exported animation in pixels, and the most steps it may hold. */
-const GIF_SIZE = 560;
+/** The size of a saved picture: its side in pixels when it is square (see renderStep in FrameView.tsx). */
+const PICTURE_SIDE = 1600;
+/** The most steps a saved animation may hold. A longer sequence is thinned evenly. */
 const GIF_STEPS = 240;
+/** The size of the picture in a saved animation, in the same terms, when the file allows it. */
+const GIF_SIDE = 1080;
+/** A saved animation should stay under this many bytes. A film that would pass it is made smaller. */
+const GIF_BYTES = 48e6;
+/** But its picture is never made smaller than this. */
+const GIF_LEAST = 360;
 
 export const DATA_CREDIT = "Data: NASA SPHEREx (JPL, Caltech), from NASA/IPAC IRSA";
 
@@ -39,7 +47,7 @@ export function download(blob: Blob, name: string): void {
 
 /** The picture on screen as a PNG file. */
 export async function exportImage(state: AppState): Promise<boolean> {
-  const canvas = captureStep(state.player.index);
+  const canvas = captureStep(state.player.index, PICTURE_SIDE);
   if (!canvas) return false;
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
   if (!blob) return false;
@@ -47,33 +55,54 @@ export async function exportImage(state: AppState): Promise<boolean> {
   return true;
 }
 
-/** Every step of the sequence as an animated GIF. onProgress receives a number from 0 to 1. */
+/** A moment for the page to stay responsive during a long job. */
+const pause = () => new Promise((resolve) => setTimeout(resolve));
+
+/**
+ * Every step of the sequence as an animated GIF. onProgress receives a number from 0 to 1.
+ * Each frame is drawn at the size it is saved at, so nothing is blurred by shrinking, and
+ * its colors are chosen for that frame (see gifcolor.ts).
+ */
 export async function exportAnimation(state: AppState, onProgress: (done: number) => void): Promise<boolean> {
   const total = state.sequence.length;
   if (!total) return false;
   // Long sequences are thinned evenly so the file stays a sensible size.
   const stride = Math.ceil(total / GIF_STEPS);
   const steps = Array.from({ length: Math.ceil(total / stride) }, (_, i) => i * stride);
-  const encoder = GIFEncoder();
-  const scratch = document.createElement("canvas");
-  const pen = scratch.getContext("2d", { willReadFrequently: true })!;
   const delay = Math.round(1000 / state.player.fps);
 
-  for (let i = 0; i < steps.length; i++) {
-    const frame = captureStep(steps[i]);
-    if (!frame) return false;
-    if (i === 0) {
-      const shrink = Math.min(1, GIF_SIZE / Math.max(frame.width, frame.height));
-      scratch.width = Math.round(frame.width * shrink);
-      scratch.height = Math.round(frame.height * shrink);
+  /** One step as the GIF encoder wants it, with its picture at the size that `side` sets. */
+  const frameOf = (step: number, side: number) => {
+    const canvas = captureStep(step, side);
+    if (!canvas) return null;
+    const { width, height } = canvas;
+    return { width, height, ...indexFrame(canvas.getContext("2d")!.getImageData(0, 0, width, height).data, width) };
+  };
+
+  let side = GIF_SIDE;
+  // A long film at full size can be a very large file. When it could pass the limit, two
+  // frames are encoded to see what one costs, and the film is made smaller to fit.
+  if (steps.length * side * side * 1.5 > GIF_BYTES) {
+    let bytes = 0;
+    for (const step of [steps[0], steps[steps.length >> 1]]) {
+      const frame = frameOf(step, side);
+      if (!frame) return false;
+      const one = GIFEncoder();
+      one.writeFrame(frame.index, frame.width, frame.height, { palette: frame.palette, delay });
+      bytes = Math.max(bytes, one.bytesView().length);
+      await pause();
     }
-    pen.drawImage(frame, 0, 0, scratch.width, scratch.height);
-    const pixels = pen.getImageData(0, 0, scratch.width, scratch.height).data;
-    const palette = quantize(pixels, 256);
-    encoder.writeFrame(applyPalette(pixels, palette), scratch.width, scratch.height, { palette, delay, repeat: 0 });
+    const expected = bytes * steps.length;
+    if (expected > GIF_BYTES) side = Math.max(GIF_LEAST, Math.floor(side * Math.sqrt(GIF_BYTES / expected)));
+  }
+
+  const encoder = GIFEncoder();
+  for (let i = 0; i < steps.length; i++) {
+    const frame = frameOf(steps[i], side);
+    if (!frame) return false;
+    encoder.writeFrame(frame.index, frame.width, frame.height, { palette: frame.palette, delay, repeat: 0 });
     onProgress((i + 1) / steps.length);
-    // Give the page a moment to stay responsive.
-    await new Promise((resolve) => setTimeout(resolve));
+    await pause();
   }
   encoder.finish();
   download(new Blob([encoder.bytes() as BlobPart], { type: "image/gif" }), fileName(state, state.mode, "gif"));

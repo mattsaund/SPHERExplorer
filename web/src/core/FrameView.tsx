@@ -74,6 +74,9 @@ export function FrameView({ className }: { className?: string }) {
     let session = -1;
     // Screen positions of the object labels drawn last, for clicks.
     let labels: { x: number; y: number; object: SkyObject }[] = [];
+    // The surface being drawn on when it is not the viewer itself: a saved picture. Its width
+    // and height in CSS pixels, canvas pixels per CSS pixel, and the sky offset at its center.
+    let stage: { w: number; h: number; ratio: number; east: number; north: number } | null = null;
     const schedule = () => {
       raf ||= requestAnimationFrame(draw);
     };
@@ -107,8 +110,9 @@ export function FrameView({ className }: { className?: string }) {
       const flag = cssColor(wrap, "--frame-flag", "#e5484d");
       const empty = cssColor(wrap, "--frame-empty", "#5b2a86");
       renderer.draw(scene?.layer ?? null, {
-        center: [state.view.east, state.view.north],
+        center: stage ? [stage.east, stage.north] : [state.view.east, state.view.north],
         scale,
+        ratio: stage?.ratio,
         stretch: state.display.stretch,
         lo: state.display.lo,
         hi: state.display.hi,
@@ -124,47 +128,110 @@ export function FrameView({ className }: { className?: string }) {
       drawOverlay(state, scale, item);
     }
 
-    /** A copy of one step for saving: image, overlay, and a caption strip underneath. */
-    function renderStep(index: number): HTMLCanvasElement | null {
+    /**
+     * A copy of one step for saving: image, overlay, and a caption strip underneath.
+     * The saved picture is the part of the view that the field covers, without the empty
+     * margins beside it. It is drawn again at its own size, so it is as sharp from a small
+     * window as from a large one. `side` sets that size: a square picture is `side` pixels
+     * on a side, and one of another shape has about as many pixels in all.
+     */
+    function renderStep(index: number, side: number): HTMLCanvasElement | null {
       const state = useStore.getState();
       const item = state.sequence[index];
       if (!item) return null;
-      paint(index, true);
-      const strip = 30;
-      const ratio = canvas.width / (wrap.clientWidth || 1);
+      const scale = scaleOf(state);
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      // A viewer that is not on screen has no size, and so no picture to save.
+      if (w < 2 || h < 2) return null;
+      // Where the field is in the viewer, in CSS pixels. North is up and east is left.
+      const half = state.fieldSize / 2 / scale;
+      const middleX = w / 2 + state.view.east / scale;
+      const middleY = h / 2 + state.view.north / scale;
+      let left = Math.max(0, middleX - half);
+      let right = Math.min(w, middleX + half);
+      let top = Math.max(0, middleY - half);
+      let bottom = Math.min(h, middleY + half);
+      if (right - left < 40 || bottom - top < 40) {
+        // The field is off the screen, or nearly. Save the view as it is.
+        left = 0;
+        right = w;
+        top = 0;
+        bottom = h;
+      }
+      const boxW = right - left;
+      const boxH = bottom - top;
+      // Canvas pixels per CSS pixel. A very long, thin picture is held to twice `side` in length.
+      const ratio = Math.min(side / Math.sqrt(boxW * boxH), (2 * side) / Math.max(boxW, boxH));
+      const width = Math.max(1, Math.round(boxW * ratio));
+      const height = Math.max(1, Math.round(boxH * ratio));
+
+      // Draw on canvases of the saved size, then give the viewer its own size back.
+      const kept = [canvas.width, canvas.height];
+      for (const target of [canvas, overlay]) {
+        target.width = width;
+        target.height = height;
+      }
+      stage = {
+        w: boxW,
+        h: boxH,
+        ratio,
+        east: state.view.east - ((left + right) / 2 - w / 2) * scale,
+        north: state.view.north - ((top + bottom) / 2 - h / 2) * scale,
+      };
       const out = document.createElement("canvas");
-      out.width = canvas.width;
-      out.height = canvas.height + Math.round(strip * ratio);
-      const pen = out.getContext("2d")!;
-      pen.fillStyle = "#000000";
-      pen.fillRect(0, 0, out.width, out.height);
-      // The WebGL canvas must be copied in the same task it was drawn in.
-      pen.drawImage(canvas, 0, 0);
-      pen.drawImage(overlay, 0, 0);
-      pen.fillStyle = "#ffffff";
-      pen.font = `${Math.round(13 * ratio)}px ${getComputedStyle(wrap).fontFamily || "sans-serif"}`;
-      pen.textBaseline = "middle";
-      const name = state.target?.name ?? "";
-      const title = `${name ? name + ". " : ""}${item.label}`;
-      pen.fillText(title, 10 * ratio, canvas.height + (strip * ratio) / 2);
-      pen.textAlign = "right";
-      // The credit says where the data comes from and what drew it. It must not read as a
-      // NASA mark on the tool itself, so the data is labeled as data. The longest form that
-      // fits beside the title is used.
-      const room = out.width - 30 * ratio - pen.measureText(title).width;
-      const credit = SAVE_CREDITS.find((text) => pen.measureText(text).width <= room) ?? SAVE_CREDITS[SAVE_CREDITS.length - 1];
-      pen.fillText(credit, out.width - 10 * ratio, canvas.height + (strip * ratio) / 2);
-      // Put the live view back on screen.
-      schedule();
+      try {
+        paint(index, true);
+        // A narrow picture has no room for the title and the credit side by side, so they get
+        // a line each. The rule looks at the width alone, so every frame of a film is one size.
+        const lines = boxW < 700 ? 2 : 1;
+        const strip = lines === 2 ? 50 : 30;
+        out.width = width;
+        out.height = height + Math.round(strip * ratio);
+        const pen = out.getContext("2d")!;
+        pen.fillStyle = "#000000";
+        pen.fillRect(0, 0, out.width, out.height);
+        // The WebGL canvas must be copied in the same task it was drawn in.
+        pen.drawImage(canvas, 0, 0);
+        pen.drawImage(overlay, 0, 0);
+        pen.fillStyle = "#ffffff";
+        pen.font = `${Math.round(13 * ratio)}px ${getComputedStyle(wrap).fontFamily || "sans-serif"}`;
+        pen.textBaseline = "middle";
+        const name = state.target?.name ?? "";
+        const title = `${name ? name + ". " : ""}${item.label}`;
+        // The credit says where the data comes from and what drew it. It must not read as a
+        // NASA mark on the tool itself, so the data is labeled as data. The longest form that
+        // fits is used: beside the title on one line, or alone on its own line.
+        const room = lines === 2 ? out.width - 20 * ratio : out.width - 30 * ratio - pen.measureText(title).width;
+        const credit = SAVE_CREDITS.find((text) => pen.measureText(text).width <= room) ?? SAVE_CREDITS[SAVE_CREDITS.length - 1];
+        if (lines === 2) {
+          pen.fillText(title, 10 * ratio, height + 15 * ratio);
+          pen.fillText(credit, 10 * ratio, height + 36 * ratio);
+        } else {
+          pen.fillText(title, 10 * ratio, height + (strip * ratio) / 2);
+          pen.textAlign = "right";
+          pen.fillText(credit, out.width - 10 * ratio, height + (strip * ratio) / 2);
+        }
+      } finally {
+        stage = null;
+        for (const target of [canvas, overlay]) {
+          target.width = kept[0];
+          target.height = kept[1];
+        }
+        // Put the live view back on screen.
+        schedule();
+      }
       return out;
     }
 
-    function drawOverlay(state: AppState, scale: number, item: SequenceItem | undefined) {
-      const ratio = overlay.width / (wrap.clientWidth || 1);
+    function drawOverlay(live: AppState, scale: number, item: SequenceItem | undefined) {
+      // A saved picture is drawn on its own surface, centered on its own part of the view.
+      const state = stage ? { ...live, view: { ...live.view, east: stage.east, north: stage.north } } : live;
+      const ratio = stage?.ratio ?? overlay.width / (wrap.clientWidth || 1);
       const ctx = overlay.getContext("2d")!;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const w = wrap.clientWidth;
-      const h = wrap.clientHeight;
+      const w = stage?.w ?? wrap.clientWidth;
+      const h = stage?.h ?? wrap.clientHeight;
       ctx.clearRect(0, 0, w, h);
       if (!scene) return;
       const ink = cssColor(wrap, "--frame-ink", "rgba(255,255,255,0.92)").css;

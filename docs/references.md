@@ -67,6 +67,7 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
 - Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
 - Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.
+- Floyd and Steinberg 1976, Proceedings of the Society for Information Display 17, 75. The error diffusion that dithers color pictures in saved animations (`web/src/core/gifcolor.ts`).
 
 ## Software and services
 

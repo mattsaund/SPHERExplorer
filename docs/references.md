@@ -78,7 +78,6 @@ Add the license and version when a library goes into the build.
 | Astropy 8 | BSD-3-Clause | Astropy Collaboration 2013, 2018, 2022 | Yes (API) |
 | NumPy 2 | BSD-3-Clause | Harris et al. 2020 | Yes (API) |
 | FastAPI, Starlette, Uvicorn | MIT, BSD-3-Clause | | Yes (API) |
-| aiohttp 3 | Apache-2.0 | aio-libs | Yes (API, reads from the SPHEREx bucket) |
 | HTTPX | BSD-3-Clause | | Yes (API) |
 | Pillow 13 | MIT-CMU | | Yes (API, color sky tiles) |
 | world-atlas 2 and topojson-client 3 | ISC | Mike Bostock. Land outlines from Natural Earth (public domain) | Yes (world map in the spacecraft view) |

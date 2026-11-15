@@ -147,7 +147,7 @@ Measured on a development machine, on a first load of 334 images that nothing ha
 | Step | Before | After | What changed |
 |---|---|---|---|
 | First call on a cold instance | 15 s | under 0.01 s | The index ships in the image instead of being downloaded |
-| Processor time for the first load | 8.1 s | 2.2 s | The bucket is read with aiohttp. httpx spent most of its time rescanning its connection pool |
+| Processor time for the first load | 8.1 s | 2.2 s | The bucket is no longer read with httpx, which spent most of its time rescanning its connection pool |
 | Wall time for the first load | 17 s | 6 to 11 s, set by the home network | 32 parallel reads instead of 128, which only competed with each other |
 | The same load again | 0.1 s | 0.1 s | Finished frames stay in memory |
 | Page download, first visit | 1.01 MB | 0.77 MB | Files are compressed once at build time with Brotli, not on every request |

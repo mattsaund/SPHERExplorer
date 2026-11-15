@@ -19,9 +19,26 @@ CORE_RADIUS = 1.5  # flags inside this radius are reported with the measurement
 UJY_PER_MJYSR_ARCSEC2 = 1e12 * (math.pi / 180.0 / 3600.0) ** 2
 
 
+def _box(shape, x: float, y: float, reach: float):
+    """The part of an image within `reach` pixels of (x, y), as slices and its pixel coordinates.
+
+    Everything measured here lies within a few pixels of the source. Working on that small box
+    costs the same for a 5 arcminute cutout and a 60 arcminute one. The coordinates count from
+    the corner of the whole image, so every number comes out exactly as it would on the whole image.
+    """
+    margin = int(math.ceil(reach)) + 1
+    y0 = max(0, int(math.floor(y)) - margin)
+    y1 = min(shape[0], int(math.floor(y)) + margin + 2)
+    x0 = max(0, int(math.floor(x)) - margin)
+    x1 = min(shape[1], int(math.floor(x)) + margin + 2)
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    return (slice(y0, y1), slice(x0, x1)), xx, yy
+
+
 def sky_level(image: np.ndarray, flags: np.ndarray, x: float, y: float):
     """Robust local background around (x, y). Returns (level, scatter, pixels used) in image units."""
-    yy, xx = np.indices(image.shape)
+    box, xx, yy = _box(image.shape, x, y, SKY_OUT)
+    image, flags = image[box], flags[box]
     radius = np.hypot(xx - x, yy - y)
     ring = (radius >= SKY_IN) & (radius <= SKY_OUT) & np.isfinite(image) & ((flags & BAD_MASK) == 0)
     # Prefer pixels outside known-source masks. Fall back when a crowded field leaves too few.
@@ -50,7 +67,8 @@ def measure(image, variance, flags, x: float, y: float, model: Epsf, stamp, omeg
     arcseconds. Returns flux and error in microjansky plus quality numbers.
     """
     sky, scatter, sky_count = sky_level(image, flags, x, y)
-    yy, xx = np.indices(image.shape)
+    box, xx, yy = _box(image.shape, x, y, FIT_RADIUS)
+    image, variance, flags = image[box], variance[box], flags[box]
     dx = xx - x
     dy = yy - y
     radius = np.hypot(dx, dy)

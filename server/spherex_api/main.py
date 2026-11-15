@@ -2,7 +2,9 @@
 # Written with Claude Code (Anthropic) assistance.
 
 import asyncio
+import os
 import re
+import time
 import zlib
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -14,7 +16,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, fitsout, instrument, missions, net, partners, resolve, sia, site, skybot, solarsystem, spacecraft, suggest
+from . import __version__, cache, catalogs, colorhips, config, coverage, cutout, exposures, fitsout, instrument, layout, missions, net, partners, resolve, sia, site, skybot, solarsystem, spacecraft, suggest
 
 SWEEP_SECONDS = 600
 
@@ -99,8 +101,27 @@ class SafeHeaders:
 app.add_middleware(SafeHeaders)
 # The data is public and the API holds no secrets, so any site may embed it.
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"], allow_headers=["*"])
+
+
+class GZipExceptFrames:
+    """
+    GZip for every answer except the stream of frames. That stream is either packed frame by
+    frame already, or compressed by its own route, so a second pass would only burn processor time.
+    """
+
+    # `inner` is the app this wraps. The other settings go to GZipMiddleware.
+    def __init__(self, inner, **settings):
+        self.inner = inner
+        self.zipped = GZipMiddleware(inner, **settings)
+
+    # Send the frame stream straight through, and everything else through GZip.
+    async def __call__(self, scope, receive, send):
+        plain = scope["type"] == "http" and scope.get("path") == "/api/cutouts"
+        await (self.inner if plain else self.zipped)(scope, receive, send)
+
+
 # Level 5 is nearly as small as the default 9 and several times cheaper. The site's own files arrive already compressed.
-app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
+app.add_middleware(GZipExceptFrames, minimum_size=1024, compresslevel=5)
 
 # Only Level 2 image files inside the SPHEREx bucket may be read.
 KEY_PATTERN = re.compile(r"^[a-z0-9_]+/level2/[A-Za-z0-9_\-./]+\.fits$")
@@ -118,12 +139,20 @@ def check_key(key: str) -> str:
 
 @app.get("/api/health")
 async def health():
-    """Liveness check with the API version and server time."""
+    """Liveness check with the API version and server time, plus counters for tuning the server.
+
+    `reads` counts reads from the bucket since the server started, `tails` how file layouts were
+    found (predicted or read), and `cpu_seconds` the processor time used so far on `cpus` processors.
+    """
     return {
         "status": "ok",
         "version": __version__,
         "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "frames": cutout.cache_stats(),
+        "reads": dict(net.read_stats),
+        "tails": dict(layout.tail_counts),
+        "cpus": os.cpu_count(),
+        "cpu_seconds": round(time.process_time(), 1),
     }
 
 
@@ -334,6 +363,9 @@ class BatchRequest(BaseModel):
     size: float = Field(300, ge=30, le=3600)
     frames: list[FrameRequest] = Field(max_length=MAX_BATCH)
     sigma: bool = False
+    # True asks for packed frames, which cost the server far less. The web app asks for them
+    # when the browser can unpack them. Without it the stream is the older gzip one.
+    pack: bool = False
     dtype: str = Field("f2", pattern="^f[24]$")
 
 
@@ -341,7 +373,9 @@ class BatchRequest(BaseModel):
 async def many_cutouts(body: BatchRequest):
     """Stream many frames. Each is sent as a uint32 length followed by the frame bytes.
 
-    Frames arrive as they finish, not in request order. The stream is gzip-compressed.
+    Frames arrive as they finish, not in request order. With `pack`, each frame is packed on
+    its own (see cutout.pack) and the stream is sent as it is. Without it, frames are plain
+    and the whole stream is gzip-compressed.
     """
     for frame in body.frames:
         check_key(frame.key)
@@ -350,19 +384,32 @@ async def many_cutouts(body: BatchRequest):
     if pixels > MAX_BATCH_PIXELS:
         raise HTTPException(413, "That is too many images for a field this wide. Ask for a smaller field or fewer images.")
     gate = asyncio.Semaphore(config.FRAME_CONCURRENCY)
+    packed = body.pack and not body.sigma and body.dtype == "f2"
 
     # Build one frame, with a limit on how many are built at once.
     async def build(frame: FrameRequest) -> bytes:
         async with gate:
             phot = (frame.pra, frame.pdec) if frame.pra is not None and frame.pdec is not None else None
             own = frame.ra is not None and frame.dec is not None
-            return await cutout.make_cutout(
-                frame.key, frame.ra if own else body.ra, frame.dec if own else body.dec, body.size,
-                phot=phot, sigma_plane=body.sigma, dtype=body.dtype, delta=frame.delta if own else None,
-            )
+            ra, dec, delta = (frame.ra, frame.dec, frame.delta) if own else (body.ra, body.dec, None)
+            if packed:
+                return await cutout.make_packed(frame.key, ra, dec, body.size, phot=phot, delta=delta)
+            return await cutout.make_cutout(frame.key, ra, dec, body.size, phot=phot, sigma_plane=body.sigma, dtype=body.dtype, delta=delta)
 
-    # Send each frame as soon as it is finished, compressed as one gzip stream.
-    async def stream():
+    # Send each packed frame as soon as it is finished. Nothing more is done to it.
+    async def stream_packed():
+        tasks = [asyncio.ensure_future(build(frame)) for frame in body.frames]
+        try:
+            for finished in asyncio.as_completed(tasks):
+                data = await finished
+                yield len(data).to_bytes(4, "little") + data
+        finally:
+            # The client went away or the stream ended. Stop any work still running.
+            for task in tasks:
+                task.cancel()
+
+    # Send each plain frame as soon as it is finished, compressed as one gzip stream.
+    async def stream_gzip():
         tasks = [asyncio.ensure_future(build(frame)) for frame in body.frames]
         packer = zlib.compressobj(5, zlib.DEFLATED, 31)  # 31 selects the gzip container
         try:
@@ -373,12 +420,13 @@ async def many_cutouts(body: BatchRequest):
                 yield chunk + packer.flush(zlib.Z_SYNC_FLUSH)
             yield packer.flush()
         finally:
-            # The client went away or the stream ended. Stop any work still running.
             for task in tasks:
                 task.cancel()
 
-    headers = {"Content-Encoding": "gzip", "Cache-Control": "no-store", "X-Accel-Buffering": "no"}
-    return StreamingResponse(stream(), media_type="application/octet-stream", headers=headers)
+    headers = {"Cache-Control": "no-store", "X-Accel-Buffering": "no"}
+    if packed:
+        return StreamingResponse(stream_packed(), media_type="application/octet-stream", headers=headers)
+    return StreamingResponse(stream_gzip(), media_type="application/octet-stream", headers={**headers, "Content-Encoding": "gzip"})
 
 
 @app.get("/api/fits")

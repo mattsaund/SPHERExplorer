@@ -21,7 +21,8 @@ The demo video and the backup slides have their own plan in `docs/submission/vid
 ### 1. Open, 0:00 to 0:30
 
 - We are Matthew Saunders and Austin Laubach, team Turing Complete.
-- Our challenge is Planet X and SPHEREx. It asks for a public tool that shows SPHEREx images of one sky position as a sequence, so anything that moves stands out.
+- We chose Planet X and SPHEREx for our challenge. The challenge was to create a public facing tool to interact with and review SPHEREx images.
+- The tool was to show SPHEREx images of one sky position as a sequence, allowing a user to map object movement.
 - SPHEREx maps the whole sky in 102 infrared bands, from 0.75 to 5 µm, and it returns to each position many times.
 - The hard part is that every exposure is a separate 65 MB file, and each one lands at a different wavelength.
 - Why we chose this challenge. One sentence, in your own words.

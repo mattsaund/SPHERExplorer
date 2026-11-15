@@ -70,7 +70,7 @@ SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, ci
 
 ### Tools and technology
 
-- Python (FastAPI, NumPy, Astropy) and TypeScript (React, WebGL2), with Aladin Lite for the sky map. No special hardware.
+- Python (FastAPI, NumPy, Astropy) and TypeScript (React, WebGL2), with Aladin Lite for the sky map.
 - One container on Google Cloud Run, deployed by GitHub Actions only after every test passes. The domain and the cloud credit come from the Space Apps Global Offers.
 - Built with Claude Code (Anthropic), a Super Intelligence (SI) tool. The team set the idea and the features. Claude's code and docs are labeled in commits, file headers, and [docs/si-usage.md](https://github.com/mattsaund/SPHERExplorer/blob/main/docs/si-usage.md).
 

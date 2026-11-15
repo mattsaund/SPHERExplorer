@@ -1,11 +1,10 @@
 // The walkthrough: a short tour that points at each part of the page in turn, with a real
 // example loaded so that every step has something to show. It opens by itself on a first
-// visit, and from the Help button after that. Its first card offers all five of NASA's test
-// targets, so any of them is one click from the landing page (Matt's decision).
+// visit, and from the Help button after that.
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { TEST_TARGETS, actions, useStore, type SequenceMode, type Target } from "../core";
+import { TEST_TARGETS, actions, useStore } from "../core";
 import "./styles/tour.css";
 
 /** Which of the two screens a step is about, for pages too narrow to show both. */
@@ -21,49 +20,23 @@ interface Step {
   screen?: TourScreen;
   /** True for steps that need a target loaded. The tour loads its example if there is none. */
   example?: boolean;
-  /** True for the card that offers NASA's test targets to start the tour on. */
-  chooser?: boolean;
-  /** True for the card that names the tour's target. It also says what view the tour set for it. */
-  namesTarget?: boolean;
 }
 
-/** One of NASA's test targets as the tour opens it: the target, and the view that shows it best. */
-interface Example {
-  target: Target;
-  /** What to play. Left out, every image plays in time order. */
-  mode?: SequenceMode;
-  /** Detectors switched on, 1 to 6. Left out, all six are on. */
-  detectors?: number[];
-  /** Said on the card that names the target, so the reader knows what was set and why. */
-  note?: string;
-}
-
-/** The view that suits each target. A target not listed here opens with every image and all detectors. */
-const VIEWS: Record<string, Omit<Example, "target">> = {
-  "Barnard's Star": { mode: "visits", note: "Its images are summed by visit, which shows its motion of 10 arcseconds per year." },
-  "WISE 0855-0714": { mode: "visits", detectors: [5, 6], note: "It is detected only beyond 3.9 µm, so detectors 5 and 6 are shown, summed by visit." },
-};
-
-/** All five of NASA's test targets, each with its view. */
-const EXAMPLES: Example[] = TEST_TARGETS.map((target) => ({ target, ...VIEWS[target.name ?? ""] }));
-
-/** The target the tour loads when nothing is open: one of NASA's five, quick to load and with plenty to see. */
-const EXAMPLE = TEST_TARGETS.find((target) => target.name === "Epsilon Indi B") ?? TEST_TARGETS[0];
+/** The target the tour loads when nothing is open: Barnard's Star, the first of NASA's five test targets (Matt's choice). */
+const EXAMPLE = TEST_TARGETS.find((target) => target.name === "Barnard's Star") ?? TEST_TARGETS[0];
 
 const STEPS: Step[] = [
   {
     title: "Welcome to SPHERExplorer",
-    chooser: true,
     text: () =>
       "SPHEREx is a NASA space telescope that surveys the entire sky in 102 infrared bands. SPHERExplorer plays every public SPHEREx image of a sky position in time order, which makes motion and changes in brightness visible. This tour takes about one minute.",
   },
   {
     title: "Search",
     anchor: ".search",
-    namesTarget: true,
     text: (loaded) =>
       `The search box accepts an object name, such as Vega or Jupiter, or coordinates (RA and Dec). The list below it includes NASA's five test targets. ${
-        loaded ? `This tour uses ${loaded}, which is already open.` : `This tour uses ${EXAMPLE.name}, a binary brown dwarf 12 light-years away.`
+        loaded ? `This tour uses ${loaded}, which is already open.` : `This tour uses ${EXAMPLE.name}, a red dwarf 6 light-years away.`
       }`,
   },
   {
@@ -192,10 +165,8 @@ export function Tour({ onScreen, onClose }: { onScreen: (screen: TourScreen) => 
   const [box, setBox] = useState<Box | null>(null);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const card = useRef<HTMLDivElement>(null);
-  // The target that is open, so the words can say what the tour uses.
-  const loaded = useStore((s) => s.target?.name ?? null);
-  // The test target chosen on the first card, if any. Its note is shown while it is the one open.
-  const [chosen, setChosen] = useState<Example | null>(null);
+  // The target that was open when the tour began, so the words can say what it will use.
+  const [loaded] = useState(() => useStore.getState().target?.name ?? null);
   const step = STEPS[index];
   const last = index === STEPS.length - 1;
 
@@ -203,17 +174,6 @@ export function Tour({ onScreen, onClose }: { onScreen: (screen: TourScreen) => 
     markSeen();
     onClose();
   }, [onClose]);
-
-  // Start the tour on one of NASA's test targets: set the view that shows it best, load it,
-  // and move on. A part of the view that the target does not set goes back to its default.
-  const choose = (example: Example) => {
-    actions.setMode(example.mode ?? "exposures");
-    actions.setFilters({ detectors: [1, 2, 3, 4, 5, 6].map((detector) => !example.detectors || example.detectors.includes(detector)) });
-    actions.goTo(example.target);
-    setChosen(example);
-    setIndex(1);
-  };
-  const note = step.namesTarget && chosen && chosen.target.name === loaded ? chosen.note : undefined;
 
   // Entering a step: load the example if the step needs a target, and show the right screen.
   useEffect(() => {
@@ -276,22 +236,7 @@ export function Tour({ onScreen, onClose }: { onScreen: (screen: TourScreen) => 
       >
         <p className="tour-count">Step {index + 1} of {STEPS.length}</p>
         <h2 id="tour-title">{step.title}</h2>
-        <p>{step.text(loaded)}{note ? ` ${note}` : ""}</p>
-        {step.chooser && (
-          <div className="tour-targets" role="group" aria-labelledby="tour-targets-title">
-            <p id="tour-targets-title" className="tour-targets-title">NASA's five test targets. Selecting one starts the tour on it.</p>
-            <ul>
-              {EXAMPLES.map((example) => (
-                <li key={example.target.name}>
-                  <button onClick={() => choose(example)}>
-                    <strong>{example.target.name}</strong>
-                    <span>{example.target.kind}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <p>{step.text(loaded)}</p>
         <div className="tour-buttons">
           <button className="tour-skip" onClick={close}>{last ? "Close" : "Skip the tour"}</button>
           {index > 0 && <button onClick={() => setIndex(index - 1)}>Back</button>}

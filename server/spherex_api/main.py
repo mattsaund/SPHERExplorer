@@ -214,6 +214,7 @@ async def known_bodies(
 
 @app.get("/api/objects")
 async def objects(
+    response: Response,
     ra: float = Query(ge=0, lt=360),
     dec: float = Query(ge=-90, le=90),
     radius: float = Query(gt=0, le=180, description="Degrees. 90 or more means the whole sky"),
@@ -224,6 +225,9 @@ async def objects(
         found = await catalogs.simbad_cone(ra, dec, radius, limit)
     except net.UpstreamError as error:
         raise HTTPException(502, str(error)) from error
+    # The best-known objects of a patch of sky change slowly, so a browser may keep the answer
+    # for an hour. A return visit to the same view then costs nothing.
+    response.headers["Cache-Control"] = "public, max-age=3600"
     return {"source": "SIMBAD", "count": len(found), "objects": found}
 
 

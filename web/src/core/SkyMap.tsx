@@ -79,6 +79,8 @@ export function SkyMap({ className }: { className?: string }) {
     let generation = 0;
     let settle: ReturnType<typeof setTimeout> | null = null;
     let request: AbortController | null = null;
+    // The view (center and radius) whose objects were last asked for.
+    let objectsView = "";
     let lastObjectClick = 0;
     // The width of view last asked for, in degrees. Used once, to settle the map after it starts.
     let wantedFov = 0;
@@ -86,6 +88,13 @@ export function SkyMap({ className }: { className?: string }) {
     // The studied target's name, written beside its square.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let caption: any = null;
+    // Colors and the font for what is drawn on every frame of the map, read from the page once.
+    const ink = {
+      font: getComputedStyle(host).fontFamily || "sans-serif",
+      field: cssVariable(host, "--map-field", "#ffd24a"),
+      sun: cssVariable(host, "--map-sun", "#ffd76a"),
+      moon: cssVariable(host, "--map-moon", "#d9dde3"),
+    };
     // The solar system's marks, and the bodies they stand for, as they were last placed.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let planets: any = null;
@@ -146,6 +155,11 @@ export function SkyMap({ className }: { className?: string }) {
       const [fovX, fovY] = aladin.getFov();
       // Radius that covers the view. 90 degrees or more asks for the whole sky.
       const radius = Math.min(180, (Math.max(fovX, fovY || fovX) / 2) * 1.15);
+      // The same view never asks twice. At start two things call this within half a second,
+      // and a resize or a redraw can report a move that changed nothing.
+      const view = `${ra.toFixed(4)} ${dec.toFixed(4)} ${radius.toFixed(4)}`;
+      if (view === objectsView) return;
+      objectsView = view;
       request?.abort();
       request = new AbortController();
       actions.mapReport({ objectsState: "loading" });
@@ -156,6 +170,8 @@ export function SkyMap({ className }: { className?: string }) {
           drawObjects(objects);
         },
         (error) => {
+          // A request that did not finish may be asked again for the same view.
+          if (objectsView === view) objectsView = "";
           if ((error as Error).name !== "AbortError") actions.mapReport({ objectsState: "failed" });
         },
       );
@@ -208,11 +224,11 @@ export function SkyMap({ className }: { className?: string }) {
       const radius = onScreen(solar.disc);
       if (radius < MIN_DISC) return;
       const moon = solar.lit !== undefined && solar.sunward !== undefined;
-      const ink = moon ? cssVariable(host, "--map-moon", "#d9dde3") : cssVariable(host, "--map-sun", "#ffd76a");
+      const color = moon ? ink.moon : ink.sun;
       ctx.save();
       ctx.translate(source.x, source.y);
-      ctx.fillStyle = ink;
-      ctx.strokeStyle = ink;
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, 2 * Math.PI);
@@ -327,8 +343,8 @@ export function SkyMap({ className }: { className?: string }) {
       const pixel = fovX / Math.max(host.clientWidth, 1); // degrees per screen pixel
       const half = useStore.getState().fieldSize / 3600 / 2 / pixel; // half the square's width on screen
       ctx.save();
-      ctx.font = `600 13px ${getComputedStyle(host).fontFamily || "sans-serif"}`;
-      ctx.fillStyle = cssVariable(host, "--map-field", "#ffd24a");
+      ctx.font = `600 13px ${ink.font}`;
+      ctx.fillStyle = ink.field;
       ctx.textBaseline = "alphabetic";
       // A thin dark edge keeps the name readable over bright sky and over other labels.
       ctx.lineWidth = 3;

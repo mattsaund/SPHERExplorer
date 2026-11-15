@@ -130,17 +130,21 @@ describe("streamCutouts", () => {
   it("asks for packed frames and puts them together however the bytes are cut", async () => {
     const made = [3, 700, 4761, 50_000, 1, 9000].map((count, index) => ({ key: `k${index}`, ...pixels(count, index + 1) }));
     const records = made.map((frame) => packedFrame(plainFrame(frame.key, frame.image, frame.flags), frame.image.length));
-    for (const cuts of [[2, 1, 3], [1000, 1, 7], [4096], [65_536], [10_000_000]]) {
+    // Pieces of one or two bytes are tried on the two small frames only. On the large ones they
+    // would make hundreds of thousands of chunks, which no network does and no test should wait for.
+    const cases: [number, number[]][] = [[2, [1]], [2, [2, 1, 3]], [6, [1000, 1, 7]], [6, [4096]], [6, [65_536]], [6, [10_000_000]]];
+    for (const [howMany, cuts] of cases) {
+      const part = made.slice(0, howMany);
       let sent: unknown = null;
       vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
         sent = JSON.parse(init.body as string);
-        return respond(records, cuts);
+        return respond(records.slice(0, howMany), cuts);
       });
       const got: WireFrame[] = [];
-      await streamCutouts({ ra: 1, dec: 2, size: 300, frames: made.map((frame) => ({ key: frame.key })) }, (frame) => got.push(frame));
+      await streamCutouts({ ra: 1, dec: 2, size: 300, frames: part.map((frame) => ({ key: frame.key })) }, (frame) => got.push(frame));
       expect((sent as { pack?: boolean }).pack).toBe(true);
-      expect(got.length).toBe(made.length);
-      for (const frame of made) {
+      expect(got.length).toBe(part.length);
+      for (const frame of part) {
         const match = got.find((candidate) => candidate.header.key === frame.key)!;
         expect(match.image).toEqual(frame.image);
         expect(match.flags).toEqual(frame.flags);

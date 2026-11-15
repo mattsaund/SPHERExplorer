@@ -1,5 +1,7 @@
 # SPHERExplorer
 
+This file instructs the Claude Code agents that work in this repository. People new to the project should start with `README.md`.
+
 Team repo for the NASA Space Apps Challenge 2026, challenge "Planet X and SPHEREx".
 Team: Turing Complete (Matt and Austin). Two Claude Code accounts work in this repo at the same time.
 

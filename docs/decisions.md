@@ -1,6 +1,42 @@
 # Decision log
 
-Matt and Austin record project decisions here, newest first. The log shows which choices came from the team. That supports the "originality, intent" part of judging.
+Matt and Austin record project decisions here. The log shows which choices came from the team, which supports the "originality, intent" part of judging.
+
+## Major decisions
+
+The choices that shaped the project, summarized from the full log below. Each names who made it.
+
+### The project
+
+- Matt and Austin set the concept and the feature list at kickoff on Nov 14. It is recorded word for word in `docs/concept.md`.
+- Matt named the project SPHERExplorer, and Matt and Austin chose the team name, Turing Complete.
+- Matt asked for a public repository. It uses Apache-2.0, the Space Apps default license.
+- Matt set the rule that every SI use is labeled and every source is referenced.
+
+### What the tool does
+
+- The interface is one full screen between a top bar and a bottom bar, and no redesign may drop a tool (Matt). Austin's full-page layout became that interface.
+- Search takes object names and J2000 coordinates in any common written form, with a dropdown of suggestions (Matt).
+- Images can be shown in full color, from three wavelength ranges, and the sky map has a color SPHEREx layer (Matt).
+- The Studies tab holds the two change tools, Measure Changes and Measure Movement, and Blink compares an image with an older survey of the same sky (Matt).
+- The sky map carries the overlays of the IRSA site and the whole solar system: planets, dwarf planets, asteroids, comets, and interstellar objects at their current positions (Matt).
+- Every view has a link that reopens it, and the viewer can be embedded in other sites, which covers NASA's embedding consideration (Matt).
+- Pictures, animations, and data can be saved, at full quality (Matt).
+- The study area is capped at 50 arcminutes (Matt, Nov 15).
+- The app's wording is technical and plain, without sales language (Austin). The rules are in `docs/language-refining.md`.
+- Speed comes first, with no compromise on what the tool does (Matt).
+
+### Hosting and delivery
+
+- Google Cloud hosts the site and the free domain gives it an address, both from the Space Apps Global Offers (Austin).
+- The site runs as one container on Cloud Run in `us-east4`, at https://spherexplorer.earth (Austin).
+- The server uses the second generation runtime with 4 processors, 4 GB, and at most 2 instances, the fastest size measured (Matt).
+- A push to `main` deploys only after CI passes on that commit (Austin). Deploys freeze at 11:00 pm Eastern on Nov 15, so the judged site stays as submitted (Austin).
+- Work lands on a separate branch before it reaches `main` (Matt).
+
+## Full log
+
+Newest first.
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|

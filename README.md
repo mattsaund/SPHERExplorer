@@ -6,7 +6,7 @@ Built by team Turing Complete (Matt and Austin) for the [NASA Space Apps Challen
 
 **Live site.** https://spherexplorer.earth
 
-**Status.** In development during the hackathon (Nov 14 to 15, 2026).
+**Status.** Built during the NASA Space Apps Challenge, Nov 14 to 15, 2026. The live site stays up through judging, which ends Jan 26, 2027.
 
 ## What it does
 
@@ -26,14 +26,16 @@ SPHERExplorer finds every public SPHEREx image of a sky position, from an object
 
 ## Try these
 
-| Link | What it shows |
+Each link opens the live site on that view.
+
+| Example | What it shows |
 |---|---|
-| `?target=WISE 0855-0714&mode=visits&det=56` | The coldest known brown dwarf, visible only past 3.9 microns, stepping west between visits |
-| `?target=Barnard's Star&mode=visits` | The star with the largest proper motion, moving north |
-| `?target=Epsilon Indi B` | A binary brown dwarf. Its spectrum shows water and methane absorption |
-| `?target=3I/ATLAS&mode=visits` | An interstellar comet. Its spectrum shows carbon dioxide emission |
-| `?target=M 42&fov=1200&mode=deep&color=wide` | The Orion Nebula as a color image from three wavelength ranges |
-| `?ra=08h55m10.831s&dec=-7d14m42.53s&mode=visits&det=56&play=1&embed=1` | NASA's WISE 0855 coordinates, as a compact viewer for another page |
+| [WISE 0855-0714, by visit](https://spherexplorer.earth/?target=WISE%200855-0714&mode=visits&det=56) | The coldest known brown dwarf, visible only past 3.9 microns, stepping west between visits |
+| [Barnard's Star, by visit](https://spherexplorer.earth/?target=Barnard%27s%20Star&mode=visits) | The star with the largest proper motion, moving north |
+| [Epsilon Indi B](https://spherexplorer.earth/?target=Epsilon%20Indi%20B) | A binary brown dwarf. Its spectrum shows water and methane absorption |
+| [3I/ATLAS, by visit](https://spherexplorer.earth/?target=3I/ATLAS&mode=visits) | An interstellar comet. Its spectrum shows carbon dioxide emission |
+| [The Orion Nebula in color](https://spherexplorer.earth/?target=M%2042&fov=1200&mode=deep&color=wide) | The Orion Nebula as a color image from three wavelength ranges |
+| [WISE 0855, embedded](https://spherexplorer.earth/?ra=08h55m10.831s&dec=-7d14m42.53s&mode=visits&det=56&play=1&embed=1) | NASA's WISE 0855 coordinates, as the compact viewer another page would show |
 
 ## How it works
 
@@ -43,14 +45,27 @@ SPHERExplorer finds every public SPHEREx image of a sky position, from an object
 
 More in [docs/architecture.md](docs/architecture.md) and [docs/methods.md](docs/methods.md).
 
-## Run it
+## Run it locally
+
+You need Python 3.12 or newer with [uv](https://docs.astral.sh/uv/), and Node.js 22 with npm. uv can install the right Python for you.
+
+Start the API and the web app in two terminals, each from the repository root.
 
 ```sh
-cd server && uv sync && uv run uvicorn spherex_api.main:app --port 8000
-cd web && npm install && npm run dev
+# Terminal 1: the API on port 8000. The first start downloads the exposure index (12 MB).
+cd server
+uv sync
+uv run uvicorn spherex_api.main:app --reload --port 8000
 ```
 
-Then open http://localhost:5173. Deployment is in [docs/deploy.md](docs/deploy.md).
+```sh
+# Terminal 2: the web app on port 5173. It forwards /api requests to port 8000.
+cd web
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173. `scripts/check_all.sh` runs the same checks as CI. Deployment is covered in [docs/deploy.md](docs/deploy.md).
 
 ## Use of Super Intelligence (SI)
 
@@ -74,6 +89,10 @@ Other data: Gaia DR3 (ESA, through MAST), 2MASS and AllWISE (through VizieR), SI
 SPHEREx DOIs: DR1 Spectral Images [10.26131/IRSA678](https://doi.org/10.26131/IRSA678), Spectral All-Sky Cube [10.26131/IRSA679](https://doi.org/10.26131/IRSA679), QR3 Spectral Images [10.26131/IRSA662](https://doi.org/10.26131/IRSA662).
 
 Every other source, library, and license is listed in [docs/references.md](docs/references.md).
+
+## Disclaimer
+
+SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
 ## License
 

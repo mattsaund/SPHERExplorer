@@ -101,28 +101,43 @@ Source code, methods, and every reference: [https://github.com/mattsaund/SPHEREx
 
 ## NASA data and resources
 
-Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`.
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`. The form takes each entry as a Link Text and a Link Url. Click Add New Link once per row, and paste the first two columns. Every link opened in a browser on Nov 15.
 
-- SPHEREx Spectral Images, Data Release 1 and Quick Release 3 (Level 2). NASA SPHEREx, through the NASA/IPAC Infrared Science Archive (IRSA). DOI [10.26131/IRSA678](https://doi.org/10.26131/IRSA678) and [10.26131/IRSA662](https://doi.org/10.26131/IRSA662). Every SPHEREx image in the film is read from these files, in IRSA's public bucket on AWS.
-- SPHEREx Spectral All-Sky Cube, Data Release 1. DOI [10.26131/IRSA679](https://doi.org/10.26131/IRSA679). The base layer of the sky map, channel by channel and in color.
-- IRSA services. Image search as a fallback, the SPHEREx coverage maps, and the sky survey tiles from 2MASS, WISE, Spitzer, and other missions that the map layers and Blink use.
-- The SPHEREx Explanatory Supplement and the SPHEREx Archive User Guide. The file layout, the flags, and the calibration that the tool relies on.
-- JPL Horizons and the JPL Small-Body Database. The paths of planets, asteroids, and comets through the SPHEREx images, and the orbits behind the solar system markers on the sky map.
-- The 2MASS and AllWISE source catalogs, from two NASA-funded surveys. The brightness of the same sources, for comparison with SPHEREx.
-- The MAST catalog service at STScI. It serves the Gaia DR3 catalog that the tool uses for star positions and motions.
+| Link Text | Link Url | Used for |
+|---|---|---|
+| SPHEREx Spectral Images, Data Release 1 (NASA/IPAC IRSA) | https://doi.org/10.26131/IRSA678 | Every SPHEREx image in the film |
+| SPHEREx Spectral Images, Quick Release 3 (NASA/IPAC IRSA) | https://doi.org/10.26131/IRSA662 | The newest SPHEREx images |
+| SPHEREx Spectral All-Sky Cube, Data Release 1 (NASA/IPAC IRSA) | https://doi.org/10.26131/IRSA679 | The base layer of the sky map, by channel and in color |
+| SPHEREx images in IRSA's public AWS bucket | https://irsa.ipac.caltech.edu/cloud_access/ | Where the server reads the image files |
+| NASA/IPAC Infrared Science Archive (IRSA) | https://irsa.ipac.caltech.edu/ | Image search as a fallback, and the SPHEREx coverage maps |
+| SPHEREx Explanatory Supplement | https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp.pdf | The file layout, the flags, and the calibration |
+| SPHEREx archive documentation (IRSA) | https://caltech-ipac.github.io/spherex-archive-documentation/ | How the archive and its files are organized |
+| IRSA SPHEREx Data Explorer | https://irsa.ipac.caltech.edu/applications/spherex/ | Studied for the design, as the challenge suggests |
+| IRSA sky survey tiles (HiPS) | https://irsa.ipac.caltech.edu/data/hips/list | Map layers from 2MASS, WISE, Spitzer, and other missions, and Blink |
+| JPL Horizons | https://ssd.jpl.nasa.gov/horizons/ | Paths of planets, asteroids, and comets through the images |
+| JPL Small-Body Database | https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html | Names and orbits of asteroids and comets |
+| 2MASS Point Source Catalog (IRSA) | https://irsa.ipac.caltech.edu/Missions/2mass.html | Brightness of the same stars, for comparison |
+| AllWISE Source Catalog (IRSA) | https://irsa.ipac.caltech.edu/data/WISE/docs/release/AllWISE/ | Brightness of the same stars, for comparison |
+| Gaia DR3 catalog at MAST, STScI | https://archive.stsci.edu/missions-and-data/gaia | The service that delivers Gaia star positions and motions |
 
 ## Space Agency Partner and other data
 
-Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`.
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`. The form takes each entry as a Link Text and a Link Url. Click Add New Link once per row, and paste the first two columns. Every link opened in a browser on Nov 15.
 
-- Canadian Space Agency (CSA). NEOSSat astronomy images, through the Canadian Astronomy Data Centre. Visible-light images of the same field, shown with the SPHEREx images where NEOSSat has observed it. Contains information licensed under the Open Government Licence - Canada.
-- European Space Agency (ESA). Gaia DR3: positions, proper motions, and parallaxes of the stars in each field.
-- CDS, Strasbourg. SIMBAD for object names and facts, VizieR for the 2MASS and AllWISE catalogs, and Aladin Lite for the sky map.
-- IMCCE, Paris Observatory. SkyBoT, which lists the known asteroids, comets, and planets in the field of an image.
-- CelesTrak. Orbital elements for the live positions of SPHEREx and the other telescopes.
-- Sky survey tiles from DSS2, SDSS, GALEX, IRAS, Herschel, and Planck, served by IRSA.
-- NIST Atomic Spectra Database. The wavelengths of the atomic lines marked on spectra.
-- Natural Earth. The land outlines on the map of telescope positions.
+| Link Text | Link Url | Used for |
+|---|---|---|
+| NEOSSat astronomy images, Canadian Space Agency (CADC) | https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/neossat/ | Visible-light images of the same field. Contains information licensed under the Open Government Licence - Canada |
+| NEOSSat tutorial, Canadian Space Agency | https://github.com/asc-csa/NEOSSAT_Tutorial | Reference for reading NEOSSat files |
+| Gaia DR3, European Space Agency | https://www.cosmos.esa.int/web/gaia/dr3 | Star positions, proper motions, and parallaxes |
+| SIMBAD, CDS Strasbourg | https://simbad.cds.unistra.fr/ | Object names and facts, through the CfA and IDIA mirrors |
+| VizieR, CDS Strasbourg | https://vizier.cds.unistra.fr/ | The 2MASS and AllWISE catalogs |
+| Aladin Lite, CDS Strasbourg | https://aladin.cds.unistra.fr/AladinLite/ | The sky map |
+| SkyBoT, IMCCE Paris Observatory | https://ssp.imcce.fr/webservices/skybot/ | The known asteroids, comets, and planets in an image |
+| CelesTrak | https://celestrak.org/ | Orbits for the live map of telescopes |
+| Sky survey tiles from DSS2, SDSS, GALEX, IRAS, Herschel, and Planck (IRSA) | https://irsa.ipac.caltech.edu/data/hips/list | More map layers |
+| NIST Atomic Spectra Database | https://www.nist.gov/pml/atomic-spectra-database | Wavelengths of the atomic lines marked on spectra |
+| Natural Earth | https://www.naturalearthdata.com/ | Land outlines on the map of telescopes |
+| WiseView | https://github.com/backyardworlds/wiseview | Studied as prior art for blinking images |
 
 ## References
 

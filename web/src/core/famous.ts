@@ -86,7 +86,7 @@ export const FAMOUS: readonly FamousRow[] = [
   ["M 1", "Crab Nebula (M 1)", "Supernova remnant", "messier 1"],
   ["M 57", "Ring Nebula (M 57)", "Planetary nebula", "messier 57"],
   ["M 27", "Dumbbell Nebula (M 27)", "Planetary nebula", "messier 27"],
-  ["M 16", "Eagle Nebula (M 16)", "Star-forming nebula with the Pillars of Creation", "messier 16 pillars"],
+  ["M 16", "Eagle Nebula (M 16)", "Star-forming nebula with the Pillars of Creation", "messier 16 pillars of creation"],
   ["M 8", "Lagoon Nebula (M 8)", "Star-forming nebula", "messier 8"],
   ["M 20", "Trifid Nebula (M 20)", "Star-forming nebula", "messier 20"],
   ["M 17", "Omega Nebula (M 17)", "Star-forming nebula", "messier 17 swan"],

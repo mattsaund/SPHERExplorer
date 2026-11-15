@@ -2,7 +2,7 @@
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
 import { FAMOUS, NASA_TARGETS } from "./famous";
-import { fold, localSuggestions, matchScore, mergeSuggestions, rememberSearch, type Suggestion } from "./suggest";
+import { famousMatch, fold, localSuggestions, matchScore, mergeSuggestions, rememberSearch, type Suggestion } from "./suggest";
 import { TEST_TARGETS } from "./targets";
 
 describe("the list of well-known objects", () => {
@@ -102,5 +102,22 @@ describe("rememberSearch", () => {
     for (let i = 0; i < 12; i++) recent = rememberSearch(recent, { label: `Star ${i}`, query: `star ${i}` });
     expect(recent).toHaveLength(8);
     expect(recent[0].label).toBe("Star 11");
+  });
+});
+
+describe("a typed name that the catalogs do not hold", () => {
+  it("means the well-known object that goes by it", () => {
+    expect(famousMatch("Pillars of Creation")).toEqual(["M 16", "Eagle Nebula (M 16)"]);
+    expect(famousMatch("pillars")).toEqual(["M 16", "Eagle Nebula (M 16)"]);
+    expect(famousMatch("  PILLARS   of creation ")).toEqual(["M 16", "Eagle Nebula (M 16)"]);
+  });
+  it("is offered in the dropdown as it is typed", () => {
+    expect(localSuggestions("Pillars of Creation", []).map((row) => row.query)).toContain("M 16");
+  });
+  it("means nothing when it is too short, only part of a word, or not on the list", () => {
+    expect(famousMatch("star")).toBeNull();
+    expect(famousMatch("pillar")).toBeNull();
+    expect(famousMatch("Planet Nine")).toBeNull();
+    expect(famousMatch("")).toBeNull();
   });
 });

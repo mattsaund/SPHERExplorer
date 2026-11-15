@@ -63,6 +63,21 @@ export function matchScore(names: string[], typed: string): number {
   return best;
 }
 
+/**
+ * The well-known object that a typed name means, for names the catalogs do not hold. The
+ * typed words must be found whole and in order in the object's label or its other names, so
+ * "Pillars of Creation" means the Eagle Nebula. Very short text means nothing.
+ * Returns [what to search for, what to call it], or null.
+ */
+export function famousMatch(typed: string): [string, string] | null {
+  const text = fold(typed);
+  if (text.length < 5) return null;
+  for (const [query, label, , also] of FAMOUS) {
+    if ([label, also].some((name) => ` ${fold(name)} `.includes(` ${text} `))) return [query, label];
+  }
+  return null;
+}
+
 /** Rows that need no network: recent searches, typed coordinates, and well-known objects. */
 export function localSuggestions(typed: string, recent: Recent[]): Suggestion[] {
   const text = typed.trim();

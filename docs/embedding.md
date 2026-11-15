@@ -6,11 +6,9 @@ The address bar follows what is on screen. Copy it, or use "Copy link" under Sav
 
 ## Link to a place
 
-```
-https://spherexplorer.earth/?ra=133.795129&dec=-7.245147
-https://spherexplorer.earth/?ra=08h55m10.831s&dec=-7d14m42.53s
-https://spherexplorer.earth/?target=Barnard's Star
-```
+- [https://spherexplorer.earth/?ra=133.795129&dec=-7.245147](https://spherexplorer.earth/?ra=133.795129&dec=-7.245147) opens WISE 0855 from coordinates in degrees.
+- [https://spherexplorer.earth/?ra=08h55m10.831s&dec=-7d14m42.53s](https://spherexplorer.earth/?ra=08h55m10.831s&dec=-7d14m42.53s) opens the same place from hours, minutes, and seconds.
+- [https://spherexplorer.earth/?target=Barnard's Star](https://spherexplorer.earth/?target=Barnard%27s%20Star) opens Barnard's Star by name.
 
 - `ra` and `dec` are J2000 (ICRS). Plain numbers are degrees. Any form the search box reads also works, such as `08h55m10.8s`, `08:55:10.8`, or `-07d14m42s`.
 - `target` is anything the search box accepts: an object name, coordinates, or a planet, asteroid, or comet.
@@ -76,12 +74,12 @@ A link made by the tool also carries these. Each is left out while it is at its 
 
 ## Use the data API from another project
 
-The API under `https://spherexplorer.earth/api/` allows requests from any site. `https://spherexplorer.earth/api/docs` lists every route.
+The API under `https://spherexplorer.earth/api/` allows requests from any site. [https://spherexplorer.earth/api/docs](https://spherexplorer.earth/api/docs) lists every route. Each example below is a live link.
 
 | Route | Returns |
 |---|---|
-| `/api/search?ra=133.795&dec=-7.245` | Every SPHEREx exposure that covers the position |
-| `/api/resolve?name=Barnard's Star` | The position, motion, and distance for a name |
-| `/api/objects?ra=133.795&dec=-7.245&radius=0.1` | Known objects around the position, from SIMBAD |
+| [`/api/search?ra=133.795&dec=-7.245`](https://spherexplorer.earth/api/search?ra=133.795&dec=-7.245) | Every SPHEREx exposure that covers the position |
+| [`/api/resolve?name=Barnard's Star`](https://spherexplorer.earth/api/resolve?name=Barnard%27s%20Star) | The position, motion, and distance for a name |
+| [`/api/objects?ra=133.795&dec=-7.245&radius=0.1`](https://spherexplorer.earth/api/objects?ra=133.795&dec=-7.245&radius=0.1) | Known objects around the position, from SIMBAD |
 
 Please credit SPHEREx and IRSA when you show the images. The wording is in `docs/references.md`.

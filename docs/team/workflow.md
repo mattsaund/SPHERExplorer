@@ -15,11 +15,13 @@
 
 ## Git
 
-- Work on short-lived branches named `matt/<topic>` and `austin/<topic>`.
-- Run `git pull --rebase origin main` before pushing. Merge to `main` often. Never force-push `main`.
+- `main` is the live site. A push to it deploys to Cloud Run once CI passes (see `docs/deploy.md`). Nothing is committed to `main` directly.
+- `dev` is the branch before `main`. Work lands there first: small commits, or pull requests from short-lived branches named `matt/<topic>` and `austin/<topic>`.
+- `main` changes only by a pull request from `dev`, merged once its checks pass. That merge is what goes live.
+- Run `git pull --rebase origin dev` before pushing. Never force-push `main` or `dev`.
 - Commits written with Claude end with the Co-Authored-By trailer.
-- Austin's side opens pull requests. Matt's Claude reviews and merges them. Matt's side may push small, checked commits straight to `main`.
-- CI runs the text check, the API tests, and the web typecheck, tests, and build on every pull request.
+- Austin's side opens pull requests against `dev`. Matt's Claude reviews and merges them. Matt's side may push small, checked commits straight to `dev`.
+- CI runs the text check, the API tests, the web typecheck, tests, and build, and the container build on every pull request and on every push to `dev` and `main`.
 - Avoid editing the same file at the same time, especially shared config such as `package.json`. Announce changes to shared contracts first.
 
 ## Sharing a live preview on the local network

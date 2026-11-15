@@ -107,7 +107,9 @@ Details in `docs/research/`.
 - Read `docs/architecture.md` before starting. Pull `main` often, because the contract grows as features land.
 - No tool may be lost in a UI change. `docs/ui-checklist.md` lists every tool and the engine pieces behind it. `scripts/check_ui_coverage.py` fails a pull request whose UI stops using one. Run `scripts/check_all.sh` before opening a pull request.
 - Both sides may edit `web/src/ui/`. Austin's side owns layout and style. Matt's side adds the wiring a new engine tool needs, in small commits, and adds its row to the checklist.
-- Branches: `matt/<topic>` and `austin/<topic>`. Small commits. `git pull --rebase` before pushing. Merge to `main` often. Never force-push `main`.
+- `main` is the live site. A push to it deploys once CI passes, so nothing is committed to `main` directly (Matt's decision, Nov 14).
+- Work lands on `dev` first: small commits there, or pull requests from `matt/<topic>` and `austin/<topic>` branches. `main` changes only by a pull request from `dev`, after its checks pass.
+- Small commits. `git pull --rebase` before pushing. Never force-push `main` or `dev`.
 - Personal settings go in `.claude/settings.local.json` and `CLAUDE.local.md`. Both are gitignored.
 - More in `docs/team/workflow.md`.
 

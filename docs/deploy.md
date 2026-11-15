@@ -64,7 +64,59 @@ gcloud projects add-iam-policy-binding <project id> \
 
 ## Later deploys
 
-In Cloud Shell, run `cd ~/SPHERExplorer && git pull`, then the same `gcloud run deploy` command. Each deploy makes a new revision. To roll back, open the service in the console, then Revisions, then Manage traffic.
+A push to `main` deploys itself once CI passes (see "Continuous deployment" below). To deploy by hand, run `cd ~/SPHERExplorer && git pull` in Cloud Shell, then the same `gcloud run deploy` command. Each deploy makes a new revision. To roll back, open the service in the console, then Revisions, then Manage traffic.
+
+## Continuous deployment
+
+`.github/workflows/deploy.yml` waits for the CI workflow to finish on a push to `main`. If every CI job passed, it deploys that exact commit with `gcloud run deploy --source`, then checks `/api/health`. A failed CI run deploys nothing, and pull requests never deploy.
+
+- Only the code changes. Settings made by hand (memory, CPU, instance counts, public access) carry over to each new revision.
+- If the new container fails to start, Cloud Run keeps the old revision serving and the job fails.
+- GitHub signs in to Google Cloud with Workload Identity Federation. No key is stored anywhere. Google accepts tokens only from this repository's `main` branch.
+- Each deploy runs Cloud Build for a few minutes and stores one more image in Artifact Registry.
+- To pause deploys, disable the Deploy workflow in the repository's Actions tab. Deploying by hand still works.
+
+### One-time setup
+
+Run this in Cloud Shell with the project ID filled in.
+
+```sh
+PROJECT_ID=<project id>
+PROJECT_NUMBER=112779026983
+SA="github-deploy@${PROJECT_ID}.iam.gserviceaccount.com"
+
+gcloud services enable iam.googleapis.com iamcredentials.googleapis.com sts.googleapis.com
+
+# The account GitHub acts as. It can deploy Cloud Run services from source.
+gcloud iam service-accounts create github-deploy --display-name="GitHub Actions deploy"
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$SA" --role=roles/run.sourceDeveloper --condition=None
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$SA" --role=roles/serviceusage.serviceUsageConsumer --condition=None
+gcloud iam service-accounts add-iam-policy-binding "${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --member="serviceAccount:$SA" --role=roles/iam.serviceAccountUser
+
+# Trust tokens from GitHub, but only from deploy.yml on this repository's main branch.
+gcloud iam workload-identity-pools create github --location=global --display-name="GitHub Actions"
+gcloud iam workload-identity-pools providers create-oidc spherexplorer \
+  --location=global --workload-identity-pool=github --display-name="SPHERExplorer repo" \
+  --issuer-uri="https://token.actions.githubusercontent.com" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref" \
+  --attribute-condition="assertion.repository_id == '1457824978' && assertion.ref == 'refs/heads/main' && assertion.workflow_ref == 'mattsaund/SPHERExplorer/.github/workflows/deploy.yml@refs/heads/main'"
+gcloud iam service-accounts add-iam-policy-binding "$SA" --role=roles/iam.workloadIdentityUser \
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github/attribute.repository/mattsaund/SPHERExplorer"
+```
+
+`1457824978` is the numeric ID of `mattsaund/SPHERExplorer`, so no other repository with the same name can take its place. Other workflows on `main` cannot act as the deploy account. If the repository or `deploy.yml` is renamed, deploys stop until the condition is updated.
+
+The deploy job also checks that its commit is still the newest on `main`. CI runs can finish out of order, and an old run can be re-run, so without this check an older commit could replace a newer one.
+
+Then the repository owner adds two Actions secrets, under Settings, then Secrets and variables, then Actions. On a personal repository only the owner can add them. Secrets keep the project ID out of the public Actions logs.
+
+| Secret | Value |
+|---|---|
+| `GCP_WIF_PROVIDER` | `projects/112779026983/locations/global/workloadIdentityPools/github/providers/spherexplorer` |
+| `GCP_DEPLOY_SA` | `github-deploy@<project id>.iam.gserviceaccount.com` |
+
+GitHub only runs `deploy.yml` from `main`, so the first automatic deploy is the CI-passing push that merges it. Set up both sides before that merge. Google can take up to 5 minutes to accept a new trust setting.
 
 ## Settings
 

@@ -1,0 +1,64 @@
+# Deploys main to Cloud Run once CI has passed on it. Only a green CI run on a push to main
+# deploys, and it deploys exactly the commit that CI checked.
+# Setup on the Google Cloud side is in docs/deploy.md, "Continuous deployment".
+# Written with Claude Code (Anthropic) assistance.
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+# One deploy at a time. A newer commit waiting in line replaces an older one that has not started.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  newest:
+    name: Still the newest commit on main
+    # A pull request from a fork can have a branch named main too, so the event must be a push.
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.compare.outputs.deploy }}
+    steps:
+      # CI runs can finish out of order, and an old run can be re-run. Neither may roll the site back.
+      - id: compare
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          newest="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"
+          if [[ "$newest" == "$HEAD_SHA" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Not deployed. A newer commit is on main, and it deploys after its own CI run."
+          fi
+
+  deploy:
+    name: Deploy to Cloud Run
+    needs: newest
+    if: needs.newest.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    # id-token lets the job prove to Google Cloud that it is this workflow on main. No key is stored.
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v3
+      # Only the code changes. Memory, CPU, instance counts, and public access keep their current settings.
+      - name: Build and deploy
+        run: gcloud run deploy spherexplorer --source . --region us-east4 --quiet
+      - name: Check that the live site answers
+        run: curl -fsS --retry 5 --retry-delay 10 --retry-all-errors https://spherexplorer-112779026983.us-east4.run.app/api/health

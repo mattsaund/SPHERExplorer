@@ -40,6 +40,9 @@ function lengthLabel(arcsec: number): string {
   return `${arcsec}″`;
 }
 
+/** The credit line under a saved picture, from the fullest form to the shortest. */
+const SAVE_CREDITS = ["Data: NASA SPHEREx, from IRSA. Made with SPHERExplorer", "Data: NASA SPHEREx. Made with SPHERExplorer", "Data: NASA SPHEREx"];
+
 /** The image viewer: draws the step on screen with its marks, and handles pan, zoom, and clicks. */
 export function FrameView({ className }: { className?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -142,9 +145,15 @@ export function FrameView({ className }: { className?: string }) {
       pen.font = `${Math.round(13 * ratio)}px ${getComputedStyle(wrap).fontFamily || "sans-serif"}`;
       pen.textBaseline = "middle";
       const name = state.target?.name ?? "";
-      pen.fillText(`${name ? name + ". " : ""}${item.label}`, 10 * ratio, canvas.height + (strip * ratio) / 2);
+      const title = `${name ? name + ". " : ""}${item.label}`;
+      pen.fillText(title, 10 * ratio, canvas.height + (strip * ratio) / 2);
       pen.textAlign = "right";
-      pen.fillText("NASA SPHEREx. SPHERExplorer", out.width - 10 * ratio, canvas.height + (strip * ratio) / 2);
+      // The credit says where the data comes from and what drew it. It must not read as a
+      // NASA mark on the tool itself, so the data is labeled as data. The longest form that
+      // fits beside the title is used.
+      const room = out.width - 30 * ratio - pen.measureText(title).width;
+      const credit = SAVE_CREDITS.find((text) => pen.measureText(text).width <= room) ?? SAVE_CREDITS[SAVE_CREDITS.length - 1];
+      pen.fillText(credit, out.width - 10 * ratio, canvas.height + (strip * ratio) / 2);
       // Put the live view back on screen.
       schedule();
       return out;

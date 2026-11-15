@@ -517,7 +517,7 @@ export interface PartnerImage {
 export interface PartnerData {
   mission: string;
   agency: string;
-  /** Licence line that must be shown with the images. */
+  /** License line that must be shown with the images. */
   credit: string;
   count: number;
   /** Dates of the first and last image, Modified Julian Date. */

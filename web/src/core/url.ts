@@ -1,5 +1,6 @@
 // Keeps the view in the page address, so a link reopens the same target and settings
 // and the tool can be embedded in other pages with coordinates in the URL.
+// Written with Claude Code (Anthropic) assistance.
 //
 //   ?target=Barnard's Star            a name, resolved on load
 //   ?ra=133.76&dec=-7.24              or J2000 coordinates in degrees
@@ -32,8 +33,6 @@
 //
 // Anything left at its default is left out, so a plain view still makes a short link.
 // docs/embedding.md is the public reference for these.
-//
-// Written with Claude Code (Anthropic) assistance.
 import { parseCoordinates, separation } from "./astro";
 import { BLINK_PARTNERS } from "./blink";
 import { COLOR_PRESETS } from "./colorBands";

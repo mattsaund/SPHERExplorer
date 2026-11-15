@@ -1,20 +1,14 @@
 # Shared HTTP client, plus byte-range reads from the SPHEREx S3 bucket with retries.
-#
-# Everything except the bucket goes through httpx, which is pleasant and well tested.
-#
-# The bucket is different. One target reads it thousands of times and pulls hundreds of
-# megabytes, and that intake is most of the processor time of a first load. Read on the
-# event loop, all of it runs on one processor, and the loop can do nothing else meanwhile.
-# So each read is a plain blocking request on a worker thread with its own kept-alive
-# connection. Receiving and decrypting release Python's lock, so the reads of one target
-# spread over every processor, and the loop only hands them out.
-#
-# The request is written and the answer read directly on the socket. A Range read from S3 is
-# always the same simple exchange, and http.client spends about twice the processor time on
-# it (0.30 ms against 0.15 ms for a small read), mostly parsing headers as if they were
-# e-mail. If an answer ever comes in a form this does not read, that one read falls back to
-# http.client. The bucket closes each connection after 100 requests, which both handle.
 # Written with Claude Code (Anthropic) assistance.
+#
+# Everything except the bucket goes through httpx.
+# The bucket is read thousands of times per target, and that intake is most of the processor
+# time of a first load. So each read is a blocking request on a worker thread with its own
+# kept-alive connection. Receiving and decrypting release Python's lock, so the reads spread
+# over every processor and the event loop only hands them out.
+# The exchange is written and read directly on the socket, at half the processor cost of
+# http.client (0.15 ms against 0.30 ms for a small read). An answer in a form this does not
+# read falls back to http.client. The bucket closes each connection after 100 requests.
 
 import asyncio
 import http.client

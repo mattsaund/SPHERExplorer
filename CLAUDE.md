@@ -11,7 +11,7 @@ Read this file first. Details live in `docs/`.
 
 - Started Sat Nov 14, 2026, 9:00 am local time (Eastern for Matt).
 - Our Local Event (Bethesda, MD) needs the demo video uploaded and the project submitted by Sun Nov 15, 4:20 pm Eastern.
-- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:00 and 5:00 pm, while the site is kept warm for it. The plan is in `docs/video.md`.
+- Our Local Event has live presentations from Sun Nov 15, 3:30 pm Eastern, 5 minutes at most for each team. Don't merge to `main` between 3:00 and 5:00 pm, while the site is kept warm for it. The plan is in `docs/submission/video.md`.
 - The global form closes Sun Nov 15, 11:59 pm Eastern. Automatic deploys freeze at 11:00 pm.
 - The repo freezes at 11:30 pm Eastern on Sun Nov 15, half an hour before the form closes (Matt, Nov 15). No commit, merge, or push after that, to any branch. A change to the site must be merged before the deploy freeze at 11:00 pm. The live site's data keeps updating through the scheduled index refresh.
 - Results: Global Nominees Dec 3, Global Finalists Dec 17, Global Winners Jan 26, 2027. The public site must stay up through judging.
@@ -122,6 +122,7 @@ Details in `docs/research/`.
 
 | File | Purpose |
 |---|---|
+| `docs/README.md` | Where each document is, by what it is for |
 | `docs/concept.md` | The team's concept and Matt's original notes (human-written) |
 | `CONTRIBUTING.md` | Setup, checks, rules, and the pull request flow, for any developer |
 | `docs/architecture.md` | Design: the parts, the stack, the data flow, and the frontend contract |
@@ -133,11 +134,11 @@ Details in `docs/research/`.
 | `docs/ui-checklist.md` | Every tool the UI must offer, checked in CI |
 | `scripts/update_solar.py` | Renews the orbits behind the solar system marks on the sky map. Run every few months |
 | `docs/embedding.md` | Link options and how to embed the viewer in another page |
-| `docs/video.md` | The demo video (built by `video/`), the backup slide deck, and the plan for the 5-minute live presentation |
+| `docs/submission/video.md` | The demo video (built by `video/`), the backup slide deck, and the plan for the 5-minute live presentation |
 | `docs/decisions.md` | Human decision log |
 | `docs/si-usage.md` | SI usage log |
 | `docs/references.md` | Every source, license, DOI, and acknowledgment |
-| `docs/submission-checklist.md` | Everything the Space Apps submission needs |
-| `docs/submission-text.md` | The text for each project page field, and the claims to recheck before submitting |
+| `docs/submission/submission-checklist.md` | Everything the Space Apps submission needs |
+| `docs/submission/submission-text.md` | The text for each project page field, and the claims to recheck before submitting |
 | `docs/research/` | Research on the challenge, data, targets, services, and partner data |
 | `docs/team/workflow.md` | Collaboration and Claude Code workflow |

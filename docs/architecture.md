@@ -12,6 +12,21 @@ How SPHERExplorer is built and why: its parts, the data flow, and the contract b
 | `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. |
 | `docs/` | Documentation for users and developers, and the hackathon record. |
 
+## The engine's folders
+
+`web/src/core/index.ts` and `web/src/core/types.ts` sit at the top. Everything else is in a folder named for what it does. A test sits beside the file it tests.
+
+| Folder | What it holds |
+|---|---|
+| `state/` | The store, the link in the address bar, and the selected field |
+| `search/` | The search box's suggestions and its lists of well-known objects |
+| `net/` | Calls to the SPHERExplorer server |
+| `sky/` | Positions, motions, orbits, and the sky map's layers |
+| `images/` | Frames, sums, color, and the WebGL renderer |
+| `science/` | Brightness, spectra, features, motion, and the change finder |
+| `export/` | Saved pictures, animations, and FITS files |
+| `views/` | The React components that draw the map, the images, and the plots |
+
 ## Why this design
 
 - IRSA search, TAP, and cutouts send no CORS headers, so a relay is required.

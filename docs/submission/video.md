@@ -22,7 +22,7 @@ From the Project Submission Guide, "Visual Storytelling":
 > - [0:10] Describe your idea: How does it work? Display images or a prototype, describe a user's experience, and share how using NASA's free and open data and Space Agency Partner data made your proposed solution possible.
 > - [0:20-0:30] Look into the future: Paint a picture! Captivate your audience with what it could be; What can your proposed solution do for people, the world, and beyond?
 
-The audience has no background, so the pitch uses everyday words. The technical-word rule in `docs/language-refining.md` is for the app and the docs, not for this pitch.
+The audience has no background, so the pitch uses everyday words. The technical-word rule in `docs/team/language-refining.md` is for the app and the docs, not for this pitch.
 
 For slides, the guide asks for at most seven slides, including the title and intro. They must show the team name, the members' names, and the challenge, an image of the project, the user experience, and how NASA and partner data make it possible, with a readable font and few words.
 

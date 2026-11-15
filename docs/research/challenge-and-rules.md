@@ -32,7 +32,7 @@ Sources: the challenge page, the 2026 Project Submission Guide, the 2026 Judging
 
 ## Submission
 
-Required fields: project name, high-level summary, demo link, final project link, project details, NASA data used, Space Agency Partner and other data, references, and the SI question. See `docs/submission-checklist.md`.
+Required fields: project name, high-level summary, demo link, final project link, project details, NASA data used, Space Agency Partner and other data, references, and the SI question. See `docs/submission/submission-checklist.md`.
 
 - Demo: a video of 30 seconds or less, or at most 7 slides including title and intro. Over the limit means no Global Judging. Public link with no login. English, or English subtitles.
 - "the majority of judges' evaluation will be based on your project submission." A strong demo helps the Presentation score.

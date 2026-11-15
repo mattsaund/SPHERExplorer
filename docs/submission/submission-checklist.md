@@ -13,11 +13,11 @@ A ticked box below was checked by Claude on Nov 15 around noon, and the line say
 
 ## Project page fields
 
-The text for each field, and the claims to recheck before submitting, is in `docs/submission-text.md`.
+The text for each field, and the claims to recheck before submitting, is in `docs/submission/submission-text.md`.
 
 - [x] Project name. SPHERExplorer.
 - [ ] High-level summary: what we built, how it addresses the challenge, why it matters. Text ready: 198 words, 1,182 characters, inside the limit of 200 and 1,500. Needs pasting again.
-- [ ] Demo link (public, no login). The video built from code is the demo, and a seven-slide deck is the backup (`docs/video.md`). See "Demo".
+- [ ] Demo link (public, no login). The video built from code is the demo, and a seven-slide deck is the backup (`docs/submission/video.md`). See "Demo".
 - [ ] Final project link (public, no login): the live site (https://spherexplorer.earth) and this repo. Both answer without a login, and the repo is public. Needs pasting.
 - [ ] Project details: what it does, how it works, benefits, goals, tools, languages, hardware, software. Text ready, and its numbers were rechecked on the live site. Needs pasting again.
 - [ ] NASA data and resources used. Draft ready, needs approval.

@@ -72,7 +72,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Labels and grid | Switch object labels and the coordinate grid | `labels`, `grid` |
 | Go to | Jump to the whole sky or to a place | `actions.flyTo` |
 | Object card | Click an object's label to load its images at once, with the view box around it, and see its facts, distance, and details link. A planet, asteroid, or comet shows its card first | `selected`, `isStudied` |
-| Selected area | Click the map to select an area and load its images, see its size, move it by dragging inside it, resize it by dragging its edge, copy its coordinates, and close the study. Every study has the square, with the target's name on it: a searched object too, and a planet or comet, whose square is where the image on screen was taken | `picked`, `fieldSize`, `fieldShown`, `actions.closeStudy`, `fieldCenter`, `fieldDate` |
+| Selected area | Click the map to select an area and load its images, see its size, move it by dragging inside it, resize it by dragging its edge, copy its coordinates, and close the study. Every study has the square, with the target's name on it: a searched object too, and a planet or comet, whose square is where the image on screen was taken. When a larger area is chosen on a zoomed-in map, the map zooms out so the whole square stays in sight | `picked`, `fieldSize`, `fieldShown`, `actions.closeStudy`, `fieldCenter`, `fieldDate` |
 | Coordinates | Read the coordinates under the pointer and at the center of the map, and copy the center | `mapHover`, `center` |
 | Coverage | Show where SPHEREx spectral images exist, and where the deep fields are | `coverage`, `deepFields` |
 | Tile grid | Show the HEALPix tiles that all-sky maps are cut into | `tiles` |

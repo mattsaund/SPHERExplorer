@@ -12,7 +12,6 @@
 import asyncio
 import json
 import math
-import os
 import struct
 import zlib
 from concurrent.futures import ThreadPoolExecutor
@@ -40,7 +39,7 @@ _frames = ByteLRU(config.FRAME_CACHE_MB * 1_000_000)
 # Frames being built now, so two viewers asking for the same frame share one build.
 _building: dict[tuple, asyncio.Future] = {}
 # The threads that compute frames. One per processor: more would only take turns.
-_workers = ThreadPoolExecutor(max_workers=max(2, min(8, os.cpu_count() or 2)), thread_name_prefix="frame")
+_workers = ThreadPoolExecutor(max_workers=max(2, min(8, config.CPUS)), thread_name_prefix="frame")
 # A plain frame this small is kept as it is. Packing it would save nothing.
 SMALL_FRAME = 4096
 

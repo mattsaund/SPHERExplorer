@@ -167,7 +167,9 @@ export function parseLink(search: string): LinkState {
       }
     }
   }
-  link.fieldSize = number(params, "fov", 60, 3600);
+  // A link made when wider fields were allowed opens at the widest field there is now.
+  const width = number(params, "fov", MIN_FIELD, Infinity);
+  link.fieldSize = width === undefined ? undefined : Math.min(width, MAX_FIELD);
   const mode = params.get("mode") as SequenceMode | null;
   if (mode && MODES.includes(mode)) link.mode = mode;
   const color = params.get("color");
@@ -242,6 +244,13 @@ export interface LinkOptions {
 
 /** The whole-sky view the map opens with: its center and its width in degrees. */
 export const MAP_HOME = { ra: 266.4, dec: -29.0, fov: 200 };
+/**
+ * The narrowest and the widest field that can be studied, in arcseconds: 1 and 50 arcminutes
+ * (Matt's decision, Nov 15). A link, the Settings list, and a drag of the square all stop here.
+ */
+export const MIN_FIELD = 60;
+export const MAX_FIELD = 3000;
+
 /** How wide the map is after it has gone to a target, in degrees. */
 export const MAP_NEAR = 2;
 /** The brightness scale a view starts with, and the one that showing only changes switches to. */

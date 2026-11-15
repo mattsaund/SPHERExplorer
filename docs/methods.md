@@ -161,7 +161,9 @@ Checked on known objects.
 - The orbits drift from the truth over months, mostly for bodies that pass close to planets. Running the script again renews them.
 - Clicking a body follows it through the images at once, with the exact path from JPL Horizons, as for any moving target (section 5). Its card says what it is and how far it is from the Earth and the Sun right now. The Sun and the Moon have no SPHEREx images, so a click only shows their card.
 - The Sun and the Moon are drawn as discs of their true size, from their radius (695,700 km and 1,737.4 km) and their distance at that moment. The Moon shows its lit share and the bright edge faces the Sun (Meeus, Astronomical Algorithms, chapter 48). Checked against JPL Horizons at three moments, which the unit test repeats: the widths agree to half a percent, the lit share to one point in a hundred, and the Sun's direction to one degree. The discs are drawings over the map, not survey images.
-- A studied body has two marks, and they mean different things. The green diamond is where it is right now. The yellow square is where it was when the image on screen was taken, with the name and that date written on it. The square moves along the body's path as the film plays, and the map follows it when it leaves the view. While the images of a body chosen on the map are still being found, the square waits where the body is now, so the selection stays in sight. It moves to the first image when the images arrive.
+- A study of a body the map marks opens with its yellow square on its green marker, where the body is now, and the map stays put when the marker is clicked (Matt's decisions, Nov 15). Searching the body by name sends the map to its marker.
+- Once the film is played or stepped, the square goes to where the image on screen was taken, with the name and that date written on it. It then moves along the body's path as the film plays, and the map follows it when it leaves the view. Changing the way of viewing starts the film over, and the square is on the marker again.
+- A body the map does not mark has no place on the map today, so its square is always where the image on screen was taken.
 
 ## 16. The sky map's overlays and measure tool
 
@@ -183,7 +185,7 @@ Checked on known objects.
 
 - Every loaded image stays in memory, so that playing, summing, and measuring are instant. Each pixel costs up to 10 bytes: the image as received, a copy for measuring, and its flags.
 - The budget follows the computer (`core/device.ts`). The smallest is 60 million pixels, about 600 MB at worst, for phones, tablets, and anything the browser says little about. A computer that reports 8 GB or more gets twice that, and three times with twelve or more processor threads. Firefox and Safari report no memory, so a wide screen with a mouse and eight threads counts as a desktop and gets twice. A viewer embedded in another page keeps the smallest.
-- At the default 5 arcminute field every image fits on any device. At 60 arcminutes the smallest budget holds 87 images and the largest 262. Past the budget, the images are sampled evenly over time, which keeps every visit and wavelength represented, and the status line says so.
+- At the default 5 arcminute field every image fits on any device. At 50 arcminutes, the widest field, the smallest budget holds 126 images and the largest 378. Past the budget, the images are sampled evenly over time, which keeps every visit and wavelength represented, and the status line says so.
 - The server accepts up to 250 million pixels in one request, so the largest budget stays inside its limit. A unit test checks that.
 - A new field size, or "Try again", reloads the same target. The film then comes back to the image that was on screen, found by its time and wavelength as in a link (section 17). If the film was moved while the reload ran, it is left where the person put it.
 

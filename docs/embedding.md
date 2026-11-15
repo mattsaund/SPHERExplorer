@@ -24,7 +24,7 @@ All optional. Bad or unknown values are ignored.
 
 | Name | Values | Meaning |
 |---|---|---|
-| `fov` | 60 to 3600 | Width of the field in arcseconds. Default 300 |
+| `fov` | 60 to 3000 | Width of the field in arcseconds, which is 1 to 50 arcminutes. Default 300 |
 | `mode` | `exposures`, `visits`, `channels`, `deep` | What to play: every image, one sum per visit, one sum per wavelength, or the deepest sum |
 | `det` | digits 1 to 6, for example `56` | Detectors switched on. Default all six |
 | `color` | `wide`, `short`, `long`, `ice` | Full color with that recipe: full range, starlight, cool objects, or water ice |

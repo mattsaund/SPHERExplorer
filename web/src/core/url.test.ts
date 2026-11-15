@@ -36,6 +36,10 @@ describe("parseLink", () => {
     expect(parseLink("?ra=400&dec=10")).toEqual({});
     expect(parseLink("?ra=10")).toEqual({});
     expect(parseLink("?fov=5&mode=nope&det=789&layer=x&ch=500&proj=ZZZ&embed=yes")).toEqual({});
+    // The widest field is 50 arcminutes. An older link that asks for more opens at that width.
+    expect(parseLink("?fov=3000").fieldSize).toBe(3000);
+    expect(parseLink("?fov=3600").fieldSize).toBe(3000);
+    expect(parseLink("?fov=59").fieldSize).toBeUndefined();
     expect(parseLink("?color=unknown")).toEqual({ color: null });
     expect(parseLink("")).toEqual({});
   });

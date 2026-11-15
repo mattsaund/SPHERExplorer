@@ -5,7 +5,7 @@ import { ApiError, getKnown, getMeta, getMissions, getNeossat, getObjects, getSp
 import { assignSeasons, parseCoordinates, positionAt, skyOffset, summarizeVisits } from "./astro";
 import { BLINK_MS } from "./blink";
 import { findChanges, type ChangeReport, type FoundChange } from "./changes";
-import { isStudied } from "./field";
+import { bodyNow, isStudied } from "./field";
 import { watchSums } from "./layers";
 import { COLOR_PRESETS } from "./colorBands";
 import { BASE_PIXELS, pixelBudget, thisDevice } from "./device";
@@ -15,7 +15,7 @@ import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
 import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
-import { CHANGE_LEVELS, LEVELS, MAP_NEAR, buildLink, embedSnippet, parseLink, stepNear, type LinkState } from "./url";
+import { CHANGE_LEVELS, LEVELS, MAP_NEAR, MAX_FIELD, MIN_FIELD, buildLink, embedSnippet, parseLink, stepNear, type LinkState } from "./url";
 import type { BlinkChoice, BlinkState, DisplaySettings, Filters, Frame, Hover, KnownCheck, Layout, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
@@ -64,6 +64,12 @@ export interface AppState {
   /** Images found but not loaded, to keep the page fast, when a field has more than the page can hold. Zero when all are loaded. */
   leftOut: number;
   failed: number;
+  /**
+   * True once the film of this study has been played, stepped, or moved to an image. It is
+   * false when a study opens and after the way of viewing is changed, which both start the
+   * film over. A marked body's square leaves its marker for the body's path when this turns true.
+   */
+  filmMoved: boolean;
   /**
    * How many images are being added up in the background for the picture on screen, or null
    * when none are. A large sum takes a moment, and the page stays free meanwhile.
@@ -177,6 +183,7 @@ export const useStore = create<AppState>(() => ({
   framesState: "idle",
   loaded: 0,
   leftOut: 0,
+  filmMoved: false,
   summing: null,
   failed: 0,
   filters: DEFAULT_FILTERS,
@@ -341,6 +348,7 @@ function emptyStudy(): Partial<AppState> {
     loaded: 0,
     leftOut: 0,
     failed: 0,
+    filmMoved: false,
     error: null,
     notice: null,
     hover: null,
@@ -477,8 +485,9 @@ async function load(target: Target, fieldSize: number, fly = true, place: Place 
       const last = frames[frames.length - 1].track;
       target = { ...target, ra: last.ra, dec: last.dec };
       set({ target });
-      // The map goes to where the body was in its first image, the one that comes on screen.
-      if (fly) actions.flyTo(frames[0].track, Math.min(get().map.fov, MAP_NEAR));
+      // A body the map marks has its square on its marker, and the map is there already.
+      // Any other body: the map goes to where it was in its first image, the one that comes on screen.
+      if (fly && !bodyNow(target)) actions.flyTo(frames[0].track, Math.min(get().map.fov, MAP_NEAR));
     }
     set({
       frames,
@@ -770,8 +779,10 @@ export const actions = {
   goTo(target: Target, options: { fly?: boolean } = {}): void {
     const fly = options.fly !== false;
     // Keep a wide map view wide enough to show context, but come in close from an all-sky view.
-    // A solar system body's position is known only after its images are found.
-    if (!target.moving && fly) actions.flyTo(target, Math.min(get().map.fov, MAP_NEAR));
+    // A star is where its coordinates say, and a body the map marks is on its marker. Any
+    // other solar system body's place is known only after its images are found.
+    const place = target.moving ? bodyNow(target) : target;
+    if (place && fly) actions.flyTo(place, Math.min(get().map.fov, MAP_NEAR));
     void load(target, get().fieldSize, fly);
   },
 
@@ -843,7 +854,7 @@ export const actions = {
    * Pass reload = false while the user is still dragging, or when sizing an area not yet studied.
    */
   setFieldSize(arcsec: number, reload = true): void {
-    const fieldSize = Math.min(3600, Math.max(60, Math.round(arcsec)));
+    const fieldSize = Math.min(MAX_FIELD, Math.max(MIN_FIELD, Math.round(arcsec)));
     if (fieldSize === get().fieldSize && !reload) return;
     const place = placeInFilm();
     const found = get().frames.length > 0;
@@ -862,7 +873,8 @@ export const actions = {
 
   setMode(mode: SequenceMode): void {
     filmMoves++;
-    set({ mode, ...resequence(undefined, mode), player: { ...get().player, index: 0 } });
+    // A new way of viewing starts the film over, at rest on its first step.
+    set({ mode, ...resequence(undefined, mode), player: { ...get().player, index: 0 }, filmMoved: false });
   },
 
   setFilters(change: Partial<Filters>): void {
@@ -880,7 +892,7 @@ export const actions = {
   play(): void {
     if (get().player.playing) return;
     filmMoves++;
-    set({ player: { ...get().player, playing: true } });
+    set({ player: { ...get().player, playing: true }, filmMoved: true });
     ticker = setTimeout(tick, 1000 / get().player.fps);
   },
 
@@ -896,7 +908,7 @@ export const actions = {
     const count = get().sequence.length;
     if (!count) return;
     filmMoves++;
-    set({ player: { ...get().player, index: ((Math.round(index) % count) + count) % count } });
+    set({ player: { ...get().player, index: ((Math.round(index) % count) + count) % count }, filmMoved: true });
   },
 
   /** Move forward or back by a number of steps. Pauses playback. */
@@ -1027,7 +1039,7 @@ export const actions = {
     const next = get().mode === mode ? { sequence: get().sequence } : resequence(undefined, mode);
     const index = next.sequence.findIndex((item) => item.frameIds[0] === frameId);
     if (index < 0) return;
-    set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false } });
+    set({ mode, sequence: next.sequence, player: { ...get().player, index, playing: false }, filmMoved: true });
   },
 
   /** Change map settings: projection, layer, channel, grid, labels, the coverage overlays, the tile grid, the solar system, or the measure tool. */
@@ -1159,15 +1171,15 @@ export const actions = {
   /**
    * A click on an object on the sky map. It becomes the study at once, with its view box
    * around it, as a click on empty sky does (Matt's decision), and its card shows its facts.
-   * A star or galaxy is where it was clicked, so the map stays put. A planet, asteroid, or
-   * comet was somewhere else when its images were taken, so the map goes to the first of them.
-   * The Sun and the Moon have no images, so their card is all there is.
+   * The object is where it was clicked, so the map stays put. That holds for a planet,
+   * asteroid, or comet too: its box stays on its marker, though its images are of the places
+   * it was. The Sun and the Moon have no images, so their card is all there is.
    */
   chooseObject(object: SkyObject): void {
     actions.selectObject(object);
     if (isStudied(get(), object)) return; // already the study
     if (object.solar) {
-      if (object.solar.query) void actions.search(object.solar.query);
+      if (object.solar.query) void actions.search(object.solar.query, { fly: false });
       return;
     }
     actions.studyObject(object, { fly: false });

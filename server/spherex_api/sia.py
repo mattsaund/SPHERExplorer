@@ -9,8 +9,6 @@ import re
 import time
 
 import numpy as np
-from astropy.coordinates import get_body_barycentric
-from astropy.time import Time
 
 from . import calib, config, net
 from .instrument import channel_index
@@ -133,6 +131,10 @@ async def _wave_grids(rows: list[dict], detectors: np.ndarray) -> dict:
 
 def _parallax_factors(mjd: np.ndarray, ra: float, dec: float):
     """Sky shift in arcseconds per arcsecond of parallax, east and north, at each time."""
+    # Loaded here, not at the top: see the note in resolve.py.
+    from astropy.coordinates import get_body_barycentric
+    from astropy.time import Time
+
     earth = get_body_barycentric("earth", Time(mjd, format="mjd", scale="utc"))
     ex, ey, ez = (earth.x.to_value("au"), earth.y.to_value("au"), earth.z.to_value("au"))
     a, d = ra * D2R, dec * D2R

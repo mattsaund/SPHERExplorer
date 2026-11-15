@@ -9,9 +9,11 @@ import io
 import re
 
 import numpy as np
-from PIL import Image
 
 from . import config, net
+
+# Pillow is loaded inside the functions that use it. Only the color sky layer needs it, so a
+# new instance does not load it before its first answer.
 
 CUBE = "https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube"
 MAX_ORDER = 5       # deepest level of the cube
@@ -80,6 +82,8 @@ async def _source(order: int, npix: int, channel: int) -> np.ndarray:
         try:
             response = await net.client().get(url, timeout=30)
             response.raise_for_status()
+            from PIL import Image
+
             return np.asarray(Image.open(io.BytesIO(response.content)).convert("L"), dtype=np.float32)
         except Exception as error:  # noqa: BLE001
             last = error
@@ -92,6 +96,8 @@ async def _build(recipe: str, order: int, npix: int) -> bytes:
     channels = parse_recipe(recipe)
     planes = await asyncio.gather(*(_source(order, npix, channel) for channel in channels))
     rgb = np.stack([plane * gain for plane, gain in zip(planes, BALANCE)], axis=-1)
+    from PIL import Image
+
     image = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
     out = io.BytesIO()
     image.save(out, "PNG", compress_level=6)

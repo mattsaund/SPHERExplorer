@@ -191,14 +191,41 @@ export function solarPlaces(date: Date): SolarBody[] {
   out.push({ ...MOON, ra: moon.ra, dec: moon.dec, earth: moon.distance, sun: sun.distance, disc: discRadius(MOON_RADIUS_KM, moon.distance), ...moonLight(moon, sun) });
   for (const body of SOLAR_BODIES) {
     if (!body.orbit) continue;
-    // Light takes time to arrive, so the body is seen where it was when the light left.
-    // One pass of that correction is plenty for a marker on a map.
-    let place = heliocentric(body.orbit, jd);
-    let offset: Vector = [place[0] - earth[0], place[1] - earth[1], place[2] - earth[2]];
-    place = heliocentric(body.orbit, jd - Math.hypot(...offset) * LIGHT_DAYS);
-    offset = [place[0] - earth[0], place[1] - earth[1], place[2] - earth[2]];
-    const sky = toSky(offset);
-    out.push({ ...body, ra: sky.ra, dec: sky.dec, earth: sky.distance, sun: Math.hypot(...place) });
+    const seen = seenFrom(body.orbit, earth, jd);
+    out.push({ ...body, ra: seen.ra, dec: seen.dec, earth: seen.distance, sun: seen.sun });
   }
   return out;
+}
+
+/** Where a body on an orbit is seen from the Earth at a moment, with its distance from the Earth and the Sun in au. */
+function seenFrom(orbit: SolarOrbit, earth: Vector, jd: number): SkyPosition & { distance: number; sun: number } {
+  // Light takes time to arrive, so the body is seen where it was when the light left.
+  // One pass of that correction is plenty for a marker on a map.
+  let place = heliocentric(orbit, jd);
+  let offset: Vector = [place[0] - earth[0], place[1] - earth[1], place[2] - earth[2]];
+  place = heliocentric(orbit, jd - Math.hypot(...offset) * LIGHT_DAYS);
+  offset = [place[0] - earth[0], place[1] - earth[1], place[2] - earth[2]];
+  return { ...toSky(offset), sun: Math.hypot(...place) };
+}
+
+/** The last place asked for, kept for a minute: the answer is wanted many times and barely changes. */
+let lastPlace: { key: string; place: SkyPosition | null } | null = null;
+
+/**
+ * Where one of the map's bodies is at a moment, found by the page about it, which is how a
+ * study of the body and its marker on the map know each other. Null for the Sun, the Moon,
+ * and any body the map does not mark.
+ */
+export function solarPlace(url: string, date: Date): SkyPosition | null {
+  const key = `${url}|${Math.floor(date.getTime() / 60000)}`;
+  if (lastPlace?.key === key) return lastPlace.place;
+  const body = SOLAR_BODIES.find((entry) => entry.url === url);
+  let place: SkyPosition | null = null;
+  if (body?.orbit) {
+    const jd = julianDate(date);
+    const seen = seenFrom(body.orbit, heliocentric(EARTH_ORBIT, jd), jd);
+    place = { ra: seen.ra, dec: seen.dec };
+  }
+  lastPlace = { key, place };
+  return place;
 }

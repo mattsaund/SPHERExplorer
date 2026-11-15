@@ -3,7 +3,7 @@
 // Austin's side owns the look. The engine pieces used here are listed in docs/ui-checklist.md.
 // Written with Claude Code (Anthropic) assistance.
 import { useEffect, useRef, useState } from "react";
-import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, fieldCenter, fieldDate, isStudied, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
+import { BLINK_PARTNERS, actions, blinkPartner, compass, distanceMethod, fieldCenter, fieldDate, fieldIsNow, isStudied, formatAu, formatDate, formatDec, formatDistance, formatRa, useStore, type BlinkChoice, type SkyObject } from "../core";
 import { copyText } from "./copy";
 
 /** Points down. Turns up while the thing it belongs to is open (see app.css). */
@@ -45,8 +45,9 @@ export function useAreaShown(): boolean {
  * its images load at once. While the square is dragged this card follows it.
  * "Close" ends the study and takes the square away. `onClose` runs after that, so the page
  * can put the image study away too.
- * A named target is named here. A planet or comet moves, so its square is where the image on
- * screen was taken, and the card says which date that was.
+ * A named target is named here. A planet or comet that the map marks starts with its square
+ * on its marker, and the card says it is where the body is now. Once the film moves, the
+ * square is where the image on screen was taken, and the card says which date that was.
  */
 export function AreaCard({ onClose }: { onClose: () => void }) {
   const dragged = useStore((s) => (s.map.picked && s.map.pickedIn === "map" ? s.map.picked : null));
@@ -56,6 +57,8 @@ export function AreaCard({ onClose }: { onClose: () => void }) {
   const ra = useStore((s) => (s.map.fieldShown ? fieldCenter(s)?.ra : undefined));
   const dec = useStore((s) => (s.map.fieldShown ? fieldCenter(s)?.dec : undefined));
   const date = useStore((s) => (s.target?.moving ? fieldDate(s) : null));
+  // A body the map marks starts with its square on its marker, where it is today.
+  const today = useStore((s) => fieldIsNow(s));
   const studied = useStore((s) => s.map.fieldShown && s.target !== null);
   const area = dragged ?? (ra !== undefined && dec !== undefined ? { ra, dec } : null);
   // A moving body has no place on the map until its images are found. Its study can still be closed.
@@ -67,7 +70,8 @@ export function AreaCard({ onClose }: { onClose: () => void }) {
         <p>
           <strong>{target.name}</strong>
           {target.kind && <span className="muted">, {target.kind}</span>}
-          {area && date !== null && <span className="muted">. Where it was on {formatDate(date)}</span>}
+          {area && today && <span className="muted">. Where it is now</span>}
+          {area && !today && date !== null && <span className="muted">. Where it was on {formatDate(date)}</span>}
         </p>
       )}
       {area && <p className="mono">{coordinates(area)}</p>}

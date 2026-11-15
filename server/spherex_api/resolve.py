@@ -9,11 +9,11 @@ import urllib.parse
 import warnings
 import xml.etree.ElementTree as ElementTree
 
-import astropy.units as u
-from astropy.coordinates import SkyCoord
-from astropy.time import Time
-
 from . import cache, distance, net
+
+# Astropy's coordinate tools are loaded inside the function that needs them, not here. They
+# are a large share of what a new instance loads, and the server should answer its first
+# request before that. The warm-up in main.py loads them right after the server is up.
 
 # The SIMBAD page of one object: identifiers, measurements, and every paper that mentions it.
 SIMBAD_PAGE = "https://simbad.cfa.harvard.edu/simbad/sim-id?Ident="
@@ -111,6 +111,10 @@ def propagate(ra, dec, pm_ra, pm_dec, from_year=2000.0, to_year=REFERENCE_EPOCH)
     """
     if not pm_ra and not pm_dec:
         return ra, dec, pm_ra, pm_dec
+    import astropy.units as u
+    from astropy.coordinates import SkyCoord
+    from astropy.time import Time
+
     start = SkyCoord(
         ra=ra * u.deg,
         dec=dec * u.deg,

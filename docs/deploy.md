@@ -177,7 +177,7 @@ What is in place.
 - The container runs as a user with no rights, from a fixed installer version, with nothing private in its build context.
 - `.gitignore` keeps keys, tokens, environment files, and cloud credentials out of the repository. The history was scanned and holds none. GitHub's secret scanning and push protection are on.
 - `npm audit` reports no known vulnerabilities in the web app's libraries.
-- `--max-instances 3` caps what a flood of requests can cost.
+- `--max-instances 2` caps what a flood of requests can cost.
 
 For Matt or Austin to switch on, since they are account settings.
 
@@ -241,7 +241,8 @@ Why domain mapping: it is free and works in `us-east4`. Google calls it a previe
 Deploys freeze on Nov 15, so these are the things that can still go wrong by themselves.
 
 - **The index refresh can switch itself off.** GitHub pauses scheduled workflows in a public repository after 60 days with no activity in it. With nothing pushed after the freeze, that falls about Jan 14. A small commit in early January, or the Enable button on the workflow's page under Actions, keeps new exposures coming in. A commit that touches only docs still deploys nothing after the freeze.
-- **The first scheduled run is Tue Nov 17.** Until one run has passed, the refresh is unproven. It can be started by hand from the Actions tab (Refresh exposure index, then Run workflow).
+- **The first scheduled run is Tue Nov 17.** Until one run has passed on GitHub, the refresh is unproven there. It can be started by hand from the Actions tab (Refresh exposure index, then Run workflow).
+- **What was done to make that run safe, Nov 15.** The refresh was run on Matt's machine against a copy of the published index, with nothing published. It took 34 s, found no new exposures, and left all 273,367 rows as they were. IRSA's list of releases timed out during the run, and the refresh carried on with its built-in list, as designed. Two guards were added the same day. A refresh that would lose more than 2 percent of the index stops before it saves anything, so the job fails and publishes nothing (`size_check` in `index_build.py`). And a server that meets a damaged index file keeps the index it has in memory (`get_index` in `exposures.py`).
 - **The trial credit.** If it ran out, Google would stop the site. Billing, then Reports, shows what is left. See "Cost".
 - **The solar system marks** are good to a fraction of a degree for months. `scripts/update_solar.py` renews them, but that needs a deploy, so they stay as they are through judging.
 

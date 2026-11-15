@@ -77,7 +77,7 @@ const STEPS: Step[] = [
     screen: "images",
     example: true,
     text: () =>
-      "Objects lists everything known in the field. Opening one shows its facts. Details has the coordinates, the distance, and a link to everything known about the target.",
+      "Objects lists the best-known objects in the field. Opening one shows its facts. Details has the coordinates, the distance, and a link to everything known about the target.",
   },
   {
     title: "Tools",

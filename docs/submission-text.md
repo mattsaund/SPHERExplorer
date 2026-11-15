@@ -2,7 +2,7 @@
 
 The text for each field of the Space Apps project page, kept here so it can be checked against the app before the final submission. Claude drafted it from the repository docs. Austin and Matt approve it, and the project page is the copy judges see.
 
-Status, Nov 15: the summary and the project details were pasted into the form on Nov 14, and both have changed since (see the claims table), so they need pasting again. The project link is chosen. The two data fields, the References field, and the SI answer are drafted below and wait for approval. The demo link is still to do. Our Local Event needs the project submitted by Sun Nov 15, 4:20 pm Eastern.
+Status, Nov 15, noon: the summary and the project details were pasted into the form on Nov 14, and both have changed since (see the claims table), so they need pasting again. The project link is chosen. The two data fields, the References field, and the SI answer are drafted below and wait for approval. The demo video is a rendered draft that waits for approval and an upload. Matt set 4:00 pm Eastern on Sun Nov 15 as the team's deadline for all of it. The Local Event's cutoff on record is 4:20 pm.
 
 To paste the project details with their formatting, copy them from a rendered view of this file (GitHub's file view works), not from a terminal.
 
@@ -12,17 +12,17 @@ SPHERExplorer
 
 ## Summary
 
-50 to 200 words, 1,500 characters at most. Now 195 words and 1,149 characters. Plain text.
+50 to 200 words, 1,500 characters at most. Now 198 words and 1,182 characters. Plain text.
 
-SPHERExplorer is a free public web tool that plays every SPHEREx image of any position in the sky in time order. NASA's SPHEREx telescope maps the entire sky in 102 infrared bands and images each position many times. Seeing what moved or changed usually means downloading and aligning many large files.
+SPHERExplorer is a free web tool that plays every SPHEREx image of any sky position in time order. NASA's SPHEREx telescope maps the entire sky in 102 infrared bands and images each position many times. Seeing what moved or changed usually means downloading and aligning large files.
 
-Users search by object name or coordinates. SPHERExplorer finds every exposure in a fraction of a second and steps through the visits, so moving objects shift across the frame. One button checks every source in the field and reports what moved, brightened, or faded. It flags all five of NASA's test targets. Any point has a spectrum across all 102 bands, with features such as water and methane marked. Fields can be compared with Gaia, 2MASS, WISE, and NEOSSat data. Every view has a shareable link, exports to FITS, and can be embedded in other sites.
+Users search by object name or coordinates. SPHERExplorer finds every exposure in a fraction of a second and steps through the visits, so moving objects shift across the frame. One button checks every source in the field and reports what moved, brightened, or faded. It flags all five of NASA's test targets, WISE 0855 with its two longest-wavelength detectors selected. Any point has a spectrum across all 102 bands, with features such as water and methane marked. Fields can be compared with Gaia, 2MASS, WISE, and NEOSSat data. Every view has a link, exports to FITS, and can be embedded in other sites.
 
 SPHEREx data is open to everyone but hard to use. SPHERExplorer opens it to students, educators, researchers, and citizen scientists. They can find nearby brown dwarfs, track asteroids and comets, and study how the sky changes. It needs no software or account, and its code is open source.
 
 ## Project demonstration
 
-To do. The demo video, uploaded by 3:00 pm Sunday. See `docs/video.md`.
+To do. A draft cut is rendered: 28.5 s, from the live site, with the SI watermark on every frame (`docs/video.md`, "Draft cut, Nov 15"). It needs the team's approval, an upload to a public host, and the full `https://` link pasted here.
 
 ## Project link
 
@@ -39,13 +39,15 @@ No length limit is shown. Now about 870 words.
 SPHERExplorer is a free web tool for the SPHEREx all-sky infrared survey. Enter an object name or coordinates, and it finds every public SPHEREx image of that position and plays them in time order. Moving objects step across the frame. Each exposure of a position is taken in a different one of 102 infrared bands, so the same images also give a spectrum of any point.
 
 - Search by name, by J2000 RA and Dec in any common form, or by planet, asteroid, or comet.
-- Play every exposure, one sum per visit, one per wavelength, or the deepest sum of all.
+- Play every exposure, one sum per visit, one per wavelength, or the deepest sum of all. Sum any of the six detectors for a cleaner picture, subtract one visit from another, or make a color image from three wavelength ranges.
+- Choose the field of view, from 1 to 50 arcminutes.
 - Blink against WISE, 2MASS, or the Digitized Sky Survey, taken years to decades earlier.
 - Measure Changes checks every source in the field and reports what moved, brightened, or faded between visits.
 - Read the spectrum of any point. Water, carbon dioxide, methane, and other features are marked, and the tool reports which actually stand out.
-- See every known object in the field, including asteroids and comets, and a sky map with the SPHEREx all-sky survey, channel by channel.
-- Compare with Gaia positions, 2MASS and WISE brightness, and NEOSSat images from the Canadian Space Agency where NEOSSat has observed the field.
-- Save FITS files with sky coordinates, flags, and variance, plus data tables, pictures, and animations. Every view has a link and can be embedded in other sites.
+- See the best-known objects in the field, every known asteroid and comet that was in it when the image was taken, and a sky map with the SPHEREx all-sky survey, channel by channel.
+- Overlay Gaia stars, each moved to where it was on the image's date. Compare with 2MASS and WISE brightness, and with NEOSSat images from the Canadian Space Agency where NEOSSat has observed the field.
+- See the archive's quality flags on the image, pixel by pixel.
+- Save FITS files with sky coordinates, flags, and variance, plus data tables, pictures, and animations. Every view has a link that carries its coordinates, and the tool can be embedded in other sites.
 
 ### How it works
 
@@ -87,11 +89,13 @@ SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, ci
 
 ### Factors we considered
 
-- Scientific validity. Positions carried forward in time, matching wavelengths, flagged pixels left out, and every method checked against Astropy and published catalogs.
+- Scientific validity. Positions carried forward in time, matching wavelengths, flagged pixels left out, and results checked against Astropy and published catalogs. `docs/methods.md` says how each was checked.
 - Ease of use. A child or an older adult should be able to use it, so the wording is plain and a tour explains each part.
 - Speed and cost. Small transfers, caching, and a server that scales to zero when idle.
-- Rules and credit. No NASA branding, credit for every data source and library, all SI work labeled, and an open license.
+- Rules and credit. No NASA branding, credit for every data source and library, SI work labeled, and an open license.
 - Durability. The site stays up through judging and picks up new data by itself.
+
+SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
 Source code, methods, and every reference: [https://github.com/mattsaund/SPHERExplorer](https://github.com/mattsaund/SPHERExplorer)
 
@@ -99,7 +103,7 @@ Source code, methods, and every reference: [https://github.com/mattsaund/SPHEREx
 
 Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`.
 
-- SPHEREx Spectral Images, Data Release 1 and Quick Release 3 (Level 2). NASA SPHEREx, through the NASA/IPAC Infrared Science Archive (IRSA). DOI [10.26131/IRSA678](https://doi.org/10.26131/IRSA678) and [10.26131/IRSA662](https://doi.org/10.26131/IRSA662). Every image the tool shows is read from these files, in IRSA's public bucket on AWS.
+- SPHEREx Spectral Images, Data Release 1 and Quick Release 3 (Level 2). NASA SPHEREx, through the NASA/IPAC Infrared Science Archive (IRSA). DOI [10.26131/IRSA678](https://doi.org/10.26131/IRSA678) and [10.26131/IRSA662](https://doi.org/10.26131/IRSA662). Every SPHEREx image in the film is read from these files, in IRSA's public bucket on AWS.
 - SPHEREx Spectral All-Sky Cube, Data Release 1. DOI [10.26131/IRSA679](https://doi.org/10.26131/IRSA679). The base layer of the sky map, channel by channel and in color.
 - IRSA services. Image search as a fallback, the SPHEREx coverage maps, and the sky survey tiles from 2MASS, WISE, Spitzer, and other missions that the map layers and Blink use.
 - The SPHEREx Explanatory Supplement and the SPHEREx Archive User Guide. The file layout, the flags, and the calibration that the tool relies on.
@@ -152,6 +156,11 @@ Papers and documents
 - Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
 - Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
 - Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.
+- Floyd and Steinberg 1976, Proceedings of the Society for Information Display 17, 75. The dithering of color pictures in saved animations.
+- Siegel 1982, Biometrika 69, 242. The repeated median line that finds the smooth level of a spectrum.
+- Vincenty 1975, Survey Review 23, 88. The formula for the angle between two points on the sky.
+- HITRAN2020 (Gordon et al. 2022, JQSRT 277, 107949). The standard database for the molecular bands marked on spectra.
+- Survey papers for the map layers and Blink: Lasker et al. 2008 (DSS2), Ahn et al. 2012 (SDSS DR9), Martin et al. 2005 (GALEX), Fazio et al. 2004 and Churchwell et al. 2009 (Spitzer IRAC and GLIMPSE), Miville-Deschênes and Lagache 2005 (IRAS IRIS), Poglitsch et al. 2010 (Herschel PACS), Planck Collaboration 2020 (Planck).
 
 Software and services
 
@@ -174,6 +183,7 @@ Software and services
 - Aladin Lite 3.9.2-beta (CDS). LGPL-3.0-or-later. Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view.
 - satellite.js 7.2. MIT. Shashwat Kandadai and contributors. SGP4 orbit model by Vallado et al. 2006.
 - gifenc 1.0.3. MIT. Matt DesLauriers.
+- For the demo video only: puppeteer-core 25 (Apache-2.0, Google), the Inter 5.3 typeface from the `@fontsource/inter` package (SIL Open Font License 1.1, Rasmus Andersson), and ffmpeg 9 (LGPL or GPL, FFmpeg developers, a system tool that is not shipped).
 - IRSA SIA and the AWS S3 bucket `nasa-irsa-spherex`. Public. IRSA acknowledgment.
 - Sesame name resolver (CDS), through the CfA and IDIA mirrors. Credit required. SIMBAD and VizieR acknowledgments.
 - MAST catalog API (Gaia DR3). Public. MAST, STScI.
@@ -190,7 +200,8 @@ Software and services
 - GitHub Actions steps: actions/checkout 4, actions/setup-node 4, astral-sh/setup-uv 5. MIT. GitHub, Astral.
 - Node.js 22 and Python 3.13, as the official container images `node:22-slim` and `python:3.13-slim`. MIT (Node.js), PSF-2.0 (Python). OpenJS Foundation, Python Software Foundation.
 - GitHub: the repository, Actions, and Releases. GitHub terms of service.
-- Claude Code (Anthropic), with the model Claude Fable 5.2. Anthropic terms of service. Labeled in every commit, pull request, and file header. Logged in `docs/si-usage.md`.
+- Claude Code (Anthropic), with the models Claude Opus 5.5 and Claude Fable 5.2. Anthropic terms of service. Labeled in commits, pull requests, and file headers. Logged in `docs/si-usage.md`.
+- Tools studied, not used as code: WiseView (Caselden et al. 2018, ASCL 1806.004), which the challenge names as a model, and the IRSA SPHEREx Data Explorer (https://irsa.ipac.caltech.edu/applications/spherex/).
 - Domain name from the GoDaddy Registry offer in the Space Apps Global Offers, registered through Porkbun. Porkbun terms of service.
 
 Acknowledgments
@@ -210,13 +221,15 @@ Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/si-
 
 Yes. We used Claude Code (Anthropic), with the models Claude Opus 5.5 and Claude Fable 5.2.
 
-What the team did. Matt and Austin chose the challenge and set the concept and the feature list, which are recorded as they wrote them in docs/concept.md. They made every product decision (docs/decisions.md), tried each change on the live site, and approved the text of this page.
+What the team did. Matt and Austin chose the challenge and set the concept and the feature list, which are recorded as they wrote them in docs/concept.md. They made the product decisions (docs/decisions.md), tried the changes on the live site, and approved the text of this page.
 
-What SI did. Before kickoff, Claude gathered background notes on the SPHEREx data, the test targets, and the Space Apps rules. During the event, Claude wrote and tested the code, the documentation, and the deployment setup under the team's direction, and measured the results reported here. Claude also drafted the text of this project page, including this answer, and built the demo video from recordings of the live tool.
+What SI did. On Nov 12 and 13, before kickoff, Claude researched the SPHEREx data and how to reach it, the five test targets, libraries and services, and the Space Apps rules. Nothing was written to a file before the event began. The notes went into docs/research/ at kickoff. During the event, Claude wrote and tested the code, the documentation, and the deployment setup under the team's direction, and measured the results reported here. For some features Claude listed the options or proposed a method, and the team decided. The decision log and the SI log say where, for example Blink and the measurement of stars too bright for the detector. Claude also drafted the text of this project page, including this answer, and helped write and time the script of the demo video, which the team recorded on the live site.
 
-How it is labeled. Every commit that Claude wrote carries a Co-Authored-By line. Every source file starts with a header that says it was written with Claude Code. Every pull request says the same, and docs/si-usage.md logs each use by date. The demo video carries a visible SI watermark on every frame.
+How it is labeled. Commits that Claude wrote carry a Co-Authored-By line. The two exceptions are early merge commits made with GitHub's default text, and docs/si-usage.md names them. Every source file starts with a header that says it was written with Claude Code. Every pull request says the same, and docs/si-usage.md logs the notable uses by date. The demo video is a recording by the team, and its description names Claude's help with the script.
 
-No image or data in the tool is generated by SI. Every picture comes from NASA SPHEREx and the other archives listed on this page, and the tool's code computes its sums, spectra, and measurements from them.
+No picture in the tool is generated by SI. Every image comes from NASA SPHEREx and the other archives listed on this page, and the tool's code computes its sums, spectra, and measurements from them. The tool's reference lists (spectral features, well-known objects for the search box, and facts about the telescopes) were compiled by Claude from the published sources in docs/references.md.
+
+If the fallback video is submitted instead (the cut built from code in `video/`), replace the sentence about the demo video in "What SI did" with "Claude also built the demo video from recordings of the live tool", and the last sentence of "How it is labeled" with "The demo video carries a visible SI watermark on every frame."
 
 ## Claims to recheck before the final submission
 
@@ -225,11 +238,11 @@ Every factual line above, and where to check it. Recheck after the last change t
 | Claim | Where it appears | Check against |
 |---|---|---|
 | 102 infrared bands | Summary, details | `docs/research/spherex-data.md` |
-| About 273,000 exposures indexed (273,367 on Nov 14) | Details | `/api/meta` on the live site, or the About tab |
-| Search answers in a fraction of a second: about 0.1 s on the live site on Nov 15, about 20 ms on a development machine | Summary, details | Time `/api/search` on the live site |
-| A 5 arcmin frame is about 8 KB, the file 65 MB, and the server reads about 1 MB of it | Details | `README.md`, `docs/methods.md` section 2, `docs/deploy.md` "Speed" |
+| About 273,000 exposures indexed (273,367 on Nov 14 and on Nov 15) | Details | `/api/meta` on the live site, or the About tab. Rechecked Nov 15, noon |
+| Search answers in a fraction of a second: 0.08 to 0.16 s on the live site on Nov 15 once an instance is running, about 20 ms on a development machine | Summary, details | Time `/api/search` on the live site. Rechecked Nov 15, 11:24 am |
+| A 5 arcmin frame is about 8 KB, the file 65 MB, and the server reads about 1 MB of it | Details | `README.md`, `docs/methods.md` section 2, `docs/deploy.md` "Speed". Rechecked Nov 15, 11:24 am: 475 images came as 3.9 MB, from 481 MB read |
 | New exposures are added twice a week | Details | `.github/workflows/index.yml` |
-| Measure Changes flags all five test targets, with the numbers given. WISE 0855 only with detectors 5 and 6 | Summary, details | `docs/methods.md` section 9. Rechecked on the live site on Nov 15 |
+| Measure Changes flags all five test targets, with the numbers given. WISE 0855 only with detectors 5 and 6 | Summary, details | `docs/methods.md` section 9. Rechecked on the live site on Nov 15, 11:28 am, after the last change to the app. Every number matched |
 | Epsilon Indi B matches 2MASS and WISE within about 10 percent | Details | `docs/methods.md` section 4 |
 | Blink partners are WISE, 2MASS, and the Digitized Sky Survey | Details | `docs/methods.md` section 13 |
 | Water, carbon dioxide, and methane are marked, and the tool says which stand out | Summary, details | `docs/methods.md` section 10 |
@@ -238,5 +251,10 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The stack and the data sources | Details | `docs/architecture.md`, `docs/references.md` |
 | Deploys run only after every test passes | Details | `.github/workflows/deploy.yml` |
 | No account is needed | Details | `docs/deploy.md`, Security |
-| The SI answer says Claude built the demo video from recordings of the live tool | SI question | True only if the submitted video is the one rendered from `video/`. Change the sentence if the demo is made another way |
+| The SI answer says the team recorded the demo video and Claude helped with its script | SI question | True for the team's recording (`docs/video.md`). If the fallback cut from `video/` is submitted, use the two replacement sentences under the answer |
+| The SI answer says the research before kickoff was on Nov 12 and 13 and that nothing was written to a file before the event | SI question | Checked on Nov 15 against the record of Matt's Claude Code session: research by web lookups and probes of the services, no file written, and the first commit at 9:18 am on Nov 14 |
+| The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
+| The details say the tool is independent of NASA | Details | The app's About tab says the same |
+| The details name the best-known objects in the field, not every object | Details | The app asks SIMBAD for the 150 most cited objects in the field (`store.ts`) |
+| The SI answer says every source file and every pull request is labeled, and names the two commits that are not | SI question | Checked by script on Nov 15, noon: no source file lacks the header, all 29 pull requests carry the line, and 129 of 132 commits on `main` carry the trailer. The third commit without one is `e79c16e`, a README edit from Austin's side |
 | The References field lists every resource in use | References | Build it again from `docs/references.md` after any change to that file |

@@ -2,8 +2,9 @@
 # It reads only the public S3 bucket (a listing plus one small header per exposure),
 # so search keeps working when the IRSA services are busy or down.
 #
-#   uv run python -m spherex_api.index_build            build or extend the index
-#   uv run python -m spherex_api.index_build --fresh    rebuild from scratch
+#   uv run python -m spherex_api.index_build                  build or extend the index
+#   uv run python -m spherex_api.index_build --fresh          rebuild from scratch
+#   uv run python -m spherex_api.index_build --allow-shrink   accept an index that got smaller
 #
 # Written with Claude Code (Anthropic) assistance.
 
@@ -27,6 +28,7 @@ INDEX_PATH = config.CACHE_DIR / "index" / "exposures.npz"
 CALIBRATION_SAMPLE = 200  # exposures read on all six detectors to measure the detector angles
 CONNECTIONS = 40          # parallel header reads. Kept modest so a home connection stays usable.
 BATCH = 20000             # exposures between saves, so an interrupted build can resume
+SHRINK_LIMIT = 0.02       # a refresh that would lose more than this share of the index stops
 
 ROW = np.dtype([
     ("obsid", "S24"),
@@ -212,8 +214,26 @@ def active_releases() -> tuple[list[str], bool]:
     return fallback, False
 
 
+def size_check(before: int, kept: int, incoming: int, allow_shrink: bool = False) -> None:
+    """Stop a refresh that would leave the index much smaller than it found it.
+
+    A refresh adds exposures, and may swap a release for a better processing of the same
+    exposures. Neither makes the index smaller. If more than SHRINK_LIMIT of it would go, the
+    bucket listing or IRSA's list of releases is wrong, and the old index is the better one.
+    The refresh runs unattended, and the live site reads what it publishes, so it stops here.
+    """
+    if allow_shrink or not before:
+        return
+    after = kept + incoming
+    if after < before * (1 - SHRINK_LIMIT):
+        raise SystemExit(
+            f"Stopped. The index would go from {before} to about {after} exposures, and nothing was saved. "
+            "If that is right, run again with --allow-shrink."
+        )
+
+
 # Build or update the index file. With fresh, start over instead of adding to the old one.
-def build(fresh: bool = False) -> None:
+def build(fresh: bool = False, allow_shrink: bool = False) -> None:
     started = time.time()
     old = None
     if not fresh and INDEX_PATH.exists():
@@ -267,6 +287,8 @@ def build(fresh: bool = False) -> None:
             todo.append((release, obsid, dets))
     rows = rows[~drop]
     print(f"{len(todo)} new exposures, {int(drop.sum())} dropped", flush=True)
+    # Nothing has been written yet, so stopping here leaves the old index as it was.
+    size_check(len(old["rows"]) if old is not None else 0, len(rows), len(todo), allow_shrink)
 
     if old is not None and "sip" in old:
         relative, scales, sip = old["relative"], old["scales"], old["sip"]
@@ -345,4 +367,6 @@ def save(rows, releases, versions, weeks, relative, scales, sip) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build or extend the SPHEREx exposure index from the S3 bucket.")
     parser.add_argument("--fresh", action="store_true", help="Ignore any existing index and rebuild")
-    build(parser.parse_args().fresh)
+    parser.add_argument("--allow-shrink", action="store_true", help="Accept an index that lost more than 2 percent of its exposures")
+    options = parser.parse_args()
+    build(options.fresh, options.allow_shrink)

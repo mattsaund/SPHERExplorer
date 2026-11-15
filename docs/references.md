@@ -67,6 +67,11 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
 - Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
 - Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.
+- Floyd and Steinberg 1976, Proceedings of the Society for Information Display 17, 75. The error diffusion that dithers color pictures in saved animations (`web/src/core/gifcolor.ts`).
+- Siegel 1982, Biometrika 69, 242. The repeated median line that finds the smooth level of a spectrum (`web/src/core/features.ts`).
+- Vincenty 1975, Survey Review 23, 88. The formula for the angle between two points on the sky, in the map's measure tool.
+- HITRAN2020 (Gordon et al. 2022, JQSRT 277, 107949). The standard database for molecular band positions. The bands in `web/src/core/lines.ts` are textbook values that Claude compiled. They were not copied from one source, so check them against this one.
+- Survey papers for the sky map layers and Blink, beyond the catalogs above: Lasker et al. 2008, AJ 136, 735 (DSS2 and the Guide Star Catalog). Ahn et al. 2012, ApJS 203, 21 (SDSS DR9). Martin et al. 2005, ApJ 619, L1 (GALEX). Fazio et al. 2004, ApJS 154, 10, and Churchwell et al. 2009, PASP 121, 213 (Spitzer IRAC and GLIMPSE). Miville-Deschênes and Lagache 2005, ApJS 157, 302 (IRAS IRIS). Poglitsch et al. 2010, A&A 518, L2 (Herschel PACS). Planck Collaboration 2020, A&A 641, A1 (Planck).
 
 ## Software and services
 
@@ -93,6 +98,7 @@ Add the license and version when a library goes into the build.
 | astroquery | BSD-3-Clause | Ginsburg et al. 2019 | Not yet |
 | Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
+| IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied as `CLAUDE.md` Rule 5 asks) |
 | satellite.js 7.2 | MIT | Shashwat Kandadai and contributors. SGP4 orbit model by Vallado et al. 2006 | Yes (live spacecraft position) |
 | gifenc 1.0.3 | MIT | Matt DesLauriers | Yes (animation export) |
 | Mediabunny | MPL-2.0 | | Not yet |
@@ -115,7 +121,7 @@ Add the license and version when a library goes into the build.
 | GitHub Actions steps: actions/checkout 4, actions/setup-node 4, astral-sh/setup-uv 5 | MIT | GitHub, Astral | Yes (checks on every push, and the index refresh) |
 | Node.js 22 and Python 3.13, as the official container images `node:22-slim` and `python:3.13-slim` | MIT (Node.js), PSF-2.0 (Python) | OpenJS Foundation, Python Software Foundation | Yes (the production container) |
 | GitHub: the repository, Actions, and Releases | GitHub terms of service | | Yes (code hosting, checks, deploys, and the published exposure index that the server downloads) |
-| Claude Code (Anthropic), with the model Claude Fable 5.2 | Anthropic terms of service | Labeled in every commit, pull request, and file header. Logged in `docs/si-usage.md` | Yes (the SI tool that wrote and tested code and docs under Matt's and Austin's direction) |
+| Claude Code (Anthropic), with the models Claude Opus 5.5 and Claude Fable 5.2 | Anthropic terms of service | Labeled in commits, pull requests, and file headers. Logged in `docs/si-usage.md` | Yes (the SI tool that wrote and tested code and docs under Matt's and Austin's direction) |
 | puppeteer-core 25 | Apache-2.0 | Google | Yes (drives Chrome to capture and render the demo video, in `video/` only) |
 | Inter 5.3, from the `@fontsource/inter` package | SIL Open Font License 1.1 | Rasmus Andersson | Yes (the type in the demo video) |
 | ffmpeg 9 | LGPL or GPL, a system tool that is not shipped | FFmpeg developers | Yes (encodes the demo video) |

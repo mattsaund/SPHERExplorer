@@ -254,7 +254,9 @@ Deploys freeze on Nov 15, so these are the things that can still go wrong by the
 
 ## Check after deploying
 
-- `https://<address>/api/health` answers with `"status": "ok"`.
-- `https://<address>/?target=WISE%200855-0714&mode=visits&det=56` shows the brown dwarf at the marker.
+These links are for the live domain. To check the Cloud Run address instead, put https://spherexplorer-112779026983.us-east4.run.app in place of https://spherexplorer.earth.
+
+- [https://spherexplorer.earth/api/health](https://spherexplorer.earth/api/health) answers with `"status": "ok"`.
+- [The WISE 0855 view](https://spherexplorer.earth/?target=WISE%200855-0714&mode=visits&det=56) shows the brown dwarf at the marker.
 - https://spherexplorer.earth and https://www.spherexplorer.earth load with no certificate warning.
 - Open it from a phone on mobile data, to be sure it is public.

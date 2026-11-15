@@ -6,6 +6,8 @@ Built by team Turing Complete (Matt and Austin) for the [NASA Space Apps Challen
 
 **Live site.** https://spherexplorer.earth
 
+**Demo video.** https://www.youtube.com/watch?v=EtcNxZPPJSA (29 seconds)
+
 **Status.** Built during the NASA Space Apps Challenge, Nov 14 to 15, 2026. The live site stays up through judging, which ends Jan 26, 2027.
 
 ## What it does

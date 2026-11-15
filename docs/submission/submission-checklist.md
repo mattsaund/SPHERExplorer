@@ -17,7 +17,7 @@ The text for each field, and the claims to recheck before submitting, is in `doc
 
 - [x] Project name. SPHERExplorer.
 - [ ] High-level summary: what we built, how it addresses the challenge, why it matters. Text ready: 198 words, 1,182 characters, inside the limit of 200 and 1,500. Needs pasting again.
-- [ ] Demo link (public, no login). The video built from code is the demo, and a seven-slide deck is the backup (`docs/submission/video.md`). See "Demo".
+- [ ] Demo link (public, no login). https://www.youtube.com/watch?v=EtcNxZPPJSA is the demo video on YouTube. It is public and opens with no login. A seven-slide deck is the backup (`docs/submission/video.md`). Needs pasting into the form.
 - [ ] Final project link (public, no login): the live site (https://spherexplorer.earth) and this repo. Both answer without a login, and the repo is public. Needs pasting.
 - [ ] Project details: what it does, how it works, benefits, goals, tools, languages, hardware, software. Text ready, and its numbers were rechecked on the live site. Needs pasting again.
 - [ ] NASA data and resources used. Draft ready, needs approval.
@@ -28,9 +28,9 @@ The text for each field, and the claims to recheck before submitting, is in `doc
 
 ## Demo
 
-- [ ] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging. The video is 29.00 s by ffprobe, and its render refuses anything over 29.5 s. Check the length again on the host's player.
+- [x] A video of 30 seconds or less, or at most 7 slides including the title and intro slides. Over the limit means no Global Judging. The video is 29.00 s by ffprobe, and its render refuses anything over 29.5 s. YouTube's player shows 29 seconds.
 - [x] English, or English subtitles if the video is in another language. Slides must be in English. Every line of the video is English.
-- [ ] Hosted on YouTube, Google Drive, GitHub, OneDrive, or Dropbox with a public link. Test it in a private window.
+- [x] Hosted on YouTube, Google Drive, GitHub, OneDrive, or Dropbox with a public link. Test it in a private window. On YouTube, public. It opened with no login on Nov 15 at 2:28 pm.
 - [ ] Suggested video timing: 0:00 names and team (Turing Complete), 0:02 the challenge, 0:05 title and tagline, 0:10 how it works plus the NASA and partner data, 0:20 to 0:30 the future.
 - [ ] Slides show the team name, member names, the challenge, an image of the project, the user experience, and how NASA and partner data make it possible.
 - [x] SI-generated images or video carry a visible watermark. No NASA branding in SI-generated content. The video has the watermark on every frame, and its render stops if anything covers it. It shows no logo of any kind except Aladin Lite's own mark on its map.

@@ -79,6 +79,8 @@ Seven slides, drafted with Claude as a slide artifact, with real screenshots of 
 
 ## Upload
 
+Done. Matt uploaded the video on Nov 15 at 2:27 pm Eastern: https://www.youtube.com/watch?v=EtcNxZPPJSA. It is public, YouTube's player shows 29 seconds, and it has the title and the description below. Only step 5 is left.
+
 1. Upload the video to YouTube as Public or Unlisted. Both open without a login. Not made for kids.
 2. Title: "SPHERExplorer, NASA Space Apps 2026, Planet X and SPHEREx".
 3. Paste the description below.
@@ -185,10 +187,10 @@ Sunday, Nov 15, Eastern time.
 
 ## Final checks
 
-- [ ] 30 seconds or less on the file and on the host's player, or 7 slides or fewer.
+- [x] 30 seconds or less on the file and on the host's player, or 7 slides or fewer. 29.00 s on the file, 29 seconds on YouTube.
 - [ ] The guide's beats are there: names, the challenge, the title and tagline, how it works with NASA and partner data, and the future.
-- [ ] The SI watermark is visible on every frame, and the description says the video is SI-generated.
+- [x] The SI watermark is visible on every frame, and the description says the video is SI-generated. The render checks the watermark, and the description on YouTube was read.
 - [ ] Text reads clearly at phone size.
-- [ ] No NASA logos, flags, or mission patches, and no "according to NASA".
-- [ ] No music, and no one under 18.
-- [ ] The link works in a private window, and the form has the full `https://` URL.
+- [x] No NASA logos, flags, or mission patches, and no "according to NASA".
+- [x] No music, and no one under 18. The video is silent and shows no people.
+- [ ] The link works in a private window, and the form has the full `https://` URL. The link opened with no login. The form is still to do.

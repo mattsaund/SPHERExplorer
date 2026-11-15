@@ -24,6 +24,7 @@ def tracked_files():
     return [f for f in out.stdout.splitlines() if not f.endswith(SKIP)]
 
 
+# Check every tracked text file, print each problem, and return 1 if there was any.
 def main():
     problems = 0
     for name in tracked_files():

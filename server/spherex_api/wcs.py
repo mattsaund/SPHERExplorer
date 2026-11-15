@@ -23,6 +23,7 @@ def _poly(cards: dict, prefix: str):
     return terms
 
 
+# The value of a distortion polynomial at pixel offsets (u, v).
 def _eval(terms, u, v):
     total = 0.0
     for p, q, coefficient in terms:
@@ -53,6 +54,7 @@ def gnomonic_inverse(xi, eta, ra0, dec0):
 class TanSip:
     """The sky WCS of one image (RA---TAN-SIP with LONPOLE 180)."""
 
+    # Read the transform from an image header: reference pixel and sky position, matrix, and distortion terms.
     def __init__(self, cards: dict):
         self.crpix1 = float(cards["CRPIX1"])
         self.crpix2 = float(cards["CRPIX2"])

@@ -31,6 +31,7 @@ BANDS = {
 _cache: dict[tuple, tuple[float, dict]] = {}
 
 
+# A number from a catalog cell, or None when the cell is empty or not a number.
 def _float(text):
     try:
         value = float(text)
@@ -61,6 +62,7 @@ def parse_tsv(text: str) -> list[dict]:
     return rows
 
 
+# Ask a VizieR catalog for the sources around a position, trying each mirror in turn.
 async def _vizier(source: str, ra: float, dec: float, radius_arcsec: float, columns: str, limit: int = 300) -> list[dict]:
     query = f"/viz-bin/asu-tsv?-source={source}&-c={ra:.6f}%20{dec:+.6f}&-c.rs={radius_arcsec:.1f}&-out={columns}&-out.max={limit}"
     last: Exception | None = None

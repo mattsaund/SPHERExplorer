@@ -17,11 +17,13 @@ class WaveGrid:
     Values are in microns. Lookup is bilinear, which is how the FITS -TAB convention defines it.
     """
 
+    # A grid of values at pixel positions xs and ys, as FITS counts them.
     def __init__(self, xs, ys, values):
         self.xs = np.asarray(xs, dtype=float) - 1.0  # FITS pixels are 1-based
         self.ys = np.asarray(ys, dtype=float) - 1.0
         self.values = np.asarray(values, dtype=float)  # (ny, nx, 2)
 
+    # Which grid cell a coordinate falls in, and how far across that cell it is, from 0 to 1.
     def _cell(self, grid, coord):
         index = np.clip(np.searchsorted(grid, coord, side="right") - 1, 0, len(grid) - 2)
         frac = (coord - grid[index]) / (grid[index + 1] - grid[index])
@@ -51,6 +53,7 @@ class WaveGrid:
 class Epsf:
     """Effective PSF stamps for the zones of one detector."""
 
+    # One small image of a star per zone of the detector, with each zone's center.
     def __init__(self, stamps, xcenter, ycenter, oversample):
         self.stamps = np.asarray(stamps, dtype=np.float32)  # (zones, n, n), each sums to 1
         self.xcenter = np.asarray(xcenter, dtype=float)
@@ -89,6 +92,7 @@ _latest_wave: dict[int, WaveGrid] = {}
 _locks: dict[str, asyncio.Lock] = {}
 
 
+# One lock per calibration file, so it is read once however many frames ask at the same time.
 def _lock(name: str) -> asyncio.Lock:
     return _locks.setdefault(name, asyncio.Lock())
 

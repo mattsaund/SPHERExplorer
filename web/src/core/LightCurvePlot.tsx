@@ -19,12 +19,15 @@ export function LightCurvePlot({ className }: { className?: string }) {
   useEffect(() => {
     const canvas = canvasRef.current!;
     let raf = 0;
+    // The measurements the curve was last built from, so it is rebuilt only when they change.
     let source: unknown = null;
     let curve: LightCurve = { points: [], visits: [] };
     let pointer: { x: number; y: number } | null = null;
     let hover: LightPoint | null = null;
+    // Where each point landed on screen, for finding the one under the pointer.
     let drawn: { x: number; y: number; point: LightPoint }[] = [];
 
+    // Ask for one redraw on the next frame, however many changes arrive before it.
     const schedule = () => {
       raf ||= requestAnimationFrame(draw);
     };
@@ -45,6 +48,7 @@ export function LightCurvePlot({ className }: { className?: string }) {
       drawn = [];
       if (plotW < 40 || plotH < 40) return;
 
+      // With nothing to plot yet, say why in the middle of the box.
       const visits = state.visits;
       if (!curve.points.length || !visits.length) {
         ctx.fillStyle = theme.muted;
@@ -66,6 +70,7 @@ export function LightCurvePlot({ className }: { className?: string }) {
       const yMax = 1 + spread;
       const yOf = (ratio: number) => MARGIN.top + plotH * (1 - (ratio - yMin) / (yMax - yMin));
 
+      // Each visit gets its own box of equal width, with time running left to right inside it.
       const each = (plotW - GAP * (visits.length - 1)) / visits.length;
       const x0Of = (season: number) => MARGIN.left + season * (each + GAP);
       const xOf = (p: { season: number; mjd: number }) => {
@@ -90,6 +95,7 @@ export function LightCurvePlot({ className }: { className?: string }) {
 
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
+      // A frame and a name for every visit.
       for (const visit of visits) {
         ctx.strokeStyle = theme.muted;
         ctx.strokeRect(x0Of(visit.season) + 0.5, MARGIN.top + 0.5, each, plotH);
@@ -97,6 +103,7 @@ export function LightCurvePlot({ className }: { className?: string }) {
         ctx.fillText(visit.label, x0Of(visit.season) + each / 2, MARGIN.top + plotH + 6);
       }
 
+      // Every measurement as a small dot, colored by detector. Dots off the scale are cut off at the frame.
       ctx.save();
       ctx.beginPath();
       ctx.rect(MARGIN.left, MARGIN.top, plotW, plotH);
@@ -177,15 +184,18 @@ export function LightCurvePlot({ className }: { className?: string }) {
       }
     }
 
+    // Remember where the pointer is, so the next draw can name the point under it.
     function onMove(event: PointerEvent) {
       const box = canvas.getBoundingClientRect();
       pointer = { x: event.clientX - box.left, y: event.clientY - box.top };
       schedule();
     }
+    // The pointer left the plot, so the readout goes away.
     function onLeave() {
       pointer = null;
       schedule();
     }
+    // A click on a point shows the image that point was measured in.
     function onClick() {
       if (hover) actions.showFrame(hover.frameId);
     }

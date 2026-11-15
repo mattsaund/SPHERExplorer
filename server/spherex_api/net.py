@@ -52,6 +52,7 @@ def bucket() -> aiohttp.ClientSession:
     return _bucket
 
 
+# Close both clients when the server stops.
 async def close():
     global _client, _bucket
     if _client is not None:

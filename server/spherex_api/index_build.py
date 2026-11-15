@@ -73,6 +73,7 @@ async def list_release(release: str, skip_weeks: set[str]):
         weeks = [w for w in weeks if w.rstrip("/").rsplit("/", 1)[1] not in skip_weeks]
         gate = asyncio.Semaphore(48)
 
+        # List the newest version of every exposure in one week's folder.
         async def one_week(week_prefix: str):
             async with gate:
                 versions, _ = await _list(client, week_prefix)
@@ -106,6 +107,7 @@ async def _read_heads(keys: list[str], with_sip: bool = False) -> list:
     limits = httpx.Limits(max_connections=CONNECTIONS, max_keepalive_connections=CONNECTIONS, keepalive_expiry=120)
     async with httpx.AsyncClient(timeout=60, limits=limits, headers={"User-Agent": config.USER_AGENT}) as client:
 
+        # Take exposures from the list one by one and read each header.
         async def worker():
             nonlocal done
             for i in todo:
@@ -210,6 +212,7 @@ def active_releases() -> tuple[list[str], bool]:
     return fallback, False
 
 
+# Build or update the index file. With fresh, start over instead of adding to the old one.
 def build(fresh: bool = False) -> None:
     started = time.time()
     old = None

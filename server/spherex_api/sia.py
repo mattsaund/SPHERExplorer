@@ -120,6 +120,7 @@ async def _wave_grids(rows: list[dict], detectors: np.ndarray) -> dict:
         else:
             grids[int(detector)] = grid
 
+    # The wavelength grid of one file.
     async def load(key):
         return await calib.wave_grid(await get_layout(key))
 

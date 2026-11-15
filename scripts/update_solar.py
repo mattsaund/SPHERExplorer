@@ -73,6 +73,7 @@ SMALL = [
 ]
 
 
+# Fetch a page as text, with a few retries, since JPL sometimes takes a moment.
 def fetch(url: str, params: dict) -> str:
     request = urllib.request.Request(url + "?" + urllib.parse.urlencode(params), headers={"User-Agent": AGENT})
     for attempt in range(4):
@@ -117,6 +118,7 @@ def place(command: str, jd: float) -> tuple[float, float]:
     return numbers[0], numbers[1]
 
 
+# Fetch every orbit and every check position, then write the generated file.
 def main() -> int:
     # Midnight UTC today, as a Julian date.
     jd = int(time.time() // 86400) + 2440587.5

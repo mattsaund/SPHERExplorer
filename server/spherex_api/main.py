@@ -38,6 +38,7 @@ async def _sweep() -> None:
         await asyncio.sleep(SWEEP_SECONDS)
 
 
+# Start the background jobs when the server starts, and stop them when it stops.
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     jobs = [asyncio.ensure_future(_warm_up()), asyncio.ensure_future(_sweep())]
@@ -73,14 +74,17 @@ class SafeHeaders:
         (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
     )
 
+    # `inner` is the app this wraps.
     def __init__(self, inner):
         self.inner = inner
 
+    # Pass the request on, and add the headers to the start of the answer.
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             await self.inner(scope, receive, send)
             return
 
+        # Add any of the headers the answer does not already carry.
         async def add(message):
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
@@ -105,6 +109,7 @@ MAX_BATCH_PIXELS = 2.5e8   # about four times what the web app asks for
 MAX_FITS_PIXELS = 2.5e7    # about 300 MB of FITS files in one zip
 
 
+# Refuse any file key that is not a Level 2 image in the SPHEREx bucket.
 def check_key(key: str) -> str:
     if not KEY_PATTERN.match(key) or ".." in key:
         raise HTTPException(400, "Not a SPHEREx Level 2 file key")
@@ -342,6 +347,7 @@ async def many_cutouts(body: BatchRequest):
         raise HTTPException(413, "That is too many images for a field this wide. Ask for a smaller field or fewer images.")
     gate = asyncio.Semaphore(config.FRAME_CONCURRENCY)
 
+    # Build one frame, with a limit on how many are built at once.
     async def build(frame: FrameRequest) -> bytes:
         async with gate:
             phot = (frame.pra, frame.pdec) if frame.pra is not None and frame.pdec is not None else None
@@ -351,6 +357,7 @@ async def many_cutouts(body: BatchRequest):
                 phot=phot, sigma_plane=body.sigma, dtype=body.dtype, delta=frame.delta if own else None,
             )
 
+    # Send each frame as soon as it is finished, compressed as one gzip stream.
     async def stream():
         tasks = [asyncio.ensure_future(build(frame)) for frame in body.frames]
         packer = zlib.compressobj(5, zlib.DEFLATED, 31)  # 31 selects the gzip container
@@ -400,6 +407,7 @@ async def fits_archive(body: BatchRequest):
     if pixels > MAX_FITS_PIXELS:
         raise HTTPException(413, "That is too much data for one download. Choose a smaller field, or save the image on screen by itself.")
 
+    # The FITS cutout of one frame, around its own position when it has one.
     def job(frame: FrameRequest):
         own = frame.ra is not None and frame.dec is not None
         return fitsout.cutout(frame.key, frame.ra if own else body.ra, frame.dec if own else body.dec, body.size, frame.delta if own else None)

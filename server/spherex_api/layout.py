@@ -52,21 +52,25 @@ class FileInfo:
 
     _wcs: TanSip | None = field(default=None, repr=False, compare=False)
 
+    # Which of the six detectors this file is from.
     @property
     def detector(self) -> int:
         return int(self.cards["DETECTOR"])
 
+    # The file's pixel-to-sky transform, made on first use.
     @property
     def wcs(self) -> TanSip:
         if self._wcs is None:
             self._wcs = TanSip(self.cards)
         return self._wcs
 
+    # This description as plain data, for the cache on disk.
     def to_json(self) -> dict:
         data = asdict(self)
         data.pop("_wcs")
         return data
 
+    # The description read back from the cache on disk.
     @classmethod
     def from_json(cls, data: dict) -> "FileInfo":
         data = dict(data)
@@ -180,6 +184,7 @@ async def _map_tail(info: FileInfo) -> None:
     )
 
 
+# Describe a file from memory, from disk, or by reading it. The tail is mapped only when asked for.
 async def _load(key: str, need_tail: bool) -> FileInfo:
     info = _memory.get(key)
     if info is None:

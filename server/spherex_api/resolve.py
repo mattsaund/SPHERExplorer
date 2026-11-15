@@ -130,6 +130,7 @@ def propagate(ra, dec, pm_ra, pm_dec, from_year=2000.0, to_year=REFERENCE_EPOCH)
     )
 
 
+# A number from one field of the Sesame answer, or None when it is missing.
 def _number(node, path: str):
     found = node.find(path)
     try:
@@ -170,6 +171,7 @@ def parse_sesame(text: str) -> dict | None:
     return None
 
 
+# Ask one Sesame mirror for a name. None when it does not know the name.
 async def _ask(base: str, name: str) -> dict | None:
     response = await net.client().get(base + urllib.parse.quote(name), timeout=8)
     response.raise_for_status()
@@ -207,6 +209,7 @@ def _tidy(name: str) -> str:
     return name
 
 
+# A target from the short list kept in the code, so NASA's test targets resolve without any service.
 def built_in(name: str) -> dict | None:
     token = normalize(name)
     for aliases, target in BUILT_IN:

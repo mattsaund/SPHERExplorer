@@ -66,6 +66,7 @@ def properties(recipe: str) -> str:
     return "".join(f"{key:<20} = {value}\n" for key, value in lines.items())
 
 
+# Where a finished color tile is kept on disk.
 def _path(recipe: str, order: int, npix: int):
     return config.CACHE_DIR / "hips" / recipe / f"Norder{order}" / f"Npix{npix}.png"
 
@@ -86,6 +87,7 @@ async def _source(order: int, npix: int, channel: int) -> np.ndarray:
     raise net.UpstreamError(f"IRSA did not send a sky tile: {last}")
 
 
+# Make one color tile from three IRSA tiles, and keep it on disk.
 async def _build(recipe: str, order: int, npix: int) -> bytes:
     channels = parse_recipe(recipe)
     planes = await asyncio.gather(*(_source(order, npix, channel) for channel in channels))

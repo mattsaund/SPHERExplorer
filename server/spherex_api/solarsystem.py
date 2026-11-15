@@ -115,6 +115,7 @@ def parse_horizons(text: str) -> Ephemeris:
         if len(cells) < 10:
             continue
 
+        # A number from a Horizons cell, or NaN when the cell holds none.
         def number(value: str) -> float:
             try:
                 return float(value)

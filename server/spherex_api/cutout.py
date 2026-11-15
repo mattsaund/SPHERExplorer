@@ -155,6 +155,7 @@ def cache_stats() -> dict:
     return {**_frames.stats(), "building": len(_building)}
 
 
+# Do the work of one frame: find the pixel window, read it from the archive, measure, and encode.
 async def _make(key, ra, dec, size, phot, sigma_plane, dtype, delta=None) -> bytes:
     head = await get_head(key)
     wcs = head.wcs

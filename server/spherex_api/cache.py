@@ -15,16 +15,19 @@ from . import config
 class LRU:
     """Least-recently-used map with a fixed number of entries."""
 
+    # `size` is how many items are kept.
     def __init__(self, size: int):
         self.size = size
         self.items: OrderedDict = OrderedDict()
 
+    # The item, which also becomes the newest. None when it is not kept.
     def get(self, key):
         if key in self.items:
             self.items.move_to_end(key)
             return self.items[key]
         return None
 
+    # Keep an item as the newest, and drop the oldest ones past the limit.
     def put(self, key, value):
         self.items[key] = value
         self.items.move_to_end(key)
@@ -35,6 +38,7 @@ class LRU:
 class ByteLRU:
     """Least-recently-used map of byte strings with a ceiling on their total size."""
 
+    # `budget` is how many bytes may be kept in all.
     def __init__(self, budget: int):
         self.budget = budget
         self.items: OrderedDict = OrderedDict()
@@ -42,6 +46,7 @@ class ByteLRU:
         self.hits = 0
         self.misses = 0
 
+    # The bytes, which also become the newest. Counts a hit or a miss.
     def get(self, key) -> bytes | None:
         value = self.items.get(key)
         if value is None:
@@ -51,6 +56,7 @@ class ByteLRU:
         self.hits += 1
         return value
 
+    # Keep bytes as the newest, and drop the oldest ones until the total fits the budget.
     def put(self, key, value: bytes) -> None:
         # One item larger than the whole budget is not worth keeping.
         if len(value) > self.budget:
@@ -64,6 +70,7 @@ class ByteLRU:
             _, dropped = self.items.popitem(last=False)
             self.bytes -= len(dropped)
 
+    # How full the store is and how often it had the answer, for /api/health.
     def stats(self) -> dict:
         return {"items": len(self.items), "bytes": self.bytes, "budget": self.budget, "hits": self.hits, "misses": self.misses}
 
@@ -114,6 +121,7 @@ def _path(kind: str, name: str, suffix: str) -> Path:
     return config.CACHE_DIR / kind / digest[:2] / f"{digest}{suffix}"
 
 
+# A JSON item kept on disk, or None when it is missing or unreadable.
 def load_json(kind: str, name: str):
     path = _path(kind, name, ".json")
     try:
@@ -122,6 +130,7 @@ def load_json(kind: str, name: str):
         return None
 
 
+# Keep a JSON item on disk. A failure to write is ignored.
 def save_json(kind: str, name: str, value) -> None:
     path = _path(kind, name, ".json")
     try:
@@ -133,6 +142,7 @@ def save_json(kind: str, name: str, value) -> None:
         pass  # a read-only or full disk only costs speed
 
 
+# A set of arrays kept on disk, or None when it is missing or unreadable.
 def load_arrays(kind: str, name: str):
     path = _path(kind, name, ".npz")
     try:
@@ -142,6 +152,7 @@ def load_arrays(kind: str, name: str):
         return None
 
 
+# Keep a set of arrays on disk. A failure to write is ignored.
 def save_arrays(kind: str, name: str, **arrays) -> None:
     path = _path(kind, name, ".npz")
     try:

@@ -79,6 +79,7 @@ def build(key: str, cards: dict, version: str, x0: int, y0: int, image, flags, v
         if cards.get(name) is not None:
             shared[name] = cards[name]
 
+    # One extension of the file: the pixels, the shared header, and its unit.
     def plane(data, name: str, unit: str | None) -> fits.ImageHDU:
         header = shared.copy()
         if unit:
@@ -129,21 +130,26 @@ async def cutout(key: str, ra: float, dec: float, size: float, delta: float | No
 class _Sink:
     """A write-only file for zipfile. It hands back what was written since the last take()."""
 
+    # Starts empty.
     def __init__(self):
         self.parts: list[bytes] = []
         self.size = 0
 
+    # Called by zipfile with the next bytes of the archive.
     def write(self, data) -> int:
         self.parts.append(bytes(data))
         self.size += len(data)
         return len(data)
 
+    # How many bytes have been written in all. zipfile needs this for its directory.
     def tell(self) -> int:
         return self.size
 
+    # Nothing to do. The bytes leave through take().
     def flush(self) -> None:
         pass
 
+    # Everything written since the last call.
     def take(self) -> bytes:
         data = b"".join(self.parts)
         self.parts.clear()
@@ -158,6 +164,7 @@ async def zip_stream(jobs):
     """
     gate = asyncio.Semaphore(ZIP_CONCURRENCY)
 
+    # Run one job, with a limit on how many run at once.
     async def run(job):
         async with gate:
             return await job

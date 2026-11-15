@@ -27,6 +27,7 @@ EDGE_MARGIN = 12.0
 
 
 class ExposureIndex:
+    # Load the index file into memory and precompute what a search needs.
     def __init__(self, path=INDEX_PATH):
         with np.load(path, allow_pickle=False) as data:
             self.rows = data["rows"]
@@ -41,6 +42,7 @@ class ExposureIndex:
         # Collection names as IRSA spells them, for display.
         self.collections = [f"spherex_{name}{suffix}" for name in self.releases for suffix in ("", "_deep")]
 
+    # How many exposures the index holds.
     def __len__(self) -> int:
         return len(self.rows)
 
@@ -78,6 +80,7 @@ class ExposureIndex:
         order = np.lexsort((detector, self.rows["mjd"][rows]))
         return rows[order], detector[order], x[order], y[order]
 
+    # The bucket key of one exposure's file for one detector.
     def key(self, row: int, detector: int) -> str:
         record = self.rows[row]
         return file_key(

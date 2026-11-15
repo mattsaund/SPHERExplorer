@@ -29,6 +29,7 @@ export function SpectrumPlot({ className }: { className?: string }) {
     // Screen positions of the points drawn last, for hit testing.
     let drawn: { x: number; y: number; point: SpectrumPoint }[] = [];
 
+    // Ask for one redraw on the next frame, however many changes arrive before it.
     const schedule = () => {
       raf ||= requestAnimationFrame(draw);
     };
@@ -313,15 +314,18 @@ export function SpectrumPlot({ className }: { className?: string }) {
       canvas.style.cursor = hover ? "pointer" : "default";
     }
 
+    // Remember where the pointer is, so the next draw can name the point under it.
     function onMove(event: PointerEvent) {
       const box = canvas.getBoundingClientRect();
       pointer = { x: event.clientX - box.left, y: event.clientY - box.top };
       schedule();
     }
+    // The pointer left the plot, so the readout goes away.
     function onLeave() {
       pointer = null;
       schedule();
     }
+    // A click on a point shows the image that point was measured in.
     function onClick() {
       if (hover) actions.showFrame(hover.frameId);
     }

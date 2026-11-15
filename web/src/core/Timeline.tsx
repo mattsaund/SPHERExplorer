@@ -29,8 +29,10 @@ export function Timeline({ className }: { className?: string }) {
     let raf = 0;
     let pointer: { x: number; y: number } | null = null;
     let hover: Frame | null = null;
+    // Where each dot landed on screen, for finding the one under the pointer.
     let drawn: { x: number; y: number; frame: Frame }[] = [];
 
+    // Ask for one redraw on the next frame, however many changes arrive before it.
     const schedule = () => {
       raf ||= requestAnimationFrame(draw);
     };
@@ -56,6 +58,7 @@ export function Timeline({ className }: { className?: string }) {
         panel.x1 = panel.x0 + each;
       });
 
+      // Wavelength runs up the plot. Time runs left to right inside each visit's panel.
       const yOf = (wl: number) => MARGIN.top + plotH * (1 - (wl - WL_MIN) / (WL_MAX - WL_MIN));
       const xOf = (frame: Frame) => {
         const panel = panels[frame.season];
@@ -92,6 +95,7 @@ export function Timeline({ className }: { className?: string }) {
       const item = state.sequence[state.player.index];
       const current = new Set(item?.frameIds ?? []);
 
+      // Every image as a dot: colored by detector when loaded, gray while waiting, left out when it failed.
       for (const frame of frames) {
         if (!Number.isFinite(frame.wavelength)) continue;
         const x = xOf(frame);
@@ -105,6 +109,7 @@ export function Timeline({ className }: { className?: string }) {
         ctx.fill();
       }
       ctx.globalAlpha = 1;
+      // Ring the dots of the step on screen.
       ctx.strokeStyle = theme.cursor;
       ctx.lineWidth = 2;
       for (const d of drawn) {
@@ -137,15 +142,18 @@ export function Timeline({ className }: { className?: string }) {
       }
     }
 
+    // Remember where the pointer is, so the next draw can name the dot under it.
     function onMove(event: PointerEvent) {
       const box = canvas.getBoundingClientRect();
       pointer = { x: event.clientX - box.left, y: event.clientY - box.top };
       schedule();
     }
+    // The pointer left the plot, so the readout goes away.
     function onLeave() {
       pointer = null;
       schedule();
     }
+    // A click on a dot shows that image.
     function onClick() {
       if (hover) actions.showFrame(hover.id);
     }

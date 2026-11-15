@@ -158,9 +158,28 @@ label.inline { display: inline-flex; align-items: center; gap: var(--space-2); w
 .stage.images .overlay, .stage.both .overlay { top: auto; bottom: calc(var(--space-3) + 56px); max-height: calc(100% - 2 * var(--space-3) - 152px); }
 
 /* The Blink control: low in the middle of the images. */
-.stage-label.blink { top: auto; bottom: var(--space-3); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; pointer-events: auto; }
-.stage.both .stage-label.blink { left: 75%; }
+/* It is as wide as its contents, up to the width of the images. Past that its parts wrap
+   onto a second line inside the box, so nothing ever hangs over the edge. */
+.stage-label.blink {
+  top: auto;
+  bottom: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1) var(--space-2);
+  width: max-content;
+  max-width: calc(100% - 2 * var(--space-3));
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.stage.both .stage-label.blink { left: 75%; max-width: calc(50% - 2 * var(--space-3)); }
 .blink button, .blink select { min-height: 32px; padding: 0 var(--space-3); font-size: 0.9rem; }
+/* The list of surveys never grows wider than the box around it. */
+.blink label.inline { min-width: 0; }
+.blink select { min-width: 0; max-width: min(260px, 100%); text-overflow: ellipsis; }
 .blink-now { min-width: 19ch; font-variant-numeric: tabular-nums; }
 /* The map's own card sits in the upper right corner of the map's half. */
 .stage.both .overlay.beside-map { top: var(--space-3); bottom: auto; right: calc(50% + var(--space-3)); width: min(340px, calc(50% - 2 * var(--space-3) - 180px)); max-height: calc(100% - 2 * var(--space-3) - 110px); }
@@ -425,7 +444,7 @@ button.play { min-width: 88px; }
   .stage-label.layer .muted { display: none; }
   /* Folded, the image side's two cards share one row. An open one takes the full width. */
   /* On a phone the Blink control sits above the scale bar and the compass. */
-  .stage-label.blink { bottom: 44px; flex-wrap: wrap; justify-content: center; white-space: normal; max-width: calc(100% - 16px); }
+  .stage-label.blink { bottom: 44px; max-width: calc(100% - 16px); }
   .image-cards { flex-wrap: wrap; gap: var(--space-2); }
   .image-cards > .open { flex-basis: 100%; }
   .stage-label.place.details.open { max-width: 100%; width: auto; }

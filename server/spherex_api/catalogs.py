@@ -39,6 +39,7 @@ def clean_name(main_id: str) -> str:
     return name
 
 
+# Turn one row of the SIMBAD answer into the object the web app expects.
 def _shape(row: list) -> dict:
     main_id, ra, dec, code, pm_ra, pm_dec, parallax, redshift, sp_type, refs, v_mag, k_mag = row[:12]
     parallax_error = row[12] if len(row) > 12 else None
@@ -77,12 +78,14 @@ def _shape(row: list) -> dict:
     }
 
 
+# Make text safe to put in a web address.
 def _quote(text: str) -> str:
     from urllib.parse import quote
 
     return quote(text)
 
 
+# Run one query against SIMBAD, trying each mirror in turn.
 async def _tap(adql: str) -> list:
     last: Exception | None = None
     for base in SIMBAD_TAP:

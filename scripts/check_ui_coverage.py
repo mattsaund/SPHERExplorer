@@ -24,6 +24,7 @@ def required():
     return pairs
 
 
+# Compare the checklist with the UI source, print anything missing, and return 1 if something is.
 def main():
     source = "\n".join(path.read_text() for path in sorted(UI.rglob("*")) if path.suffix in (".ts", ".tsx"))
     pairs = required()

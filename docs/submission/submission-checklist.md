@@ -2,7 +2,7 @@
 
 From the 2026 Project Submission Guide and the 2026 Judging and Awards Guide. Both were read again from the live Space Apps pages on Nov 15 at 2:45 pm Eastern. They are dated Nov 13, 2026.
 
-A ticked box was checked by Claude on Nov 15, and the line says how and when. An open box is something only Matt or Austin can do or see. Claude cannot open the project form, so nothing below says what the form holds now.
+A ticked box was checked by Claude on Nov 15, and the line says how and when. An open box is something only Matt or Austin can do or see. Claude cannot open the project form. It read the project page from four screenshots that Matt took at 2:56 pm.
 
 ## Times
 
@@ -24,7 +24,7 @@ Every step here is an open box further down. All of it is for Matt or Austin, in
 
 1. Team page, Members tab: both of you are listed, and both are confirmed at the same Local Event.
 2. Project tab, Edit, and switch the Lock on. One person edits at a time.
-3. Paste each field from `docs/submission/submission-text.md`, and click Save Progress after each: the summary, the demo link, the project link, the details, the SI answer, the 14 NASA links, the 14 partner and other links, and the References.
+3. In the form: paste the project details again (the page has the text of 1:12 pm), fill the References (none show on the page), and check that the SI answer is in and says "Four commits". Click Save Progress after each. The summary, both links, and both link lists are already on the page.
 4. Upload pictures if you want them on the page. Four are ready in `media/pictures/`.
 5. Tick the two boxes and click Submit for Judging. Look for the banner and the confirmation message.
 6. Open the public project page in a private window. Read every field and click every link.
@@ -49,16 +49,16 @@ From "Eligibility for Global Judging" in the Judging and Awards Guide.
 
 The text for each field, and the claims to recheck before submitting, is in `docs/submission/submission-text.md`. Copy it from GitHub's view of that file so the formatting carries over. A box here is ticked once the field is in the form and saved.
 
-- [ ] Project Name. SPHERExplorer.
-- [ ] High-Level Project Summary. Text ready: 198 words and 1,182 characters, counted again at 2:46 pm, inside the limit of 200 and 1,500. It changed after it was pasted on Nov 14, so paste it again.
-- [ ] Link to Project Demo. https://www.youtube.com/watch?v=EtcNxZPPJSA. YouTube answered for it with no login at 2:46 pm, and its player shows 29 seconds. Paste the full link.
-- [ ] Link to Final Project. https://spherexplorer.earth. It answered at 2:46 pm with a valid certificate. The repo link is the last line of the details.
-- [ ] Detailed Project Description. Text ready, about 640 words. Its numbers matched the live site at 11:28 am and at 1:52 pm. It changed after it was pasted on Nov 14, so paste it again. Last changed at 1:15 pm.
-- [ ] Use of Super Intelligence (SI). Draft ready, needs approval. Changed at 2:50 pm: it now says four commits carry no SI line, not three. Judges don't see this answer, but they do see the SI labels inside the project.
-- [ ] NASA Data. 14 links ready, each a Link Text and a Link Url. Needs approval.
-- [ ] Space Agency Partner Data. 14 links ready, with the Canadian Space Agency and the European Space Agency named in the link text. Needs approval.
-- [ ] References: every external resource, including open-source code, text, and images. Draft ready, needs approval. A script compared it with `docs/references.md` around noon: all 50 entries in use are in it, and all 27 packages the code depends on are in `docs/references.md`. No package has been added since.
-- [ ] Pictures, if wanted. The page takes JPG, PNG, and GIF up to 10 MB. The four in `media/pictures/` are 0.5 to 0.6 MB each. Videos and documents must be links.
+- [x] Project Name. SPHERExplorer. On the page (screenshots, 2:56 pm).
+- [x] High-Level Project Summary. On the page (screenshots, 2:56 pm), with two edits made in the form: "large files manually" and "SPHERExplorer needs no software or account". That is 199 words and 1,202 characters, inside the limit of 200 and 1,500. `submission-text.md` now has the same words.
+- [x] Link to Project Demo. https://www.youtube.com/watch?v=EtcNxZPPJSA is on the page (screenshots, 2:56 pm). YouTube answered for it with no login at 2:46 pm, and its player shows 29 seconds.
+- [x] Link to Final Project. The page has https://www.spherexplorer.earth (screenshots, 2:56 pm). The `www` address serves the same site and its API (2:58 pm). The repo link is the last line of the details.
+- [ ] Detailed Project Description. On the page (screenshots, 2:56 pm), but it is the text of 1:12 pm. Three later changes are missing: the sentence "Sum any of the six detectors, subtract one visit from another, or view three bands as color.", the words "with flags and variance" and "that carries its coordinates", and "results checked" in place of "every result checked". Paste the details again from `submission-text.md`.
+- [ ] Use of Super Intelligence (SI). Draft ready, needs approval. Changed at 2:50 pm: it now says four commits carry no SI line, not three. Judges don't see this answer, and it does not show on the page, so check it in the form.
+- [x] NASA Data. All 14 links are on the page, in order (screenshots, 2:56 pm). A screenshot does not show their addresses, so click each one once.
+- [x] Space Agency Partner Data. All 14 links are on the page, in order, under "Space Agency Partner & Other Data" (screenshots, 2:56 pm). A screenshot does not show their addresses, so click each one once.
+- [ ] References: every external resource, including open-source code, text, and images. No References section shows on the page (screenshots, 2:56 pm). If the form has a References field, it is still empty, and the draft in `submission-text.md` goes there. If it has none, the libraries, tools, and papers go in as links under the field the guide names "Space Agency Partner Data and Other References". The second box you tick says every external resource is listed. A script compared the draft with `docs/references.md` around noon: all 50 entries in use are in it, and all 27 packages the code depends on are in `docs/references.md`.
+- [ ] Pictures, if wanted. The page has none (screenshots, 2:56 pm). It takes JPG, PNG, and GIF up to 10 MB. The four in `media/pictures/` are 0.5 to 0.6 MB each. Videos and documents must be links.
 
 ## Demo
 

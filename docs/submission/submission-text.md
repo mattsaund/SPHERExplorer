@@ -12,13 +12,13 @@ SPHERExplorer
 
 ## Summary
 
-50 to 200 words, 1,500 characters at most. Now 198 words and 1,182 characters. Plain text.
+50 to 200 words, 1,500 characters at most. Now 199 words and 1,202 characters. Plain text. This is the text on the project page at 2:56 pm on Nov 15, with the two edits made in the form.
 
-SPHERExplorer is a free web tool that plays every SPHEREx image of any sky position in time order. NASA's SPHEREx telescope maps the entire sky in 102 infrared bands and images each position many times. Seeing what moved or changed usually means downloading and aligning large files.
+SPHERExplorer is a free web tool that plays every SPHEREx image of any sky position in time order. NASA's SPHEREx telescope maps the entire sky in 102 infrared bands and images each position many times. Seeing what moved or changed usually means downloading and aligning large files manually.
 
 Users search by object name or coordinates. SPHERExplorer finds every exposure in a fraction of a second and steps through the visits, so moving objects shift across the frame. One button checks every source in the field and reports what moved, brightened, or faded. It flags all five of NASA's test targets, WISE 0855 with its two longest-wavelength detectors selected. Any point has a spectrum across all 102 bands, with features such as water and methane marked. Fields can be compared with Gaia, 2MASS, WISE, and NEOSSat data. Every view has a link, exports to FITS, and can be embedded in other sites.
 
-SPHEREx data is open to everyone but hard to use. SPHERExplorer opens it to students, educators, researchers, and citizen scientists. They can find nearby brown dwarfs, track asteroids and comets, and study how the sky changes. It needs no software or account, and its code is open source.
+SPHEREx data is open to everyone but hard to use. SPHERExplorer opens it to students, educators, researchers, and citizen scientists. They can find nearby brown dwarfs, track asteroids and comets, and study how the sky changes. SPHERExplorer needs no software or account, and its code is open source.
 
 ## Project demonstration
 
@@ -30,7 +30,7 @@ The demo video on YouTube, uploaded by Matt on Nov 15 at 2:27 pm Eastern. Checke
 
 https://spherexplorer.earth
 
-The live site, not the repository. Judges can use the tool directly, and its About tab links the source code, the methods, and the SI statement. The repository link is the last line of the project details.
+The project page has `https://www.spherexplorer.earth`, which serves the same site. The live site, not the repository. Judges can use the tool directly, and its About tab links the source code, the methods, and the SI statement. The repository link is the last line of the project details.
 
 ## Project details
 
@@ -253,6 +253,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `media/code/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
+| The summary on the page is 199 words and 1,202 characters | Summary | Counted on Nov 15 at 2:58 pm from the text above |
 | The SI answer says every source file and every pull request is labeled, and that four commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and four commits on `main` carry no trailer (`ec252a2`, `80d2140`, `e79c16e`, and `9bffc8c`). `docs/si-usage.md` names all four. The commits were counted again at 2:46 pm |
 | The demo is 30 seconds or less and opens with no login | Demo | YouTube's player shows 29 seconds. Opened with no login on Nov 15 at 2:28 pm |
 | The References field lists every resource in use | References | Build it again from `docs/references.md` after any change to that file |

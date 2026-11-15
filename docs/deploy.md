@@ -207,9 +207,11 @@ Processor times are from a development machine. The live instance takes three to
 | `--cpu 2` | 2 processors | A first load uses about 1.3 of them, because the instance's network limit binds first (see "Speed"). Four were tried on Nov 14 and 15: large fields loaded no faster, and every busy second cost twice as much |
 | `--memory 4Gi` | 4 GB | Room for 1024 MB of frame memory (`SPX_FRAME_CACHE_MB=1024`), so more large fields stay ready. Memory costs a tenth of what a processor does |
 | `--max-instances 3` | 3 instances | Each instance has its own network limit, so three carry half again the traffic of the two larger ones before. At the worst they cost $15 a day, less than the $18 of either size before |
-| `--execution-environment gen1` | first generation | It starts a new instance sooner, which is what a visitor to a quiet site waits for. The second generation was live on Nov 14 and 15: it read the archive no faster, and a request that found no instance running waited 6.1 s |
+| `--execution-environment gen1` | first generation | Google documents it as the quicker of the two to start a new instance (https://docs.cloud.google.com/run/docs/about-execution-environments), which is what a visitor to a quiet site waits for. The second generation was live on Nov 14 and 15: it read the archive no faster, and a request that found no instance running waited 6.1 s |
 
 History: 2 processors, 2 GB, and 4 instances until Nov 14. Then 4 processors, 4 GB, 2 instances, and the second generation until Nov 15.
+
+Not yet measured: the wait when no instance is running, on this size. The measurement needs 15 minutes with no visitor at all, and the site was in use each time it was tried on Nov 15. To take it, leave the site alone for 15 minutes, then run `curl -s -o /dev/null -w '%{time_total}\n' https://spherexplorer.earth/api/health` once.
 
 Session affinity is off. It would send a visitor back to the same instance, and so to the images already in its memory. Google does that with a cookie that lasts 30 days, and the site sets no cookies today. Turning it on is a decision for Matt and Austin.
 

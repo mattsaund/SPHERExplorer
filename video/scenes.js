@@ -8,7 +8,7 @@
 const FPS = 30;
 const LENGTH = 28.5; // seconds. The demo may not pass 30.
 const STAGE = { width: 1920, height: 1080 };
-const FRAME = { left: 120, top: 28, width: 1680, height: 945 };
+const FRAME = { left: 120, top: 14, width: 1680, height: 945 }; // the same box as .frame in scenes.html
 const FADE = 0.3; // seconds for one scene to fade in over the last
 const WATERMARK = "SI-generated video. Made with Claude Code (Anthropic).";
 const CREDIT_SPHEREX = "SPHEREx data: NASA, JPL-Caltech, IPAC IRSA";

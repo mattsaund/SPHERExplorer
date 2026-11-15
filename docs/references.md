@@ -116,4 +116,7 @@ Add the license and version when a library goes into the build.
 | Node.js 22 and Python 3.13, as the official container images `node:22-slim` and `python:3.13-slim` | MIT (Node.js), PSF-2.0 (Python) | OpenJS Foundation, Python Software Foundation | Yes (the production container) |
 | GitHub: the repository, Actions, and Releases | GitHub terms of service | | Yes (code hosting, checks, deploys, and the published exposure index that the server downloads) |
 | Claude Code (Anthropic), with the model Claude Fable 5.2 | Anthropic terms of service | Labeled in every commit, pull request, and file header. Logged in `docs/si-usage.md` | Yes (the SI tool that wrote and tested code and docs under Matt's and Austin's direction) |
+| puppeteer-core 25 | Apache-2.0 | Google | Yes (drives Chrome to capture and render the demo video, in `video/` only) |
+| Inter 5.3, from the `@fontsource/inter` package | SIL Open Font License 1.1 | Rasmus Andersson | Yes (the type in the demo video) |
+| ffmpeg 9 | LGPL or GPL, a system tool that is not shipped | FFmpeg developers | Yes (encodes the demo video) |
 | Domain name from the GoDaddy Registry offer in the Space Apps Global Offers, registered through Porkbun | Porkbun terms of service | | Yes (`spherexplorer.earth`) |

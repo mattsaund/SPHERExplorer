@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- The demo video's picture for any moment: scenes.js lays out every scene for a time t.
+     render.mjs opens this page and saves one frame for each thirtieth of a second.
+     Written with Claude Code (Anthropic) assistance. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SPHERExplorer demo video</title>
+<style>
+  /* Inter, bundled with the video so it renders the same on any machine (SIL Open Font License 1.1). */
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2") format("woff2"); }
+  @font-face { font-family: "Inter"; font-weight: 600; src: url("node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2") format("woff2"); }
+  @font-face { font-family: "Inter"; font-weight: 700; src: url("node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2") format("woff2"); }
+  /* The app's own colors. No glow, no shadow, no gradient. */
+  :root { --bg: #0f1215; --text: #e8ebee; --muted: #a3acb5; --accent: #4c9be8; --mark: #ffd24a; --line: #2a3138; }
+  html, body { margin: 0; background: var(--bg); }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--text); font-family: "Inter", sans-serif; }
+  .scene { position: absolute; inset: 0; opacity: 0; background: var(--bg); }
+  /* A capture of the app sits in a frame above the caption band, so nothing of the app is covered. */
+  .frame { position: absolute; left: 120px; top: 28px; width: 1680px; height: 945px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .frame img { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .dim { position: absolute; inset: 0; background: var(--bg); }
+  .caption { position: absolute; left: 120px; right: 120px; top: 986px; height: 58px; line-height: 58px; font-size: 48px; font-weight: 600; text-align: center; white-space: nowrap; }
+  .over { position: absolute; left: 0; right: 0; text-align: center; }
+  .title { font-size: 120px; font-weight: 700; letter-spacing: -1px; }
+  .heading { font-size: 64px; font-weight: 600; }
+  .line { font-size: 48px; font-weight: 400; color: var(--muted); }
+  .small { font-size: 30px; font-weight: 400; color: var(--muted); }
+  .callout { position: absolute; border: 2px solid var(--mark); opacity: 0; box-sizing: border-box; }
+  /* Four fields in a grid, each with its name. */
+  .cell { position: absolute; overflow: hidden; border: 1px solid var(--line); background: #000; }
+  .cell img { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .cell span { position: absolute; left: 0; bottom: 0; padding: 8px 14px; font-size: 28px; font-weight: 600; background: var(--bg); }
+  /* On every frame: the SI watermark at lower left. On data shots: the credit at lower right. */
+  /* Above every scene, whatever its place in the order. */
+  #watermark, #credit { position: absolute; bottom: 4px; z-index: 1000; font-size: 24px; line-height: 30px; color: var(--muted); white-space: nowrap; }
+  #watermark { left: 24px; }
+  #credit { right: 24px; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="scenes.js"></script>
+</body>
+</html>

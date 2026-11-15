@@ -112,6 +112,49 @@ Rejected alternatives:
 6. Host: YouTube, public or unlisted, is recommended. Decide whose account.
 7. Ownership of the new `video/` folder. Proposed: Matt's side, since Matt's Claude builds it.
 
+## Draft cut, Nov 15
+
+Matt asked Claude for a draft of the video on the morning of Nov 15. It is built and runs end to end. Nothing in it is approved yet.
+
+How to make it, on Matt's machine:
+
+```sh
+cd video
+npm install
+node capture.mjs          # the pictures, from the live site (SITE=http://127.0.0.1:5173 for the local preview)
+node render.mjs           # every frame, then out/spherexplorer-demo.mp4
+node render.mjs 7.5 22    # single frames at those seconds, to look at
+```
+
+What the draft is:
+
+- 28.5 s, 855 frames at 30 a second, 1920 by 1080, H.264, no sound.
+- Nine scenes on the storyboard's timings, with its on-screen text word for word.
+- The app is shown whole, in a frame above the caption, so no part of it is covered or cut.
+- The SI watermark is on every frame, above every scene. The render stops if it is ever covered.
+- The file's title, comment, and description metadata carry the SI statement.
+- `render.mjs` refuses a video over 29.5 s, before and after encoding.
+
+Where the draft differs from the plan above:
+
+- The browser is driven with puppeteer-core and the Chrome already on Matt's machine, not Playwright. It does the same job without a 150 MB download.
+- The draft's captures come from the local preview, which runs the same code as the live site. The final cut should take them from the live site.
+- The motion shot is WISE 0855 by visit with the sky held still (`follow=0`), zoomed three times and smoothed. The brown dwarf then steps west while the stars stay put. Barnard's Star was tried and saturates into a blur at that zoom.
+- The spectrum shot outlines the plot. The other shots have no callout except the search box.
+- The partner shot is Blink on Barnard's Star, the SPHEREx image of August 2025 against the WISE 3.4 micron survey of 2010. The star jumps more than 2.5 arcminutes between the two, which is its own motion over 15 years.
+
+What the draft assumes for the open decisions below, until Matt and Austin choose:
+
+1. Names: "Matt and Austin".
+2. Tagline: the README line as drafted.
+3. The future line as drafted.
+4. No audio.
+5. The motion shot: WISE 0855.
+6. Host: not chosen. The upload is Matt's or Austin's to do.
+7. `video/` is on Matt's side.
+
+Still to do: approval of the text and the seven decisions, captures from the live site, the upload, and the link in the form.
+
 ## Schedule
 
 Sunday, Nov 15, Eastern time.

@@ -2,7 +2,8 @@
 // seconds: it shows the scene for that moment, with its caption, credit, and watermark.
 // The pictures are captures of the app taken by capture.mjs. Their boxes (where the map, the
 // image viewer, and so on sit in each capture) arrive in window.BOXES from render.mjs.
-// The on-screen text follows the storyboard in docs/video.md.
+// The on-screen text is Matt's direction of Nov 15: technical, in the proper terms, and short.
+// It says what each shot shows. The line of the second scene is his own words.
 // Written with Claude Code (Anthropic) assistance.
 
 const FPS = 30;
@@ -20,48 +21,48 @@ const CREDIT_PARTNERS = "Gaia: ESA, DPAC. NEOSSat: CSA. 2MASS and WISE: NASA, IP
  * box of the capture to fill the frame with (none means the whole page).
  */
 const SCENES = [
-  { from: 0, to: 2.25, kind: "card", lines: [["title", "Turing Complete"], ["heading", "Matt and Austin"], ["line", "NASA Space Apps Challenge 2026"]] },
+  { from: 0, to: 2.25, kind: "card", lines: [["title", "Turing Complete"], ["heading", "Matthew Saunders and Austin Laubach"], ["line", "NASA Space Apps Challenge 2026"]] },
   {
     // The push is small enough that the edge of the page, with the name and Help, is not cut.
     from: 2.25, to: 5.25, kind: "shot", frames: [[0, "sky"]], push: 0.008,
-    plate: "Planet X and SPHEREx", caption: "Find what moves in SPHEREx's all-sky infrared images.", credit: CREDIT_SPHEREX,
+    plate: "Planet X and SPHEREx", caption: "SPHEREx images to understand object movement in the sky", credit: CREDIT_SPHEREX,
   },
   {
     from: 5.25, to: 8.5, kind: "shot", frames: [[0, "app"]], dim: 0.62,
-    big: "SPHERExplorer", caption: "Explore SPHEREx images of the sky and how they change over time.", credit: CREDIT_SPHEREX,
+    big: "SPHERExplorer", caption: "Time-domain viewer for SPHEREx Level 2 spectral images", credit: CREDIT_SPHEREX,
   },
   {
     from: 8.5, to: 11.25, kind: "shot",
     // The name is typed a letter at a time, then the map goes there and the square appears.
     frames: [[0, "search-00"], ...Array.from({ length: 9 }, (_, i) => [0.3 + i * 0.09, `search-0${i + 1}`]), [1.35, "search-done"]],
     callouts: [{ box: ["search", "box"], from: 0.1, to: 1.3 }],
-    caption: "Search any object or coordinates.", credit: CREDIT_SPHEREX,
+    caption: "Query by name, or by RA and Dec (J2000)", credit: CREDIT_SPHEREX,
   },
   {
     from: 11.25, to: 14, kind: "shot", steps: "motion",
-    caption: "Play every visit. Moving objects step across the frame.", credit: CREDIT_SPHEREX,
+    caption: "Proper motion of WISE 0855, a brown dwarf 2.3 parsecs away", credit: CREDIT_SPHEREX,
   },
   {
     // Matt asked for this shot on Nov 15: Haumea through a year of images. On the map the
     // yellow square moves along its path, and the image study keeps it under the marker.
     from: 14, to: 16.5, kind: "shot", steps: "haumea",
-    caption: "Follow dwarf planets, asteroids, and comets as they move.", credit: CREDIT_SPHEREX,
+    caption: "Dwarf planet Haumea, tracked on its JPL Horizons ephemeris", credit: CREDIT_SPHEREX,
   },
   {
     from: 16.5, to: 19.25, kind: "shot", frames: [[0, "spectrum"]],
     callouts: [{ box: ["spectrum", "plot"], from: 0.3, to: 2.6 }],
-    caption: "102 infrared bands. A spectrum for any point.", credit: CREDIT_SPHEREX,
+    caption: "Water and methane absorption in Epsilon Indi B, 0.75 to 5 µm", credit: CREDIT_SPHEREX,
   },
   {
     from: 19.25, to: 22, kind: "shot",
     // The two pictures swap, as Blink swaps them in the app.
     frames: Array.from({ length: 6 }, (_, i) => [i * 0.46, i % 2 ? "blink-old" : "blink-new"]),
-    caption: "Compare with Gaia, 2MASS, WISE, and NEOSSat.", credit: CREDIT_PARTNERS,
+    caption: "Compared with WISE (2010), 2MASS, Gaia DR3, and NEOSSat", credit: CREDIT_PARTNERS,
   },
   {
     from: 22, to: 26.5, kind: "grid",
     cells: [["grid-wise", "WISE 0855"], ["grid-barnard", "Barnard's Star"], ["grid-atlas", "3I/ATLAS"], ["grid-orion", "Orion Nebula"]],
-    captions: [[0, 2.25, "For classrooms, researchers, and anyone curious."], [2.25, 4.5, "Built to update with every new SPHEREx data release."]],
+    captions: [[0, 2.25, "Brown dwarfs, high proper motion stars, comets, and nebulae"], [2.25, 4.5, "New SPHEREx exposures are indexed twice a week"]],
     credit: CREDIT_SPHEREX,
   },
   {

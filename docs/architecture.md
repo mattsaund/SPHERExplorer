@@ -18,7 +18,7 @@ The technical plan for the concept in `docs/concept.md`. Matt's Claude owns this
 - The IRSA cutout service returns 4 to 5 MB per frame and throttles. The server reads only the needed rows from S3 and crops them. A 5 arcmin frame comes back in about 6 KB.
 - The PSF and wavelength tables in every Level 2 file are per-detector calibration products. The server caches them once.
 - Pixels stay in native detector geometry. The browser places each frame on the sky with its own transform, so nothing is resampled twice.
-- Search does not depend on IRSA being up. The server keeps an index of every exposure (time and pointing), built from the S3 bucket alone. A search is a few matrix products and takes about 20 ms. IRSA SIA is the fallback when no index is present.
+- Search does not depend on IRSA being up. The server keeps an index of every exposure (time and pointing), built from the S3 bucket alone. A search is a few matrix products and takes about 20 ms on a development machine and about 0.1 s on the live site. IRSA SIA is the fallback when no index is present.
 - New data needs no code change. A scheduled job extends the index twice a week and publishes it as a release asset, which servers download. The list of active releases comes from the IRSA SIA self-description.
 
 ## Stack

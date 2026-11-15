@@ -6,7 +6,7 @@ How SPHERExplorer turns the public SPHEREx archive into pictures, spectra, and m
 
 - SPHEREx has taken about 273,000 exposures, each on six detectors. `server/spherex_api/index_build.py` lists the public S3 bucket and reads one FITS header per exposure. It stores the time and the pointing as a 3x3 frame matrix.
 - The six detectors sit at fixed angles from each other. Those angles, the pixel scale matrix, and the lens distortion (SIP) polynomial of each detector are measured once from 200 exposures and stored with the index.
-- A search projects the target onto all six detectors of every exposure. It is a few matrix products and takes about 20 ms. See `exposures.py`.
+- A search projects the target onto all six detectors of every exposure. It is a few matrix products and takes about 20 ms on a development machine and about 0.1 s on the live site. See `exposures.py`.
 - Checked: the predicted pixel agrees with the file's own header to a median of 0.4 pixels. Image counts match the IRSA search for the five NASA test targets.
 - IRSA's SIA service is the fallback when no index is loaded.
 

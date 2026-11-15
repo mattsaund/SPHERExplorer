@@ -16,11 +16,11 @@ SPHERExplorer finds every public SPHEREx image of a sky position, from an object
 - **Playback.** Every exposure, one summed image per visit, one per wavelength, or the deepest sum of all images.
 - **Change over time.** The tool follows moving stars and comets, subtracts one visit from another, measures source motion, and plots brightness over time.
 - **Known objects.** One list holds every known object in the field, including the asteroids, comets, and planets present when the image on screen was taken. Each one can be followed by name.
-- **Change detection.** Measure Changes checks every source in the field and reports which sources moved, brightened, or faded between visits. It finds all five of NASA's test targets on its own, including stars too bright for the detector.
+- **Change detection.** Measure Changes checks every source in the field and reports which sources moved, brightened, or faded between visits. It flags all five of NASA's test targets, including stars too bright for the detector. WISE 0855 needs detectors 5 and 6 selected, the only ones that see it.
 - **All 102 bands.** Sums of any of the six detectors for higher signal-to-noise, color images from three wavelength ranges, and the spectrum of any selected position.
 - **Spectral features.** Markers for hydrogen, water, carbon dioxide, methane, and other features, with a redshift slider for galaxies. The tool tests which features stand out above the noise and reports them in plain language.
-- **Partner data.** Gaia DR3 positions and motions, 2MASS and WISE brightness, and NEOSSat images of the same field.
-- **Sky map.** The SPHEREx all-sky survey in every channel and in color, surveys from other missions, seven map projections, and labeled objects. Overlays mark SPHEREx coverage and deep fields. Map tools move the selected area, measure angles, and copy coordinates. Selecting an object loads its images. Planets, dwarf planets, the largest asteroids, well-known comets, and interstellar objects appear at their current positions, with the Sun and the Moon at true size.
+- **Partner data.** Gaia DR3 positions and motions, 2MASS and WISE brightness, and NEOSSat images of the same field where NEOSSat has observed it.
+- **Sky map.** The SPHEREx all-sky survey channel by channel and in color, surveys from other missions, seven map projections, and labeled objects. Overlays mark SPHEREx coverage and deep fields. Map tools move the selected area, measure angles, and copy coordinates. Selecting an object loads its images. Planets, dwarf planets, the largest asteroids, well-known comets, and interstellar objects appear at their current positions, with the Sun and the Moon at true size.
 - **Share and export.** Every view has a link that reopens it exactly, with the same image, zoom, brightness, tool, and map. Exports include PNG images, GIF animations, and FITS files of every image with sky coordinates, flags, and variance. CSV tables hold the spectrum, the brightness over time, and the detected changes.
 - **Embed.** Coordinates in the address plus `embed=1` place a compact viewer inside any web page. See [docs/embedding.md](docs/embedding.md).
 
@@ -38,7 +38,7 @@ SPHERExplorer finds every public SPHEREx image of a sky position, from an object
 ## How it works
 
 - The API reads only the rows it needs from each SPHEREx Level 2 file, straight from NASA's public S3 bucket: about 1 MB of a 65 MB file for a 5 arcmin field. The frame then travels to the browser as about 8 KB.
-- Search runs on our own index of all 273,000 exposures, so it answers in milliseconds and keeps working when the archive's search service is busy.
+- Search runs on our own index of all 273,000 exposures, so it answers in a fraction of a second and keeps working when the archive's search service is busy.
 - The browser does the rest, with a WebGL2 viewer, sums, spectra, and plots.
 
 More in [docs/architecture.md](docs/architecture.md) and [docs/methods.md](docs/methods.md).

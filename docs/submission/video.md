@@ -75,7 +75,7 @@ Seven slides, drafted with Claude as a slide artifact, with real screenshots of 
 | 7 | What comes next, the address, open source, and the disclaimer |
 
 - Every slide has an SI note in its footer, and speaker notes of about 30 seconds.
-- The deck's link is private until it is shared from its Share menu. To submit it, export it as a PDF and host that publicly.
+- The PDF is `media/slides/spherexplorer-slides.pdf`, and the notes are in `media/slides/speaker-notes.md`. GitHub shows the PDF in the browser, so its link works in the form without a login.
 
 ## Upload
 

@@ -32,68 +32,49 @@ The live site, not the repository. Judges can use the tool directly, and its Abo
 
 ## Project details
 
-No length limit is shown. Now about 870 words.
+No length limit is shown. Now about 600 words, trimmed on Nov 15 from about 1,030.
 
 ### What it does
 
-SPHERExplorer is a free web tool for the SPHEREx all-sky infrared survey. Enter an object name or coordinates, and it finds every public SPHEREx image of that position and plays them in time order. Moving objects step across the frame. Each exposure of a position is taken in a different one of 102 infrared bands, so the same images also give a spectrum of any point.
+SPHERExplorer is a free web tool for NASA's SPHEREx all-sky infrared survey. Enter a name or coordinates, and it plays every public SPHEREx image of that position in time order, so moving objects step across the frame. Each image is taken in a different one of 102 infrared bands, so the same images also give a spectrum.
 
-- Search by name, by J2000 RA and Dec in any common form, or by planet, asteroid, or comet.
-- Play every exposure, one sum per visit, one per wavelength, or the deepest sum of all. Sum any of the six detectors for a cleaner picture, subtract one visit from another, or make a color image from three wavelength ranges.
-- Choose the field of view, from 1 to 50 arcminutes.
-- Blink against WISE, 2MASS, or the Digitized Sky Survey, taken years to decades earlier.
-- Measure Changes checks every source in the field and reports what moved, brightened, or faded between visits.
-- Read the spectrum of any point. Water, carbon dioxide, methane, and other features are marked, and the tool reports which actually stand out.
-- See the best-known objects in the field, every known asteroid and comet that was in it when the image was taken, and a sky map with the SPHEREx all-sky survey, channel by channel.
-- Overlay Gaia stars, each moved to where it was on the image's date. Compare with 2MASS and WISE brightness, and with NEOSSat images from the Canadian Space Agency where NEOSSat has observed the field.
-- See the archive's quality flags on the image, pixel by pixel.
-- Save FITS files with sky coordinates, flags, and variance, plus data tables, pictures, and animations. Every view has a link that carries its coordinates, and the tool can be embedded in other sites.
+- Search by name, by coordinates, or by planet, asteroid, or comet.
+- Play every exposure, each visit, each wavelength, or the deepest sum, over a field 1 to 50 arcminutes wide.
+- Measure Changes checks every source in the field and reports what moved, brightened, or faded.
+- Read the spectrum of any point, with water, methane, and other features marked.
+- Compare with Gaia, 2MASS, WISE, and NEOSSat from the Canadian Space Agency, and blink against surveys decades older.
+- Save FITS files, data tables, and animations. Every view has a link that can be shared or embedded.
 
 ### How it works
 
-- A Python API reads only the rows it needs from each SPHEREx Level 2 file, straight from the public AWS bucket: about 1 MB of a 65 MB file for a 5 arcmin field. The frame then travels to the browser as about 8 KB.
-- Search runs on our own index of all 273,000 exposures and answers in about a tenth of a second. A scheduled job adds new exposures twice a week, so new data releases need no code change.
-- Star positions are carried to each image's date with proper motion and parallax. Asteroids and comets follow JPL Horizons paths, corrected for where the spacecraft was.
-- Brightness comes from a fit of the point spread function in every frame. For Epsilon Indi B it matches 2MASS and WISE within about 10 percent.
-- The browser does the rest with a WebGL2 viewer, sums, spectra, and plots.
+- The server reads only the rows it needs from each 65 MB SPHEREx file, about 1 MB, and sends the browser about 8 KB per image.
+- Search runs on our own index of all 273,000 exposures in about a tenth of a second. New exposures are added twice a week, with no code change.
+- Stars are moved to each image's date by their proper motion. Asteroids and comets follow JPL Horizons paths.
+- Brightness comes from a point spread function fit in every frame.
 
 ### Results we checked
 
-Measure Changes flags each of the five test targets and nothing else in their fields. WISE 0855 needs detectors 5 and 6 selected, the only ones that see it. Barnard's Star moved 10.9 arcsec north in a year (catalog 10.4). Epsilon Indi B moves 4.6 arcsec per year (catalog 4.7). WISE 0855 moved west between visits. RW Aurigae brightened 55 percent at 3.8 to 4.4 microns. R Draconis shows its 245-day pulsation. Each method and its known limits are documented in [docs/methods.md](https://github.com/mattsaund/SPHERExplorer/blob/main/docs/methods.md).
+Measure Changes flags all five test targets and nothing else in their fields (WISE 0855 with detectors 5 and 6). Barnard's Star moved 10.9 arcsec north in a year (catalog 10.4), and Epsilon Indi B moves 4.6 arcsec a year (catalog 4.7). RW Aurigae brightened 55 percent in the infrared, and R Draconis shows its 245-day pulsation. Every method and its limits are in [docs/methods.md](https://github.com/mattsaund/SPHERExplorer/blob/main/docs/methods.md).
 
-### Benefits
+### Benefits and impact
 
-- No download, no software, and no account.
-- Images of a target load in seconds, and a target opened recently reloads in about a second.
-- Researchers get science-grade files. Students and the public get plain words and a guided tour.
-- The code is open source under Apache-2.0.
-
-### Intended impact
-
-SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, citizen scientists, and researchers. They can search for nearby brown dwarfs and other moving objects, follow asteroids and comets, find variable stars, and learn what objects are made of. It picks up each new data release on its own, and other sites can embed it.
-
-### Tools and technology
-
-- API in Python 3.13 with FastAPI, Uvicorn, Pydantic, HTTPX, NumPy, Astropy, and Pillow. Web app in TypeScript with React 19, Vite, Zustand, WebGL2, satellite.js, gifenc, and topojson-client. Sky map by Aladin Lite v3 (CDS).
-- Data from SPHEREx (IRSA), Gaia (ESA), NEOSSat (CSA), 2MASS, WISE, SIMBAD, JPL, and IMCCE. The full list is in the data fields of this form and in the repository.
-- One container on Google Cloud Run, deployed by GitHub Actions only after every test passes. The domain and the cloud credit come from the Space Apps Global Offers.
-- No special hardware. We built it on our own computers.
-- Built with Claude Code (Anthropic), a Super Intelligence (SI) tool. The team set the idea and the features. The code, tests, and documentation were written with Claude and are labeled in commits, file headers, and [docs/si-usage.md](https://github.com/mattsaund/SPHERExplorer/blob/main/docs/si-usage.md).
+SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, citizen scientists, and researchers, with no download and no account. Researchers get science-grade files, and students get plain words and a guided tour. It picks up each new data release on its own, and its code is open source.
 
 ### How it is creative
 
-- It uses the way SPHEREx works. Every exposure lands at a different wavelength, so the tool turns a series of images into a spectrum and compares change only at matching wavelengths.
-- It measures stars too bright for the detector from the halo around them. Saturated targets such as Barnard's Star still get a rough spectrum and a brightness curve.
-- It checks the whole field for change with one button, not only the target.
-- Blink brings back the classic blink comparator, against surveys taken decades earlier.
+- Every SPHEREx exposure lands at a different wavelength, so the tool turns a series of images into a spectrum, and compares change only at matching wavelengths.
+- Stars too bright for the detector are measured from the halo around them, so Barnard's Star still gets a rough spectrum.
+- One button checks the whole field for change, not only the target.
+
+### Tools and technology
+
+- Python (FastAPI, NumPy, Astropy) and TypeScript (React, WebGL2), with Aladin Lite for the sky map. No special hardware.
+- One container on Google Cloud Run, deployed by GitHub Actions only after every test passes. The domain and the cloud credit come from the Space Apps Global Offers.
+- Built with Claude Code (Anthropic), a Super Intelligence (SI) tool. The team set the idea and the features. Claude's code and docs are labeled in commits, file headers, and [docs/si-usage.md](https://github.com/mattsaund/SPHERExplorer/blob/main/docs/si-usage.md).
 
 ### Factors we considered
 
-- Scientific validity. Positions carried forward in time, matching wavelengths, flagged pixels left out, and results checked against Astropy and published catalogs. `docs/methods.md` says how each was checked.
-- Ease of use. A child or an older adult should be able to use it, so the wording is plain and a tour explains each part.
-- Speed and cost. Small transfers, caching, and a server that scales to zero when idle.
-- Rules and credit. No NASA branding, credit for every data source and library, SI work labeled, and an open license.
-- Durability. The site stays up through judging and picks up new data by itself.
+Scientific validity came first: positions carried forward in time, matching wavelengths, and every result checked against published catalogs. Then ease of use for a child or an older adult, and speed and cost, with small transfers and a server that scales to zero.
 
 SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
@@ -260,17 +241,15 @@ Every factual line above, and where to check it. Recheck after the last change t
 | A 5 arcmin frame is about 8 KB, the file 65 MB, and the server reads about 1 MB of it | Details | `README.md`, `docs/methods.md` section 2, `docs/deploy.md` "Speed". Rechecked Nov 15, 11:24 am: 475 images came as 3.9 MB, from 481 MB read |
 | New exposures are added twice a week | Details | `.github/workflows/index.yml`. Run by hand on GitHub on Nov 15 at 12:17 pm: it passed in 26 s and republished the same 273,367 exposures |
 | Measure Changes flags all five test targets, with the numbers given. WISE 0855 only with detectors 5 and 6 | Summary, details | `docs/methods.md` section 9. Rechecked on the live site on Nov 15, 11:28 am, after the last change to the app. Every number matched |
-| Epsilon Indi B matches 2MASS and WISE within about 10 percent | Details | `docs/methods.md` section 4 |
-| Blink partners are WISE, 2MASS, and the Digitized Sky Survey | Details | `docs/methods.md` section 13 |
-| Water, carbon dioxide, and methane are marked, and the tool says which stand out | Summary, details | `docs/methods.md` section 10 |
+| Blink against surveys decades older: WISE, 2MASS, and the Digitized Sky Survey | Details | `docs/methods.md` section 13 |
+| Water, methane, and other features are marked on the spectrum | Summary, details | `docs/methods.md` section 10 |
 | The tool names Measure Changes and Blink | Details | The app's Studies tab and image study |
-| FITS files with coordinates, flags, and variance | Summary, details | `docs/methods.md` section 14 |
-| The stack and the data sources | Details | `docs/architecture.md`, `docs/references.md` |
+| FITS files can be saved | Summary, details | `docs/methods.md` section 14 |
+| The main stack: Python with FastAPI, NumPy, and Astropy, TypeScript with React and WebGL2, and Aladin Lite | Details | `docs/architecture.md`, `docs/references.md` |
 | Deploys run only after every test passes | Details | `.github/workflows/deploy.yml` |
 | No account is needed | Details | `docs/deploy.md`, Security |
 | The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `video/`, which is the demo (`docs/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
-| The details name the best-known objects in the field, not every object | Details | The app asks SIMBAD for the 150 most cited objects in the field (`store.ts`) |
 | The SI answer says every source file and every pull request is labeled, and that three commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and three commits on `main` carry no trailer (`ec252a2`, `80d2140`, and `e79c16e`). `docs/si-usage.md` names all three |
 | The References field lists every resource in use | References | Build it again from `docs/references.md` after any change to that file |

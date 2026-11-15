@@ -11,6 +11,8 @@ Deadline: click "Submit for Judging" before Sun Nov 15, 11:59 pm, local time of 
 
 ## Project page fields
 
+The text for each field, and the claims to recheck before submitting, is in `docs/submission-text.md`.
+
 - [ ] Project name.
 - [ ] High-level summary: what we built, how it addresses the challenge, why it matters.
 - [ ] Demo link (public, no login).

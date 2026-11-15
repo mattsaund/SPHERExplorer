@@ -110,4 +110,4 @@ Add the license and version when a library goes into the build.
 | Mission facts for the telescope list (launch and retirement dates, sites) | Public | Each mission's own pages: NASA, ESA, CSA, IPAC (2MASS), SDSS, STScI (DSS) | Yes (Telescopes tab) |
 | CADC TAP and file services (NEOSSat) | Public | Canadian Astronomy Data Centre, operated by the National Research Council of Canada with the support of the Canadian Space Agency | Yes |
 | Google Cloud Run, Cloud Build, and Artifact Registry, on the Google Cloud Free Trial from the Space Apps Global Offers | Google Cloud terms of service | | Yes (hosting) |
-| Domain name from the GoDaddy Registry offer in the Space Apps Global Offers, registered through Porkbun | Porkbun terms of service | | Claimed, not connected yet |
+| Domain name from the GoDaddy Registry offer in the Space Apps Global Offers, registered through Porkbun | Porkbun terms of service | | Yes (`spherexplorer.earth`) |

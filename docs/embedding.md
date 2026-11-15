@@ -65,7 +65,7 @@ A link made by the tool also carries these. Each is left out while it is at its 
 ## Embed the viewer
 
 ```html
-<iframe src="<site>/?ra=133.795129&dec=-7.245147&mode=visits&det=56&play=1&embed=1"
+<iframe src="https://spherexplorer.earth/?ra=133.795129&dec=-7.245147&mode=visits&det=56&play=1&embed=1"
         width="640" height="560" style="border:0;max-width:100%"
         loading="lazy" allowfullscreen title="SPHEREx images of WISE 0855-0714"></iframe>
 ```

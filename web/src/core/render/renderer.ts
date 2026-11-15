@@ -191,6 +191,8 @@ export interface DrawOptions {
   center: [number, number];
   /** Arcseconds per CSS pixel. */
   scale: number;
+  /** Canvas pixels per CSS pixel. Left out, it is the canvas's own. A saved picture sets it. */
+  ratio?: number;
   stretch: Stretch;
   lo: number;
   hi: number;
@@ -353,7 +355,7 @@ export class FrameRenderer {
     if (!first || !width || !height) return;
 
     gl.useProgram(this.program);
-    const ratio = width / (this.canvas.clientWidth || width);
+    const ratio = options.ratio ?? width / (this.canvas.clientWidth || width);
     gl.uniform2f(this.uniform("uCanvas"), width, height);
     gl.uniform2f(this.uniform("uViewCenter"), options.center[0], options.center[1]);
     gl.uniform1f(this.uniform("uScale"), options.scale / ratio);

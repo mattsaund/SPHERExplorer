@@ -39,6 +39,12 @@ const OBJECT_REACH = 10;
 const SIGHT_MARGIN = 24;
 /** The gap between the studied field's square and its name, in screen pixels. */
 const CAPTION_GAP = 6;
+/**
+ * The square must be seen whole. Once it would take more than FIT_LIMIT of the map's shorter
+ * side, the map zooms out until it takes FIT_SHARE of it, which leaves room to see around it.
+ */
+const FIT_LIMIT = 0.85;
+const FIT_SHARE = 0.55;
 /** The Sun and the Moon are drawn as discs once their radius is at least this many screen pixels. */
 const MIN_DISC = 5;
 
@@ -318,6 +324,24 @@ export function SkyMap({ className }: { className?: string }) {
       const at = aladin.world2pix(position.ra, position.dec) as [number, number] | null;
       if (!at) return false;
       return at[0] >= SIGHT_MARGIN && at[0] <= host.clientWidth - SIGHT_MARGIN && at[1] >= SIGHT_MARGIN && at[1] <= host.clientHeight - SIGHT_MARGIN;
+    }
+
+    /**
+     * Zoom the map out when the studied field's square does not fit in it. A square wider than
+     * the map has all four sides off screen, so it would seem to have vanished: that happens
+     * when a larger area is chosen on a map that is zoomed in. The map only ever zooms out
+     * here, and only as far as needed. Returns true when it did.
+     */
+    function fitSquare(size: number): boolean {
+      const width = Math.max(host.clientWidth, 1);
+      const room = Math.min(width, Math.max(host.clientHeight, 1));
+      const [fovX] = aladin.getFov();
+      const side = size / 3600 / (fovX / width); // the square's side in screen pixels
+      if (!(side > FIT_LIMIT * room)) return false;
+      const wanted = Math.min(180, ((size / 3600) / (FIT_SHARE * room)) * width);
+      aladin.setFoV(wanted);
+      wantedFov = wanted;
+      return true;
     }
 
     /**
@@ -655,6 +679,8 @@ export function SkyMap({ className }: { className?: string }) {
       if (done.kind === "resize") {
         // The field being studied reloads at its new size once the drag ends.
         if (done.square.studied) actions.setFieldSize(useStore.getState().fieldSize, true);
+        // A corner dragged past the map's edge leaves a square too large to see. Bring it back in.
+        fitSquare(useStore.getState().fieldSize);
       } else if (done.kind === "move") {
         const place = useStore.getState().map.picked;
         if (!done.moved) clickAt(...point(event));
@@ -775,6 +801,9 @@ export function SkyMap({ className }: { className?: string }) {
       if (fieldMoved && field && applied.field && state.target?.moving && inSight(applied.field) && !inSight(field)) {
         aladin.gotoRaDec(field.ra, field.dec);
       }
+      // A new field, or a new size for it, must leave the whole square in sight. Not while the
+      // square is being dragged: zooming then would pull its corner out from under the pointer.
+      if (field && !drag && (applied.target !== state.target || applied.fieldSize !== state.fieldSize || !applied.field)) fitSquare(state.fieldSize);
       if (
         applied.target !== state.target || applied.fieldSize !== state.fieldSize || applied.picked !== map.picked || applied.fieldShown !== map.fieldShown ||
         applied.selected !== map.selected || applied.fov !== map.fov || applied.center !== map.center || applied.measured !== map.measured || fieldMoved
@@ -864,7 +893,7 @@ export function SkyMap({ className }: { className?: string }) {
 
       const labelColor = cssVariable(host, "--map-label", "#9be8ff");
       const font = getComputedStyle(host).fontFamily || "sans-serif";
-      // A click on an object. A star or galaxy becomes the study at once. A planet shows its card.
+      // A click on an object makes it the study at once. The Sun and the Moon only show their card.
       const onClick = (source: { data: { object: SkyObject } }) => {
         lastObjectClick = Date.now();
         actions.chooseObject(source.data.object);

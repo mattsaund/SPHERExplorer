@@ -30,12 +30,17 @@ export function mapHome(state: Study): SkyPosition | null {
 }
 
 /**
- * True when an object from the sky map is the target of the study: the same name at the same
- * place. A click on its label made it the study, and its card stays up while it is.
+ * True when an object from the sky map is the target of the study. A click on its label made
+ * it the study, and its card stays up while it is.
+ * A star or galaxy is known by its name and place. A planet, asteroid, or comet has no fixed
+ * place, and the archive may name it differently ("Vesta" on the map, "4 Vesta (A807 FA)" in
+ * the study), so it is known by the page about it, which both sides carry.
  */
 export function isStudied(state: Pick<AppState, "target">, object: SkyObject): boolean {
   const target = state.target;
-  return target !== null && !target.moving && target.name === object.name && target.ra === object.ra && target.dec === object.dec;
+  if (target === null) return false;
+  if (target.moving || object.solar) return target.moving !== undefined && object.solar !== undefined && Boolean(target.url) && target.url === object.url;
+  return target.name === object.name && target.ra === object.ra && target.dec === object.dec;
 }
 
 /** The date of the image on screen, as a Modified Julian Date. Null before any image is found. */

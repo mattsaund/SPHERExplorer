@@ -5,6 +5,7 @@
 
 import asyncio
 import socketserver
+import sys
 import threading
 
 import pytest
@@ -29,6 +30,11 @@ class Bucket(socketserver.ThreadingTCPServer):
         self.slow_down = 0         # answer 503 this many times first
         self.chunked = False       # answer in chunks, a form the direct exchange does not read
         self.missing = False       # answer 404
+
+    def handle_error(self, request, client_address):
+        """Stay quiet when a reader hangs up in the middle of an answer, which these tests do on purpose."""
+        if not isinstance(sys.exception(), OSError):
+            super().handle_error(request, client_address)
 
 
 class Handler(socketserver.StreamRequestHandler):

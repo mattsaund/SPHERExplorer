@@ -9,7 +9,7 @@ One container runs everything: the API and the built web app. It runs on Google 
 | Address | https://spherexplorer-112779026983.us-east4.run.app |
 | Service | `spherexplorer` on Cloud Run, region `us-east4` |
 | First deployed | Nov 14, 2026 |
-| Custom domain | https://spherexplorer.earth and https://www.spherexplorer.earth. Mapped Nov 14. Live once the DNS records and the certificate are in place |
+| Custom domain | https://spherexplorer.earth and https://www.spherexplorer.earth. Live with HTTPS since Nov 14. Google renews the certificates on its own |
 | Paid by | The Google Cloud Free Trial from the Space Apps Global Offers |
 
 The trial gives $300 for 90 days. It ends about Feb 12, 2027, after judging ends on Jan 26. When it ends, Google stops the site unless the account is upgraded to a paid one. The free tier only keeps the site running after that upgrade.
@@ -155,7 +155,7 @@ The domain is `spherexplorer.earth`. It comes from the Space Apps Global Offers 
 4. Copy the records into Porkbun, as in the table below. Go by the `describe` output. The `create` output shows `spherexplorer` in the NAME column of the bare-domain records, but that is not a host. Typed as a Host, it would make `spherexplorer.spherexplorer.earth`.
 5. Wait for the certificate. It usually takes 15 minutes and can take 24 hours. `gcloud beta run domain-mappings list --region us-east4` shows a check mark when it is ready. If it never arrives, look for a CAA record at Porkbun that leaves out Google.
 
-Add each teammate as an Owner in Search Console too, under Settings, then Users and permissions. Only verified owners can change the mappings.
+Only verified owners of the domain can change the mappings. To make a teammate one, open the property in Search Console (https://search.google.com/search-console/welcome), open the Verified owners list, click Add an owner, and enter their Google account. "Add user" under Users and permissions is not enough.
 
 ### DNS records at Porkbun
 

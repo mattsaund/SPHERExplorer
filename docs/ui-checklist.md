@@ -12,7 +12,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 |---|---|---|
 | Start | Have the app load its settings and open a shared link | `actions.init` |
 | Search | Type a name, J2000 coordinates, or a planet, asteroid, or comet | `actions.search` |
-| Tour | Walk through the page step by step with a real example, on a first visit or from Help. The first card offers all five of NASA's test targets, each opening on the view that shows it best | `TEST_TARGETS`, `actions.goTo`, `actions.setMode`, `actions.setFilters` |
+| Tour | Walk through the page step by step with a real example (Barnard's Star), on a first visit or from Help | `TEST_TARGETS`, `actions.goTo` |
 | Search suggestions | Pick from a dropdown: recent searches and NASA's targets at first, then matching names and typed coordinates | `actions.suggest`, `suggestions` |
 | Test targets | Open any of NASA's five test targets in one click | `TEST_TARGETS`, `actions.goTo` |
 | Status | See search and download progress as a count and a ring, and whether a very large field was sampled | `targetState`, `framesState`, `loaded`, `failed`, `leftOut` |

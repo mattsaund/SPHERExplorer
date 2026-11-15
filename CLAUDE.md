@@ -124,7 +124,7 @@ Details in `docs/research/`.
 |---|---|
 | `docs/README.md` | Where each document is, by what it is for |
 | `docs/concept.md` | The team's concept and Matt's original notes (human-written) |
-| `CONTRIBUTING.md` | Setup, checks, rules, and the pull request flow, for any developer |
+| `CONTRIBUTING.md` | Says the repo is closed to outside contributions during judging. Then the setup, the checks, the team's own rules, and how a change lands |
 | `docs/architecture.md` | Design: the parts, the stack, the data flow, and the frontend contract |
 | `docs/interface.md` | The page layout and how the interface behaves |
 | `docs/deploy.md` | How to put the site online (one container on Google Cloud Run) |

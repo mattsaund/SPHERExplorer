@@ -1,6 +1,12 @@
 # Contributing to SPHERExplorer
 
-Thanks for your interest in the project. This guide covers how to set up a working copy, where the code lives, the checks every change must pass, and the rules the project follows.
+**SPHERExplorer is not open to contributions right now.**
+
+It is team Turing Complete's entry in the NASA Space Apps Challenge 2026, and it is being judged. An entry is the team's own work. From the submission on Nov 15, 2026, the repo stays as submitted until the winners are announced on Jan 26, 2027. So we are not taking pull requests.
+
+You are welcome to read the code, run it, and fork it under its license. If the repo opens to contributions after judging, this file will say so.
+
+The rest of this page is how the team works in this repo: the setup, where things live, the checks, and our rules. They are our own rules. We wrote them for ourselves, and we hold every change to them.
 
 ## Set up
 
@@ -41,7 +47,7 @@ API_TARGET=https://spherexplorer.earth npm run dev
 
 ## Checks
 
-`scripts/check_all.sh` runs everything CI runs. Run it before opening a pull request. The pieces:
+`scripts/check_all.sh` runs everything CI runs. We run it before every commit. The pieces:
 
 ```sh
 cd server && uv run pytest
@@ -50,56 +56,58 @@ python3 scripts/check_text.py
 python3 scripts/check_ui_coverage.py
 ```
 
-- `check_text.py` enforces the writing rules below.
-- `check_ui_coverage.py` fails when the interface stops using a tool listed in `docs/ui-checklist.md`. A change can move, rename, or restyle any tool, but it can't drop one.
+- `check_text.py` holds the writing to the rules below.
+- `check_ui_coverage.py` fails when the interface stops using a tool listed in `docs/ui-checklist.md`. We can move, rename, or restyle any tool, and we never drop one.
 
-## Rules
+## Our rules
+
+These are the standards we set for the project. The checks above keep most of them for us, and we keep the rest by review.
 
 ### Design
 
-- One highly readable sans-serif. No glow, bloom, neon, or gradients for effect.
-- A child or an older adult should be able to use it: large targets, plain words, visible labels, and keyboard access.
-- Fast: no layout shift while images load, and no spinner that blocks the whole page.
-- Built for desktop screens and projectors. Phones work but aren't optimized.
+- We use one highly readable sans-serif, with no glow, bloom, neon, or gradients for effect.
+- A child or an older adult can use the tool. That means large targets, plain words, visible labels, and keyboard access.
+- It stays fast. Nothing shifts on the page while images load, and no spinner blocks the whole page.
+- We build for desktop screens and projectors. Phones work, and they are not what we tune for.
 
 ### Writing
 
-- American English, in short, plain sentences.
-- No em dashes and no middle dots. `check_text.py` rejects them.
-- Text in the app uses technical terms: bands, objects, and wavelengths, not colors and things. `docs/team/language-refining.md` has the full rules.
-- Tools such as Claude Code are called SI (Super Intelligence), the term NASA Space Apps uses.
+- We write American English in short, plain sentences.
+- We use no em dashes and no middle dots. `check_text.py` rejects them.
+- Text in the app uses the proper terms, such as bands, objects, and wavelengths. `docs/team/language-refining.md` has the notes.
+- We call tools such as Claude Code SI (Super Intelligence), the term NASA Space Apps uses.
 
 ### Sources and credit
 
-- Every dataset, library, service, image, and font goes in `docs/references.md`, with its license and required credit, in the same commit that starts using it.
-- Nothing may use NASA logos or branding, or suggest that NASA endorses the project.
+- Every dataset, library, service, image, and font is in `docs/references.md` with its license and its credit. It goes in with the same commit that starts using it.
+- We use no NASA logos or branding, and nothing here suggests that NASA endorses the project.
 
 ### SI tools
 
-If you use an SI tool, label its work the way the rest of the project does:
+The idea and the features are the team's, recorded in `docs/concept.md` and `docs/decisions.md`. We use SI tools to build them, and we label that work wherever it appears:
 
-- A `Co-Authored-By` trailer on each commit it wrote or helped write.
-- A header comment on each new source file, ending "Written with Claude Code (Anthropic) assistance." or naming the tool you used.
+- A `Co-Authored-By` trailer on each commit an SI tool wrote or helped write.
+- A header comment on each source file it created, ending "Written with Claude Code (Anthropic) assistance."
 - A row in `docs/si-usage.md` for notable use.
 - A visible watermark on any image or video it generated.
 
 ### The engine and the interface
 
-- A change to an exported name or type in `web/src/core/index.ts` is a contract change. Start the pull request title with `contract:`.
-- A new engine tool gets a row in `docs/ui-checklist.md`, so the coverage check knows about it.
+- `web/src/core/index.ts` is the contract between the two. A change to a name or type it exports gets a pull request title that starts with `contract:`.
+- Every engine tool has a row in `docs/ui-checklist.md`, so the coverage check knows about it.
 
-## Pull requests
+## How a change lands
 
-1. Branch from `dev`, and open the pull request against `dev`.
-2. CI must pass. A maintainer reviews the change and merges it.
+1. Work starts on a branch from `dev`, and its pull request goes to `dev`.
+2. CI passes. The team reviews the change and merges it.
 3. `main` changes only through a pull request from `dev`. Once CI passes on `main`, the site deploys automatically (`docs/deploy.md`, "Continuous deployment").
 
-Deploys freeze at 11:00 pm Eastern on Nov 15, 2026, so the site stays as submitted through judging. Removing the freeze in `.github/workflows/deploy.yml` turns automatic deploys back on.
+For the submission, deploys freeze at 11:00 pm Eastern on Nov 15, 2026, and the repo at 11:30 pm, so the site and the code stay as submitted through judging. Removing the freeze in `.github/workflows/deploy.yml` turns automatic deploys back on.
 
 ## Reporting a problem
 
-Open an issue on GitHub. Say what you did, what you expected, and what happened. Include the link from "Copy link" under Save and share, which reopens your exact view.
+Issues are open. Say what you did, what you expected, and what happened, and include the link from "Copy link" under Save and share, which reopens your exact view. We read every one. A fix waits until judging ends, because the repo stays as submitted until then.
 
 ## License
 
-Contributions are released under the [Apache License 2.0](LICENSE), the license of the project.
+SPHERExplorer is released under the [Apache License 2.0](LICENSE).

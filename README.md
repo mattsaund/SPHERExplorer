@@ -65,7 +65,7 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173. `scripts/check_all.sh` runs the same checks as CI. Deployment is covered in [docs/deploy.md](docs/deploy.md), and how to contribute in [CONTRIBUTING.md](CONTRIBUTING.md).
+Then open http://localhost:5173. `scripts/check_all.sh` runs the same checks as CI. Deployment is covered in [docs/deploy.md](docs/deploy.md). The team's rules, and why the repo is closed to contributions during judging, are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Use of Super Intelligence (SI)
 

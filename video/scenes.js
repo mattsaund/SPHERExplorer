@@ -50,7 +50,7 @@ const SCENES = [
     from: 17.75, to: 20.5, kind: "shot",
     // The two pictures swap, as Blink swaps them in the app.
     frames: Array.from({ length: 6 }, (_, i) => [i * 0.46, i % 2 ? "blink-old" : "blink-new"]),
-    caption: "Checked against Gaia, 2MASS, WISE, and NEOSSat.", credit: CREDIT_PARTNERS,
+    caption: "Compare with Gaia, 2MASS, WISE, and NEOSSat.", credit: CREDIT_PARTNERS,
   },
   {
     from: 20.5, to: 25.5, kind: "grid",

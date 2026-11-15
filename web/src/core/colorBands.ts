@@ -11,7 +11,7 @@ export const COLOR_PRESETS: ColorBands[] = [
   },
   {
     id: "short", name: "Starlight",
-    about: "Detectors 1, 2, and 3. Close to the colors of other near-infrared sky surveys.",
+    about: "Detectors 1, 2, and 3. Close to the bands of other near-infrared sky surveys.",
     blue: [0.74, 1.11], green: [1.11, 1.65], red: [1.65, 2.42],
   },
   {

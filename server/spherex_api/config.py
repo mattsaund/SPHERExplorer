@@ -69,7 +69,10 @@ def usable_cpus(root: str = "/sys/fs/cgroup") -> int:
 
 
 # Processors this process may use. Thread pools that compute are sized from it.
-CPUS = usable_cpus()
+# Cloud Run does not show its limit to the container (seen on Nov 15: 7 to 10 processors in
+# sight with 4 allowed), so the deploy command states it in SPX_CPUS, beside its --cpu flag.
+_stated = os.environ.get("SPX_CPUS", "").strip()
+CPUS = int(_stated) if _stated.isdigit() and int(_stated) > 0 else usable_cpus()
 
 # Sent to upstream services. Kept generic by default.
 USER_AGENT = os.environ.get("SPX_USER_AGENT", "spherex-viewer/0.1")

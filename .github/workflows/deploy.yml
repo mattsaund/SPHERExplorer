@@ -70,10 +70,11 @@ jobs:
       # Two instances cap the cost at what four smaller ones could reach. The larger frame memory
       # uses the extra room. Public access, concurrency, the timeout, and the instance minimum
       # are not named here, so they keep their current settings.
+      # SPX_CPUS must equal --cpu: Cloud Run does not tell the container how many it may use.
       - name: Build and deploy
         run: >-
           gcloud run deploy spherexplorer --source . --region us-east4 --quiet
           --execution-environment gen2 --cpu 4 --memory 4Gi --max-instances 2
-          --update-env-vars SPX_FRAME_CACHE_MB=1024
+          --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=4
       - name: Check that the live site answers
         run: curl -fsS --retry 5 --retry-delay 10 --retry-all-errors https://spherexplorer-112779026983.us-east4.run.app/api/health

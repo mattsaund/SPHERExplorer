@@ -47,7 +47,7 @@ gcloud run deploy spherexplorer \
   --memory 4Gi --cpu 4 --cpu-boost \
   --concurrency 40 --min-instances 0 --max-instances 2 \
   --timeout 300 \
-  --update-env-vars SPX_FRAME_CACHE_MB=1024
+  --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=4
 ```
 
 The first deploy offers to create a `cloud-run-source-deploy` repository for the built images. Answer Y. Cloud Build then runs the `Dockerfile`, which takes several minutes, and the command prints the public address.
@@ -137,6 +137,7 @@ All optional. Set with `--set-env-vars NAME=value`.
 | `SPX_INDEX_SEED` | set in the container | A copy of the exposure index inside the image, so a new instance can search at once |
 | `SPX_CACHE_DIR` | `/tmp/spherexplorer` | Where file layouts, calibration tables, and color tiles are kept |
 | `SPX_CACHE_MAX_MB` | 300 in the container | Ceiling on that folder. Cloud Run keeps `/tmp` in memory, so it must stay small. The oldest files go first |
+| `SPX_CPUS` | what the container can see, and 4 on the live site | Processors the server may use, for sizing its compute threads. Cloud Run shows a container more processors than it allows, so `deploy.yml` sets this beside `--cpu`. Keep the two equal |
 | `SPX_FRAME_CACHE_MB` | 256, and 1024 on the live site | Memory for finished frames, so a target someone has opened reloads at once. A 5 arcminute frame takes about 8 kB and a 30 arcminute frame about 200 kB, so one 30 arcminute load of 380 images is about 80 MB |
 
 ## What starts cold

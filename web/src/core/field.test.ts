@@ -1,8 +1,8 @@
 // Tests for which object on the sky map is the one being studied.
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
-import { isStudied } from "./field";
-import type { SkyObject, Target } from "./types";
+import { fieldCenter, isStudied } from "./field";
+import type { Frame, SkyObject, Target } from "./types";
 
 const star: SkyObject = { id: "s1", name: "Vega", ra: 279.2347, dec: 38.7837, epoch: 2000, url: "https://simbad.example/vega" } as SkyObject;
 const vesta: SkyObject = {
@@ -33,5 +33,35 @@ describe("isStudied", () => {
     expect(isStudied({ target: fixed }, vesta)).toBe(false);
     // A body with no page cannot be matched by an empty one.
     expect(isStudied({ target: { ...moving, url: undefined } }, { ...vesta, url: undefined as unknown as string })).toBe(false);
+  });
+});
+
+describe("fieldCenter", () => {
+  const player = { index: 0 } as never;
+  const body = { name: "4 Vesta (A807 FA)", ra: 0, dec: 0, epoch: 2026, url: vesta.url, moving: { command: "DES=20000004;" } } as Target;
+
+  it("is the target's own place for a star or a patch of sky", () => {
+    const target = { name: "Vega", ra: 279.2347, dec: 38.7837, epoch: 2000 } as Target;
+    expect(fieldCenter({ target, frames: [], sequence: [], player })).toBe(target);
+    expect(fieldCenter({ target: null, frames: [], sequence: [], player })).toBeNull();
+  });
+
+  it("keeps a body chosen on the map in sight while its images are being found", () => {
+    const searching = { target: body, frames: [], sequence: [], player, targetState: "loading" as const, map: { selected: vesta } };
+    expect(fieldCenter(searching)).toEqual({ ra: 120.5, dec: 21.3 });
+    // Searched by name, there is no place to show yet.
+    expect(fieldCenter({ ...searching, map: { selected: null } })).toBeNull();
+    // Another object chosen on the map is not the body being studied.
+    expect(fieldCenter({ ...searching, map: { selected: star } })).toBeNull();
+  });
+
+  it("moves to the image on screen once images are found, and shows nothing when there are none", () => {
+    const frames = [{ id: 0, center: { ra: 95.1, dec: 18.2 } }, { id: 1, center: { ra: 96.4, dec: 18.5 } }] as unknown as Frame[];
+    const found = { target: body, frames, sequence: [], player, targetState: "ready" as const, map: { selected: vesta } };
+    expect(fieldCenter(found)).toEqual({ ra: 95.1, dec: 18.2 });
+    const second = { key: "e1", label: "", frameIds: [1], mjd: 0, wavelength: 0 };
+    expect(fieldCenter({ ...found, sequence: [second] })).toEqual({ ra: 96.4, dec: 18.5 });
+    // The search ended with no images: a square would mark a place that has none.
+    expect(fieldCenter({ ...found, frames: [] })).toBeNull();
   });
 });

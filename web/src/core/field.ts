@@ -4,19 +4,30 @@
 import type { AppState } from "./store";
 import type { SkyObject, SkyPosition } from "./types";
 
-type Study = Pick<AppState, "target" | "frames" | "sequence" | "player">;
+type Study = Pick<AppState, "target" | "frames" | "sequence" | "player"> & {
+  /** How far the search for the target's images has come, and the object chosen on the map. Both may be left out. */
+  targetState?: AppState["targetState"];
+  map?: Pick<AppState["map"], "selected">;
+};
 
 /**
  * The center of the field being studied: the target's own place, or for a moving body the
- * place of the image on screen. Null when there is no study, and while a moving body's
- * images are still being found.
+ * place of the image on screen.
+ * While a moving body's images are still being found, its field is where the body was chosen
+ * on the map, which is where it is now. That keeps the selection in sight during the search.
+ * The field moves to the first image when the images are found.
+ * Null when there is no study, and for a moving body that was searched by name before its
+ * images are found, or that has none.
  */
 export function fieldCenter(state: Study): SkyPosition | null {
   const target = state.target;
   if (!target) return null;
   if (!target.moving) return target;
   const step = state.sequence[state.player.index];
-  return state.frames[step ? step.frameIds[0] : 0]?.center ?? null;
+  const imaged = state.frames[step ? step.frameIds[0] : 0]?.center;
+  if (imaged) return imaged;
+  const chosen = state.map?.selected;
+  return state.targetState === "loading" && chosen && isStudied(state, chosen) ? { ra: chosen.ra, dec: chosen.dec } : null;
 }
 
 /**

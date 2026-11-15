@@ -101,7 +101,7 @@ Source code, methods, and every reference: [https://github.com/mattsaund/SPHEREx
 
 ## NASA data and resources
 
-Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`. The form takes each entry as a Link Text and a Link Url. Click Add New Link once per row, and paste the first two columns. Every link opened in a browser on Nov 15.
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`. The form takes each entry as a Link Text and a Link Url. Click Add New Link once per row, and paste the first two columns. Every link opened in a browser on Nov 15. Which field: NASA data and resources are NASA missions and NASA-run or NASA-funded archives and services. Everything else goes under Space Agency Partner and other data, with the partner agency (CSA or ESA) named in the link text. Libraries, tools, papers, and books go in the References field.
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -113,28 +113,30 @@ Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/ref
 | SPHEREx Explanatory Supplement | https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp.pdf | The file layout, the flags, and the calibration |
 | SPHEREx archive documentation (IRSA) | https://caltech-ipac.github.io/spherex-archive-documentation/ | How the archive and its files are organized |
 | IRSA SPHEREx Data Explorer | https://irsa.ipac.caltech.edu/applications/spherex/ | Studied for the design, as the challenge suggests |
-| IRSA sky survey tiles (HiPS) | https://irsa.ipac.caltech.edu/data/hips/list | Map layers from 2MASS, WISE, Spitzer, and other missions, and Blink |
+| Sky survey tiles from NASA missions: 2MASS, WISE, Spitzer, GALEX, and IRAS (IRSA) | https://irsa.ipac.caltech.edu/data/hips/list | Map layers, and Blink against WISE and 2MASS. IRAS was a joint mission of NASA, the Netherlands, and the UK |
 | JPL Horizons | https://ssd.jpl.nasa.gov/horizons/ | Paths of planets, asteroids, and comets through the images |
 | JPL Small-Body Database | https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html | Names and orbits of asteroids and comets |
-| 2MASS Point Source Catalog (IRSA) | https://irsa.ipac.caltech.edu/Missions/2mass.html | Brightness of the same stars, for comparison |
+| 2MASS Point Source Catalog (IRSA) | https://irsa.ipac.caltech.edu/Missions/2mass.html | Brightness of the same stars, for comparison. 2MASS was funded by NASA and the NSF |
 | AllWISE Source Catalog (IRSA) | https://irsa.ipac.caltech.edu/data/WISE/docs/release/AllWISE/ | Brightness of the same stars, for comparison |
-| Gaia DR3 catalog at MAST, STScI | https://archive.stsci.edu/missions-and-data/gaia | The service that delivers Gaia star positions and motions |
+| MAST, NASA's archive at STScI | https://archive.stsci.edu/ | The service that delivers the Gaia catalog. The Gaia data itself is ESA's, under partner data |
 
 ## Space Agency Partner and other data
 
-Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`. The form takes each entry as a Link Text and a Link Url. Click Add New Link once per row, and paste the first two columns. Every link opened in a browser on Nov 15.
+Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/references.md`. The form takes each entry as a Link Text and a Link Url. Click Add New Link once per row, and paste the first two columns. Every link opened in a browser on Nov 15. Which field: NASA data and resources are NASA missions and NASA-run or NASA-funded archives and services. Everything else goes under Space Agency Partner and other data, with the partner agency (CSA or ESA) named in the link text. Libraries, tools, papers, and books go in the References field.
 
 | Link Text | Link Url | Used for |
 |---|---|---|
-| NEOSSat astronomy images, Canadian Space Agency (CADC) | https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/neossat/ | Visible-light images of the same field. Contains information licensed under the Open Government Licence - Canada |
+| NEOSSat astronomy images, Canadian Space Agency (served by CADC) | https://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/en/neossat/ | Visible-light images of the same field. Contains information licensed under the Open Government Licence - Canada |
 | NEOSSat tutorial, Canadian Space Agency | https://github.com/asc-csa/NEOSSAT_Tutorial | Reference for reading NEOSSat files |
 | Gaia DR3, European Space Agency | https://www.cosmos.esa.int/web/gaia/dr3 | Star positions, proper motions, and parallaxes |
-| SIMBAD, CDS Strasbourg | https://simbad.cds.unistra.fr/ | Object names and facts, through the CfA and IDIA mirrors |
+| SIMBAD and the Sesame name resolver, CDS Strasbourg | https://simbad.cds.unistra.fr/ | Object names and facts, through the CfA and IDIA mirrors |
 | VizieR, CDS Strasbourg | https://vizier.cds.unistra.fr/ | The 2MASS and AllWISE catalogs |
 | Aladin Lite, CDS Strasbourg | https://aladin.cds.unistra.fr/AladinLite/ | The sky map |
 | SkyBoT, IMCCE Paris Observatory | https://ssp.imcce.fr/webservices/skybot/ | The known asteroids, comets, and planets in an image |
 | CelesTrak | https://celestrak.org/ | Orbits for the live map of telescopes |
-| Sky survey tiles from DSS2, SDSS, GALEX, IRAS, Herschel, and Planck (IRSA) | https://irsa.ipac.caltech.edu/data/hips/list | More map layers |
+| Herschel, European Space Agency | https://www.cosmos.esa.int/web/herschel | A sky map layer, from tiles served by IRSA |
+| Planck, European Space Agency | https://www.cosmos.esa.int/web/planck | A sky map layer, from tiles served by IRSA |
+| DSS2 and SDSS sky tiles (served by IRSA) | https://irsa.ipac.caltech.edu/data/hips/list | Map layers, and Blink against the Digitized Sky Survey |
 | NIST Atomic Spectra Database | https://www.nist.gov/pml/atomic-spectra-database | Wavelengths of the atomic lines marked on spectra |
 | Natural Earth | https://www.naturalearthdata.com/ | Land outlines on the map of telescopes |
 | WiseView | https://github.com/backyardworlds/wiseview | Studied as prior art for blinking images |

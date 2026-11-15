@@ -18,8 +18,8 @@ import httpx
 import numpy as np
 
 from . import config
-from .fitshdr import parse_header
-from .pointing import detector_frame, sip_inverse
+from .images.fitshdr import parse_header
+from .images.pointing import detector_frame, sip_inverse
 
 FILE = re.compile(r"level2_(?P<obsid>[A-Za-z0-9_]+)D(?P<det>[1-6])_spx_(?P<ver>l2b-[A-Za-z0-9\-]+)\.fits$")
 HEAD_BYTES = 28800       # primary header plus the IMAGE header

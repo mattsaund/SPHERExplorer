@@ -5,7 +5,7 @@ import asyncio
 
 import pytest
 
-from spherex_api import colorhips
+from spherex_api.skymap import colorhips
 
 
 def test_parse_recipe():

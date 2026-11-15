@@ -6,11 +6,37 @@ How SPHERExplorer is built and why: its parts, the data flow, and the contract b
 
 | Part | What it is |
 |---|---|
-| `server/` | Python API. Searches IRSA, reads SPHEREx pixels from AWS S3 with byte-range requests, measures spectra, and relays services that browsers can't call. |
+| `server/` | Python API. Searches its own index of SPHEREx exposures, reads SPHEREx pixels from AWS S3 with byte-range requests, measures brightness, and relays services that browsers can't call. |
 | `web/src/core/` | The engine in the browser. API client, state, image math, WebGL frame renderer, sky map wrapper, plots, URL state, export. |
 | `web/src/ui/` | Everything the user sees and touches. Layout, components, styles, theme, icons, copy, help. |
 | `web/src/main.tsx`, `web/index.html`, `web/package.json`, `web/vite.config.ts` | Shared entry and config. |
 | `docs/` | Documentation for users and developers, and the hackathon record. |
+
+## The engine's folders
+
+`web/src/core/index.ts` and `web/src/core/types.ts` sit at the top. Everything else is in a folder named for what it does. A test sits beside the file it tests.
+
+| Folder | What it holds |
+|---|---|
+| `state/` | The store, the link in the address bar, and the selected field |
+| `search/` | The search box's suggestions and its lists of well-known objects |
+| `net/` | Calls to the SPHERExplorer server |
+| `sky/` | Positions, motions, orbits, and the sky map's layers |
+| `images/` | Frames, sums, color, and the WebGL renderer |
+| `science/` | Brightness, spectra, features, motion, and the change finder |
+| `export/` | Saved pictures, animations, and FITS files |
+| `views/` | The React components that draw the map, the images, and the plots |
+
+## The server's folders
+
+`server/spherex_api/` is one Python package. Its top holds the routes (`main.py`), the settings (`config.py`), the shared network and cache code, and the exposure index (`index_build.py` and `exposures.py`).
+
+| Folder | What it holds |
+|---|---|
+| `images/` | Reading SPHEREx files from the archive: layouts, calibration, cutouts, brightness, and FITS output |
+| `objects/` | What a name means and what is at a place: name lookup, catalogs, distances, and solar system bodies |
+| `telescopes/` | The other telescopes: partner images, nearby catalog sources, and where SPHEREx is now |
+| `skymap/` | What the sky map draws from SPHEREx: coverage maps and color tiles |
 
 ## Why this design
 
@@ -48,11 +74,11 @@ Dependencies stay few. Every new one goes in `docs/references.md` in the same co
 
 `web/src/core/index.ts` is the only door into the engine. UI code imports from `../core` and nothing deeper.
 
-- State. `useStore(selector)` reads state. The fields are documented on `AppState` in `core/store.ts`.
+- State. `useStore(selector)` reads state. The fields are documented on `AppState` in `core/state/store.ts`.
 - Actions. `actions.*` change state. Examples: `actions.search(text)`, `actions.play()`, `actions.setDisplay({ color: true })`, `actions.setSubtract("first")`, `actions.saveAnimation()`.
 - Helpers that read the state. `fieldCenter(state)` is where the studied field is on the sky (it moves with the film for a planet or comet), `fieldDate(state)` the date of the image on screen, and `isStudied(state, object)` whether an object from the map is the study's target.
 - Canvas components. `FrameView`, `SkyMap`, `SpectrumPlot`, `LightCurvePlot`, `Timeline`, and `OrbitView` fill the element they are placed in. They carry no chrome. The UI wraps them with controls.
-- Long work stays off the page's back. `core/layers.ts` makes a large sum in the background, a slice at a time, and `summing` in the state holds how many images are being added up, for the status line. `FrameView` keeps its picture until the sum is there.
+- Long work stays off the page's back. `core/images/layers.ts` makes a large sum in the background, a slice at a time, and `summing` in the state holds how many images are being added up, for the status line. `FrameView` keeps its picture until the sum is there.
 - Lists for menus. `TEST_TARGETS`, `SKY_LAYERS`, `PROJECTIONS`, `COLOR_PRESETS`, `COLOR_MAPS`, and `LINE_FAMILIES`, each with plain-language names and descriptions.
 - The UI uses every one of these and is the working example. `ui/App.tsx` holds the page and its bars, `ui/settings.tsx` the top drawer, and `ui/tools.tsx` the tools in the bottom dock.
 - Types. Everything exported from `core/types.ts`.

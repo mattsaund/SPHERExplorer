@@ -1,7 +1,7 @@
 # Partner data shaping: NEOSSat images from the Canadian Astronomy Data Centre.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import partners
+from spherex_api.telescopes import partners
 
 
 def test_shape_keeps_the_best_version_and_sorts_newest_first():

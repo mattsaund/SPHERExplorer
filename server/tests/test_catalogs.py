@@ -1,7 +1,7 @@
 # Catalog shaping for map annotations.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import catalogs
+from spherex_api.objects import catalogs
 
 
 def test_clean_name():

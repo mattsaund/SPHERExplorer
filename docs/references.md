@@ -15,7 +15,7 @@ Every external resource goes here with its license and required credit. Set "In 
 | VizieR | CDS, Strasbourg (CfA and IDIA mirrors) | Credit required | Ochsenbein et al. 2000, DOI 10.26093/cds/vizier | Yes (2MASS and AllWISE catalogs) |
 | 2MASS Point Source Catalog | UMass, IPAC/Caltech, NASA, NSF (VizieR II/246) | Public | Skrutskie et al. 2006. Flux zero points from Cohen et al. 2003 | Yes (J, H, Ks brightness) |
 | AllWISE Source Catalog | NASA WISE, JPL, IPAC (VizieR II/328) | Public | Wright et al. 2010. Cutri et al. 2013. Flux zero points from Jarrett et al. 2011 | Yes (W1, W2 brightness) |
-| Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck | Each survey team, HiPS built by CDS, ESA, and IPAC | Public | Layer credits in `web/src/core/skyLayers.ts`. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list | Yes (map layers) |
+| Sky survey tiles (HiPS) served by IRSA: 2MASS, AllWISE, DSS2, SDSS DR9, GALEX, Spitzer IRAC and GLIMPSE360, IRAS IRIS, Herschel PACS, Planck | Each survey team, HiPS built by CDS, ESA, and IPAC | Public | Layer credits in `web/src/core/sky/skyLayers.ts`. The same tiles are the older pictures used by Blink. List at https://irsa.ipac.caltech.edu/data/hips/list | Yes (map layers) |
 
 IRSA data use terms: https://irsa.ipac.caltech.edu/data_use_terms.html
 
@@ -62,14 +62,14 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - Gagné et al. 2026 (arXiv 2604.22012). SPHEREx spectra of ultracool dwarfs (SPIFF).
 - Rustamkulov et al. 2026 (arXiv 2607.00543). SPHEREx view of WISE 0855.
 - Chen et al. 2022 (arXiv 2205.08077). Epsilon Indi Ba and Bb orbit.
-- NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. Atomic line wavelengths in `web/src/core/lines.ts`.
+- NIST Atomic Spectra Database (Kramida et al.), https://www.nist.gov/pml/atomic-spectra-database. Atomic line wavelengths in `web/src/core/science/lines.ts`.
 - Gibb et al. 2004, ApJS 151, 35, and Boogert et al. 2015, ARA&A 53, 541. Ice band positions.
 - Anderson and King 2000, PASP 112, 1360. The effective PSF method behind the brightness fit.
 - Planck Collaboration 2020, A&A 641, A6. Cosmological parameters used to turn redshift into distance.
-- Floyd and Steinberg 1976, Proceedings of the Society for Information Display 17, 75. The error diffusion that dithers color pictures in saved animations (`web/src/core/gifcolor.ts`).
-- Siegel 1982, Biometrika 69, 242. The repeated median line that finds the smooth level of a spectrum (`web/src/core/features.ts`).
+- Floyd and Steinberg 1976, Proceedings of the Society for Information Display 17, 75. The error diffusion that dithers color pictures in saved animations (`web/src/core/export/gifcolor.ts`).
+- Siegel 1982, Biometrika 69, 242. The repeated median line that finds the smooth level of a spectrum (`web/src/core/science/features.ts`).
 - Vincenty 1975, Survey Review 23, 88. The formula for the angle between two points on the sky, in the map's measure tool.
-- HITRAN2020 (Gordon et al. 2022, JQSRT 277, 107949). The standard database for molecular band positions. The bands in `web/src/core/lines.ts` are textbook values that Claude compiled. They were not copied from one source, so check them against this one.
+- HITRAN2020 (Gordon et al. 2022, JQSRT 277, 107949). The standard database for molecular band positions. The bands in `web/src/core/science/lines.ts` are textbook values that Claude compiled. They were not copied from one source, so check them against this one.
 - Survey papers for the sky map layers and Blink, beyond the catalogs above: Lasker et al. 2008, AJ 136, 735 (DSS2 and the Guide Star Catalog). Ahn et al. 2012, ApJS 203, 21 (SDSS DR9). Martin et al. 2005, ApJ 619, L1 (GALEX). Fazio et al. 2004, ApJS 154, 10, and Churchwell et al. 2009, PASP 121, 213 (Spitzer IRAC and GLIMPSE). Miville-Deschênes and Lagache 2005, ApJS 157, 302 (IRAS IRIS). Poglitsch et al. 2010, A&A 518, L2 (Herschel PACS). Planck Collaboration 2020, A&A 641, A1 (Planck).
 
 ## Software and services
@@ -93,7 +93,7 @@ Add the license and version when a library goes into the build.
 | TypeScript 7 | Apache-2.0 | | Yes (build) |
 | Type definitions for Node, React, React DOM, and topojson-client (DefinitelyTyped) | MIT | | Yes (build) |
 | Vitest 5 | MIT | | Yes (tests) |
-| matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/colormaps.ts`) |
+| matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/images/colormaps.ts`) |
 | Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
 | IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied as `CLAUDE.md` Rule 5 asks) |

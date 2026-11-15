@@ -1,7 +1,7 @@
 # Reading SkyBoT's answers about known solar system bodies.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import skybot
+from spherex_api.objects import skybot
 
 # Two rows in the shape SkyBoT sends, trimmed to the fields that are read.
 ROWS = [

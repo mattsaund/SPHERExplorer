@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Rebuilds web/src/core/solarBodies.ts: the orbit of every solar system body the sky map
+# Rebuilds web/src/core/sky/solarBodies.ts: the orbit of every solar system body the sky map
 # shows, as JPL Horizons has it on the day this is run, plus where JPL says each body will be
 # a month later, which the tests use as the answer to check against.
 # The browser moves each body along its orbit with Kepler's equation, so the map needs no
@@ -16,7 +16,7 @@ import urllib.parse
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-OUT = ROOT / "web" / "src" / "core" / "solarBodies.ts"
+OUT = ROOT / "web" / "src" / "core" / "sky" / "solarBodies.ts"
 SBDB = "https://ssd-api.jpl.nasa.gov/sbdb.api"
 HORIZONS = "https://ssd.jpl.nasa.gov/api/horizons.api"
 AGENT = "spherex-viewer/0.1"

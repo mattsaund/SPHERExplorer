@@ -1,7 +1,7 @@
 # Name resolution: Sesame parsing, epoch propagation, and the built-in test targets.
 # Written with Claude Code (Anthropic) assistance.
 
-from spherex_api import resolve
+from spherex_api.objects import resolve
 
 SESAME_ANSWER = """<?xml version="1.0" encoding="UTF-8"?>
 <Sesame><Target option="SNV"><name>eps Ind B</name>

@@ -72,7 +72,7 @@ SPHEREx data is public but hard to use. SPHERExplorer opens it to classrooms, ci
 
 ### Tools and technology
 
-- API in Python 3.13 with FastAPI, NumPy, Astropy, and aiohttp. Web app in TypeScript with React 19, Vite, Zustand, and WebGL2. Sky map by Aladin Lite v3 (CDS).
+- API in Python 3.13 with FastAPI, NumPy, and Astropy. Web app in TypeScript with React 19, Vite, Zustand, and WebGL2. Sky map by Aladin Lite v3 (CDS).
 - Data from SPHEREx (IRSA), Gaia (ESA), NEOSSat (CSA), 2MASS, WISE, SIMBAD, JPL, and IMCCE. The full list is in the data fields of this form and in the repository.
 - One container on Google Cloud Run, deployed by GitHub Actions only after every test passes. The domain and the cloud credit come from the Space Apps Global Offers.
 - No special hardware. We built it on our own computers.

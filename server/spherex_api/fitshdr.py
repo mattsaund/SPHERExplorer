@@ -2,9 +2,13 @@
 # Astropy can do this too, but its Header objects cost milliseconds each and we parse thousands.
 # Written with Claude Code (Anthropic) assistance.
 
+import re
+
 import numpy as np
 
 BLOCK = 2880  # FITS files are built from 2880-byte blocks
+# A quoted string value. A doubled quote inside stands for one quote.
+_QUOTED = re.compile(r"'((?:[^']|'')*)'?")
 
 
 def padded(nbytes: int) -> int:
@@ -18,20 +22,7 @@ def _value(text: str):
     if not text:
         return None
     if text[0] == "'":
-        # Quoted string. A doubled quote inside stands for one quote.
-        out = []
-        i = 1
-        while i < len(text):
-            char = text[i]
-            if char == "'":
-                if i + 1 < len(text) and text[i + 1] == "'":
-                    out.append("'")
-                    i += 2
-                    continue
-                break
-            out.append(char)
-            i += 1
-        return "".join(out).rstrip()
+        return _QUOTED.match(text).group(1).replace("''", "'").rstrip()
     token = text.split("/", 1)[0].strip()
     if token == "T":
         return True
@@ -47,27 +38,29 @@ def _value(text: str):
         return token
 
 
-def parse_header(buf: bytes):
+def parse_header(buf: bytes, want=None):
     """Parse header cards from the start of buf.
 
     Returns (cards, history, header_length) or None when buf ends before the END card.
     HIERARCH keys keep their full name, for example "L2 N_PERSIST".
+    `want` is a test on a key. When given, only the keys that pass are read, which is several
+    times cheaper on the long headers of a Level 2 file. HISTORY lines are always kept.
     """
     cards: dict[str, object] = {}
     history: list[str] = []
-    for start in range(0, len(buf) - 79, 80):
-        card = buf[start:start + 80].decode("ascii", "replace")
-        key = card[:8].rstrip()
+    text = buf.decode("ascii", "replace")
+    for start in range(0, len(text) - 79, 80):
+        key = text[start:start + 8].rstrip()
         if key == "END":
             return cards, history, padded(start + 80)
         if key == "HISTORY":
-            history.append(card[8:].strip())
+            history.append(text[start + 8:start + 80].strip())
         elif key == "HIERARCH":
-            name, sep, rest = card[9:].partition("=")
-            if sep:
+            name, sep, rest = text[start + 9:start + 80].partition("=")
+            if sep and (want is None or want(name.strip())):
                 cards[name.strip()] = _value(rest)
-        elif card[8:10] == "= ":
-            cards[key] = _value(card[10:])
+        elif text[start + 8:start + 10] == "= " and (want is None or want(key)):
+            cards[key] = _value(text[start + 10:start + 80])
     return None
 
 

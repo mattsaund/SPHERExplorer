@@ -249,6 +249,16 @@ Deploys freeze on Nov 15, so these are the things that can still go wrong by the
 - **The refresh has run once on GitHub.** Matt had it started by hand on Nov 15 at 12:17 pm. It passed in 26 s, found no new exposures, and republished the same 273,367 rows, which a search of the new file confirmed. The first scheduled run is Tue Nov 17. It can be started by hand again from the Actions tab (Refresh exposure index, then Run workflow).
 - **Not yet seen: a run where IRSA names the releases.** IRSA's list of releases timed out on Nov 15, on Matt's machine and on GitHub, so the refresh used its built-in list of DR1 and QR3. New exposures in those two are picked up either way. A new release is picked up on the first run when IRSA answers.
 - **What was done to make that run safe, Nov 15.** The refresh was run on Matt's machine against a copy of the published index, with nothing published. It took 34 s, found no new exposures, and left all 273,367 rows as they were. IRSA's list of releases timed out during the run, and the refresh carried on with its built-in list, as designed. Two guards were added the same day. A refresh that would lose more than 2 percent of the index stops before it saves anything, so the job fails and publishes nothing (`size_check` in `index_build.py`). And a server that meets a damaged index file keeps the index it has in memory (`get_index` in `exposures.py`).
+- **If a refresh fails because the index would shrink.** That can happen when the archive retires a release. The job publishes nothing, the site keeps the index it has, and images from the retired files stop loading. The fix needs no commit. On a machine with `uv` and `gh`, in `server/`:
+
+  ```sh
+  mkdir -p .cache/index
+  gh release download exposure-index --pattern exposures.npz --dir .cache/index --clobber
+  uv run python -m spherex_api.index_build --allow-shrink
+  gh release upload exposure-index .cache/index/exposures.npz --clobber
+  ```
+
+  Read what the build says it dropped before the last line publishes it. A new instance loads the published file a minute or two after it starts, and a running one within 12 hours.
 - **The trial credit.** If it ran out, Google would stop the site. Billing, then Reports, shows what is left. See "Cost".
 - **The solar system marks** are good to a fraction of a degree for months. `scripts/update_solar.py` renews them, but that needs a deploy, so they stay as they are through judging.
 

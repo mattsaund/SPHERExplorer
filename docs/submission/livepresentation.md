@@ -4,7 +4,7 @@ Sunday, Nov 15, 3:30 pm Eastern, at our Local Event in Bethesda. Five minutes at
 
 The talking points were drafted with Claude Code (Anthropic), an SI tool, at Matt's request on Nov 15. They follow his direction for the video: science, not a sales pitch, in the proper terms, and short. Every number in them was measured on the live site that day. Matt and Austin choose the words they say.
 
-The demo video and the backup slides have their own plan in `docs/submission/video.md`.
+The deck for the presentation is `media/slides/spherexplorer-live-presentation.pdf`, six slides. The demo video and the backup slides have their own plan in `docs/submission/video.md`.
 
 ## Run of show
 
@@ -21,7 +21,8 @@ The demo video and the backup slides have their own plan in `docs/submission/vid
 ### 1. Open, 0:00 to 0:30
 
 - We are Matthew Saunders and Austin Laubach, team Turing Complete.
-- Our challenge is Planet X and SPHEREx. It asks for a public tool that shows SPHEREx images of one sky position as a sequence, so anything that moves stands out.
+- We chose Planet X and SPHEREx for our challenge. The challenge was to create a public facing tool to interact with and review SPHEREx images.
+- The tool was to show SPHEREx images of one sky position as a sequence, allowing a user to map object movement.
 - SPHEREx maps the whole sky in 102 infrared bands, from 0.75 to 5 µm, and it returns to each position many times.
 - The hard part is that every exposure is a separate 65 MB file, and each one lands at a different wavelength.
 - Why we chose this challenge. One sentence, in your own words.
@@ -115,7 +116,7 @@ Six stops, about 25 seconds each. The links are in "The eight demo objects" belo
 
 - The venue network blocks the new domain: use https://spherexplorer-112779026983.us-east4.run.app instead.
 - A stop does not load: go to the next tab, or to a spare.
-- The network fails: play `media/videos/spherexplorer-demo.mp4` and show `media/slides/spherexplorer-slides.pdf` from the laptop. The slides have notes in `media/slides/speaker-notes.md`.
+- The network fails: play `media/videos/spherexplorer-demo.mp4` and show `media/slides/spherexplorer-slides.pdf` from the laptop.
 
 ## The eight demo objects
 

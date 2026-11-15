@@ -22,7 +22,8 @@ const CREDIT_PARTNERS = "Gaia: ESA, DPAC. NEOSSat: CSA. 2MASS and WISE: NASA, IP
 const SCENES = [
   { from: 0, to: 2.5, kind: "card", lines: [["title", "Turing Complete"], ["heading", "Matt and Austin"], ["line", "NASA Space Apps Challenge 2026"]] },
   {
-    from: 2.5, to: 5.5, kind: "shot", frames: [[0, "sky"]], push: 0.03,
+    // The push is small enough that the edge of the page, with the name and Help, is not cut.
+    from: 2.5, to: 5.5, kind: "shot", frames: [[0, "sky"]], push: 0.008,
     plate: "Planet X and SPHEREx", caption: "Find what moves in SPHEREx's all-sky infrared images.", credit: CREDIT_SPHEREX,
   },
   {

@@ -65,16 +65,17 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_DEPLOY_SA }}
       - uses: google-github-actions/setup-gcloud@v3
-      # The code, plus the size of the service (Matt's decision, Nov 14, see docs/deploy.md "Size").
-      # gen2 has the faster processor and network. 4 processors serve one target in parallel.
-      # Two instances cap the cost at what four smaller ones could reach. The larger frame memory
-      # uses the extra room. Public access, concurrency, the timeout, and the instance minimum
-      # are not named here, so they keep their current settings.
+      # The code, plus the size of the service (Matt's decision, Nov 15, see docs/deploy.md "Size").
+      # Two processors are all a first load can use, because the instance's network limit binds
+      # first. The first generation runtime starts a new instance sooner. Three instances cost
+      # less at the worst than the two larger ones did. The 4 GB hold a larger frame memory.
+      # Public access, concurrency, the timeout, and the instance minimum are not named here,
+      # so they keep their current settings.
       # SPX_CPUS must equal --cpu: Cloud Run does not tell the container how many it may use.
       - name: Build and deploy
         run: >-
           gcloud run deploy spherexplorer --source . --region us-east4 --quiet
-          --execution-environment gen2 --cpu 4 --memory 4Gi --max-instances 2
-          --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=4
+          --execution-environment gen1 --cpu 2 --memory 4Gi --max-instances 3
+          --update-env-vars SPX_FRAME_CACHE_MB=1024,SPX_CPUS=2
       - name: Check that the live site answers
         run: curl -fsS --retry 5 --retry-delay 10 --retry-all-errors https://spherexplorer-112779026983.us-east4.run.app/api/health

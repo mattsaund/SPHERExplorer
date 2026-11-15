@@ -2,7 +2,6 @@
 # Written with Claude Code (Anthropic) assistance.
 
 import asyncio
-import os
 import re
 import time
 import zlib
@@ -151,7 +150,7 @@ async def health():
         "frames": cutout.cache_stats(),
         "reads": dict(net.read_stats),
         "tails": dict(layout.tail_counts),
-        "cpus": os.cpu_count(),
+        "cpus": config.CPUS,
         "cpu_seconds": round(time.process_time(), 1),
     }
 

@@ -49,7 +49,7 @@ SPHERExplorer is a free web tool for the SPHEREx all-sky infrared survey. Enter 
 
 ### How it works
 
-- A Python API reads SPHEREx Level 2 files straight from the public AWS bucket, a few kilobytes at a time. A 5 arcmin frame travels as about 8 KB instead of the 65 MB file.
+- A Python API reads only the rows it needs from each SPHEREx Level 2 file, straight from the public AWS bucket: about 1 MB of a 65 MB file for a 5 arcmin field. The frame then travels to the browser as about 8 KB.
 - Search runs on our own index of all 273,000 exposures and answers in about 20 ms. A scheduled job adds new exposures twice a week, so new data releases need no code change.
 - Star positions are carried to each image's date with proper motion and parallax. Asteroids and comets follow JPL Horizons paths, corrected for where the spacecraft was.
 - Brightness comes from a fit of the point spread function in every frame. For Epsilon Indi B it matches 2MASS and WISE within about 10 percent.
@@ -108,7 +108,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | 102 infrared bands | Summary, details | `docs/research/spherex-data.md` |
 | About 273,000 exposures indexed (273,367 on Nov 14) | Details | `/api/meta` on the live site, or the About tab |
 | Search answers in milliseconds, about 20 ms | Summary, details | `docs/architecture.md` |
-| A 5 arcmin frame is about 8 KB, the file 65 MB | Details | `README.md`, `docs/methods.md` section 2 |
+| A 5 arcmin frame is about 8 KB, the file 65 MB, and the server reads about 1 MB of it | Details | `README.md`, `docs/methods.md` section 2, `docs/deploy.md` "Speed" |
 | New exposures are added twice a week | Details | `.github/workflows/index.yml` |
 | Measure Changes flags all five test targets, with the numbers given | Summary, details | `docs/methods.md` section 9 |
 | Epsilon Indi B matches 2MASS and WISE within about 10 percent | Details | `docs/methods.md` section 4 |

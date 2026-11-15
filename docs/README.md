@@ -29,7 +29,7 @@ Where each document is, by what it is for. Start with `concept.md` for the idea 
 | [decisions.md](decisions.md) | The decisions Matt and Austin made, newest first |
 | [si-usage.md](si-usage.md) | What the SI tool did, and how its work is labeled |
 | [research/](research/README.md) | Notes on the challenge, the data, the test targets, and the services |
-| [submission/](submission/submission-text.md) | The text of the project page, the submission checklist, and the demo video plan |
+| [submission/](submission/submission-text.md) | The text of the project page, the submission checklist, the references in the form's format, the demo video plan, and the notes for the live presentation |
 | [team/](team/workflow.md) | How the two sides work together, and notes on the app's wording |
 
 Setup, checks, and the rules for a change are in [CONTRIBUTING.md](../CONTRIBUTING.md) at the top of the repository.

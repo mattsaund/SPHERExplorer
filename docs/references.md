@@ -116,6 +116,7 @@ Add the license and version when a library goes into the build.
 | google-github-actions/auth 3 and setup-gcloud 3 | Apache-2.0 | Google | Yes (continuous deployment) |
 | GitHub Actions steps: actions/checkout 4, actions/setup-node 4, astral-sh/setup-uv 5 | MIT | GitHub, Astral | Yes (checks on every push, and the index refresh) |
 | Node.js 22 and Python 3.13, as the official container images `node:22-slim` and `python:3.13-slim` | MIT (Node.js), PSF-2.0 (Python) | OpenJS Foundation, Python Software Foundation | Yes (the production container) |
+| Docker | Apache-2.0 (Docker Engine) | Docker, Inc. | Yes (CI builds and runs the production container in `scripts/smoke_container.sh`) |
 | GitHub: the repository, Actions, and Releases | GitHub terms of service | | Yes (code hosting, checks, deploys, and the published exposure index that the server downloads) |
 | Claude Code (Anthropic), with the models Claude Opus 5.5 and Claude Fable 5.2 | Anthropic terms of service | Labeled in commits, pull requests, and file headers. Logged in `docs/si-usage.md` | Yes (the SI tool that wrote and tested code and docs under Matt's and Austin's direction) |
 | puppeteer-core 25 | Apache-2.0 | Google | Yes (drives Chrome to capture and render the demo video, in `media/code/` only) |

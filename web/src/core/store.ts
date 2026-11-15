@@ -15,7 +15,7 @@ import { clearPixels, imageOf, setPixels } from "./pixels";
 import { measureMotion, type MotionFit } from "./motion";
 import { buildSequence } from "./sequence";
 import { loadRecent, localSuggestions, mergeSuggestions, rememberSearch, type Recent, type Suggestion } from "./suggest";
-import { CHANGE_LEVELS, LEVELS, MAP_NEAR, buildLink, embedSnippet, parseLink, stepNear, type LinkState } from "./url";
+import { CHANGE_LEVELS, LEVELS, MAP_NEAR, MAX_FIELD, MIN_FIELD, buildLink, embedSnippet, parseLink, stepNear, type LinkState } from "./url";
 import type { BlinkChoice, BlinkState, DisplaySettings, Filters, Frame, Hover, KnownCheck, Layout, LoadState, MapState, Meta, MissionData, PartnerData, Player, SequenceItem, SequenceMode, SkyObject, SkyPosition, SpacecraftInfo, SpacecraftNow, SpectrumSettings, Subtract, Target, Visit } from "./types";
 
 /** Where the frame view is looking. */
@@ -846,7 +846,7 @@ export const actions = {
    * Pass reload = false while the user is still dragging, or when sizing an area not yet studied.
    */
   setFieldSize(arcsec: number, reload = true): void {
-    const fieldSize = Math.min(3600, Math.max(60, Math.round(arcsec)));
+    const fieldSize = Math.min(MAX_FIELD, Math.max(MIN_FIELD, Math.round(arcsec)));
     if (fieldSize === get().fieldSize && !reload) return;
     const place = placeInFilm();
     const found = get().frames.length > 0;

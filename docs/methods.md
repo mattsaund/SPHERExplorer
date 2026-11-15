@@ -184,7 +184,7 @@ Checked on known objects.
 
 - Every loaded image stays in memory, so that playing, summing, and measuring are instant. Each pixel costs up to 10 bytes: the image as received, a copy for measuring, and its flags.
 - The budget follows the computer (`core/device.ts`). The smallest is 60 million pixels, about 600 MB at worst, for phones, tablets, and anything the browser says little about. A computer that reports 8 GB or more gets twice that, and three times with twelve or more processor threads. Firefox and Safari report no memory, so a wide screen with a mouse and eight threads counts as a desktop and gets twice. A viewer embedded in another page keeps the smallest.
-- At the default 5 arcminute field every image fits on any device. At 60 arcminutes the smallest budget holds 87 images and the largest 262. Past the budget, the images are sampled evenly over time, which keeps every visit and wavelength represented, and the status line says so.
+- At the default 5 arcminute field every image fits on any device. At 50 arcminutes, the widest field, the smallest budget holds 126 images and the largest 378. Past the budget, the images are sampled evenly over time, which keeps every visit and wavelength represented, and the status line says so.
 - The server accepts up to 250 million pixels in one request, so the largest budget stays inside its limit. A unit test checks that.
 - A new field size, or "Try again", reloads the same target. The film then comes back to the image that was on screen, found by its time and wavelength as in a link (section 17). If the film was moved while the reload ran, it is left where the person put it.
 

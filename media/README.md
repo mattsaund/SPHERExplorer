@@ -21,7 +21,7 @@ Both decks were drafted with Claude Code, an SI tool, and each slide's footer sa
 
 ## The pictures
 
-Each one is the live site as it was on Nov 15, 2026. None is SI-generated imagery: every pixel of sky is NASA SPHEREx data, drawn by the tool. Claude Code took the first four with a headless browser. Matt saved the two large animations in his own browser, and they keep the file names the tool gave them.
+Each one is the live site as it was on Nov 15, 2026. None is SI-generated imagery: every pixel of sky is NASA SPHEREx data, drawn by the tool. Claude Code took the first four with a headless browser. Matt saved the three large animations in his own browser. Two of them keep the file names the tool gave them.
 
 | File | What it shows | How it was made |
 |---|---|---|
@@ -31,6 +31,7 @@ Each one is the live site as it was on Nov 15, 2026. None is SI-generated imager
 | `epsilon-indi-b-spectrum.png` | The spectrum of Epsilon Indi B, with water and methane marked | A screenshot of the page |
 | `spherexplorer_136108_Haumea_2003_EL61_exposures.gif` | The dwarf planet Haumea, followed through 55 images from Jun 23, 2025 to Jul 25, 2026. Haumea stays under the cross while the stars behind it change. 32 MB | The tool's own Save animation button |
 | `spherexplorer_10.6851_41.2555_exposures.gif` | The core of the Andromeda Galaxy, M 31, in 102 images from Jul 9, 2025 to Jul 14, 2026, with the objects in the field labeled. 26 MB | The tool's own Save animation button |
+| `n1_atlas.gif` | The interstellar comet 3I/ATLAS, C/2025 N1 (ATLAS), followed through 123 images. Its coma shows as a glow around it. 46 MB | The tool's own Save animation button |
 
 ## The data
 

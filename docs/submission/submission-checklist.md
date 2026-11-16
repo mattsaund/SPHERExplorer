@@ -63,7 +63,7 @@ From "Eligibility for Global Judging" in the Judging and Awards Guide.
 - [x] NASA Data. 14 links, the same rows in the same order as `docs/submission/submissionreferences.md`. Each address answered at 6:45 pm.
 - [x] Space Agency Partner Data. 12 rows of data and services at the top of "Space Agency Partner & Other Data". Herschel and Planck share one row now, and the NEOSSat tutorial row came out at 6:28 pm. Each address answered at 6:45 pm.
 - [x] Code, tools, and references. The form has no References field. Its second list asks for "any code, text, and images" used, and since 6:41 pm it has 13 rows for them: the libraries inside the tool, the SI tool, the hosting and build tools, the video tools, and a link to the complete list in `docs/references.md`. Each address answered at 6:45 pm. `submissionreferences.md` has the same rows, and each library one by one.
-- [ ] Pictures, if wanted. It takes JPG, PNG, and GIF up to 10 MB. Four in `media/pictures/` are 0.5 to 0.6 MB each. The two large animations there are 26 and 32 MB, over that limit. Videos and documents must be links.
+- [ ] Pictures, if wanted. It takes JPG, PNG, and GIF up to 10 MB. Four in `media/pictures/` are 0.5 to 0.6 MB each. The three large animations there are 26, 32, and 46 MB, over that limit. Videos and documents must be links.
 
 ## Demo
 

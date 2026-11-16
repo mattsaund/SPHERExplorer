@@ -245,6 +245,8 @@ Domain mapping is free and works in `us-east4`. Google calls it a preview and do
 
 Deploys freeze on Nov 15, so these are the things that can still go wrong by themselves.
 
+- **The repo is locked.** From 11:30 pm Eastern on Nov 15, a ruleset named "Frozen for judging" (Settings, Rules, Rulesets) stops every push, merge, and branch change, for everyone. Matt asked for it. Nothing below needs a commit. The index refresh still runs, because it publishes a release file and changes no branch.
+
 - **The index refresh can switch itself off.** GitHub pauses scheduled workflows in a public repository after 60 days with no activity in it. With nothing pushed after Nov 15, that falls about Jan 14. The Enable button on the workflow's page under Actions keeps new exposures coming in. Use the button and not a commit: Matt's reading of the rules, on Nov 15, is that the repo does not change after the form closes at 11:59 pm that day, while the site's data may keep updating. He set the repo's own freeze at 11:30 pm to be safe.
 - **The refresh has run once on GitHub.** Matt had it started by hand on Nov 15 at 12:17 pm. It passed in 26 s, found no new exposures, and republished the same 273,367 rows, which a search of the new file confirmed. The first scheduled run is Tue Nov 17. It can be started by hand again from the Actions tab (Refresh exposure index, then Run workflow).
 - **Not yet seen: a run where IRSA names the releases.** IRSA's list of releases timed out on Nov 15, on Matt's machine and on GitHub, so the refresh used its built-in list of DR1 and QR3. New exposures in those two are picked up either way. A new release is picked up on the first run when IRSA answers.

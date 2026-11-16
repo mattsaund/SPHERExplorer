@@ -56,6 +56,7 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - Bock et al. 2026, ApJ 999, 139 (arXiv 2511.02985). SPHEREx mission.
 - Akeson et al. 2026, ApJS 285, 67. SPHEREx data pipeline.
 - Korngut et al. 2026 (arXiv 2603.29835). SPHEREx instrument and calibration.
+- Calabretta and Greisen 2002, A&A 395, 1077 (DOI 10.1051/0004-6361:20021327). Representations of celestial coordinates in FITS. The standard names and codes of the sky map's seven projections.
 - SPHEREx Explanatory Supplement: https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp.pdf
 - SPHEREx Archive User Guide: https://caltech-ipac.github.io/spherex-archive-documentation/
 - Meisner et al. 2026 (arXiv 2608.00046). Undersampling limits SPHEREx coaddition and differencing.

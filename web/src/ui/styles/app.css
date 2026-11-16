@@ -400,7 +400,6 @@ button.play { min-width: 88px; }
 .side-heading { margin-top: var(--space-2); font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chips button { min-height: 34px; padding: 0 var(--space-3); font-size: 0.9rem; }
-.tool.about { max-width: 980px; height: auto; }
 /* The studies in one tab, side by side with a line between: what changed in the field, and how the target moves. */
 .studies { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); align-items: start; gap: var(--space-4) var(--space-6); }
 .study { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }

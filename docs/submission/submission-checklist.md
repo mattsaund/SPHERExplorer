@@ -30,12 +30,11 @@ Sunday, Nov 15, Eastern time.
 
 Every step here is an open box further down. All of it is for Matt or Austin, in the form.
 
-1. Check that the SI answer is in the form. It does not show on the public page.
-2. After any further edit, click Save Progress and then Submit for Judging again, and look for the banner. The page's last save and last submission are both at 10:15 pm, so nothing is waiting now.
-3. Open the public project page in a private window. Read every field and click every link.
-4. Upload pictures if you want them on the page. Four small ones are ready in `media/pictures/`.
-5. Afterwards: open the site on a phone on mobile data, send the optional FortiGuard request, and download the certificates.
-6. Don't save the form after 11:59 pm.
+1. After any further edit, click Save Progress and then Submit for Judging again, and look for the banner. The page's last save and last submission are both at 10:15 pm, so nothing is waiting now.
+2. Open the public project page in a private window. Read every field and click every link.
+3. Upload pictures if you want them on the page. Four small ones are ready in `media/pictures/`.
+4. Afterwards: open the site on a phone on mobile data, and download the certificates.
+5. Don't save the form after 11:59 pm.
 
 Claude's part: read the public page once more after your last edit and bring `docs/submission/submission-text.md` in line with it, then check the repo and the live site before the freeze at 11:30 pm.
 
@@ -59,7 +58,7 @@ From "Eligibility for Global Judging" in the Judging and Awards Guide.
 - [x] Link to Project Demo. https://www.youtube.com/watch?v=EtcNxZPPJSA. YouTube answered for it with no login at 6:35 pm, and its player shows 29 seconds.
 - [x] Link to Final Project. https://www.spherexplorer.earth. It serves the site and its API, the same as the address without `www` (6:35 pm). The repo link is the first line and the last line of the details.
 - [x] Detailed Project Description. On the page, as Matt and Austin edited it in the form, about 640 words. Its results were rechecked on the live site at 6:32 pm and every number matched. One sentence has no verb: "GitHub Actions used for deploying after all tests pass."
-- [ ] Use of Super Intelligence (SI). The written answer does not show on the public page, so check it in the form. The draft is in `submission-text.md` and says four commits carry no SI line. The page's record does show seven kinds of SI use ticked.
+- [x] Use of Super Intelligence (SI). The form's question is a list to tick, and seven kinds of SI use are ticked (two screenshots from Matt at 10:23 pm, and the public page's record). Ideation or Brainstorming, Building SI/ML Into the Project, and None are not ticked. The team's fuller statement is in `submission-text.md`.
 - [x] NASA Data. 14 links, the same rows in the same order as `docs/submission/submissionreferences.md`. Each address answered at 6:45 pm.
 - [x] Space Agency Partner Data. 12 rows of data and services at the top of "Space Agency Partner & Other Data". Herschel and Planck share one row now, and the NEOSSat tutorial row came out at 6:28 pm. Each address answered at 6:45 pm.
 - [x] Code, tools, and references. The form has no References field. Its second list asks for "any code, text, and images" used, and since 6:41 pm it has 13 rows for them: the libraries inside the tool, the SI tool, the hosting and build tools, the video tools, and a link to the complete list in `docs/references.md`. Each address answered at 6:45 pm. `submissionreferences.md` has the same rows, and each library one by one.
@@ -98,7 +97,7 @@ From "Submitting Your Project" in the Project Submission Guide.
 ## After submitting
 
 - [ ] Open the live site on a phone on mobile data.
-- [ ] Request a FortiGuard Web Filter Classification so judges' networks don't block the new domain (optional): https://www.fortiguard.com/faq/wfratingsubmit. The guide says to pick the category that fits best (education, reference, and web-based application are among its examples) and to write "N/A" for the company name.
+- [x] Done (Matt, Nov 15, evening). Request a FortiGuard Web Filter Classification so judges' networks don't block the new domain (optional): https://www.fortiguard.com/faq/wfratingsubmit. The guide says to pick the category that fits best (education, reference, and web-based application are among its examples) and to write "N/A" for the company name.
 - [ ] Download the participant certificates. Profile, then Participant Information, then "2026 NASA Space Apps Challenge", then Download Participant Certificate. The name comes from Full Name in the Profile, and the guide suggests a laptop and Letter paper size.
 - [ ] The site stays online through Jan 26, 2027. Watch the Google Cloud credit and its budget alert. About Jan 14, GitHub pauses the scheduled index refresh after 60 days without a commit. Press Enable on the workflow's page, and don't commit (`docs/deploy.md`, "Until judging ends").
 - [ ] The repo is frozen from 11:30 pm. Claude checks before that: `main` and `dev` are equal, no pull request is open, the checks pass, and the live site is healthy.

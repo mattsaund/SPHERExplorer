@@ -90,19 +90,19 @@ The page has 14 links under NASA Data and 25 under Space Agency Partner & Other 
 
 ## The SI question
 
-Draft for Matt and Austin to approve, written by Claude on Nov 15 from `docs/si-usage.md`. Judges do not see this answer. They do see the SI labels inside the project. The written answer does not show on the public page, so this is the draft and not a copy of the form.
+The form's SI question is a list of kinds of SI use to tick. Seven are ticked (two screenshots of the form from Matt at 10:23 pm on Nov 15, and the public page's record):
 
-The public page's record does list the kinds of SI use ticked in the form (read at 6:32 pm):
-
+- Research or Information Gathering
+- Data Analysis and Interpretation
 - Coding, Debugging, or Troubleshooting
 - Writing, Editing, or Translation
 - Visual Design or Image Creation
 - Presentation, Video, or Audio
-- Data Analysis and Interpretation
-- Research or Information Gathering
 - Other Project-Related SI Use
 
-The draft answer:
+Three are not ticked: Ideation or Brainstorming, Building SI/ML Into the Project, and None / Did not use SI or SI tools.
+
+The statement below is the team's fuller account, written by Claude on Nov 15 from `docs/si-usage.md` for Matt and Austin. The screenshots show no text field for it, so it is kept here and is not a copy of the form:
 
 Yes. We used Claude Code (Anthropic), with the models Claude Opus 5.5 and Claude Fable 5.2.
 

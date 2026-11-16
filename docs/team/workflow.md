@@ -10,6 +10,8 @@ During the build, the repo carried an instruction file for the two SI sessions, 
 
 ## Git
 
+This is how the two sides worked during the build. At the end, on Nov 15, 2026, `dev` was merged into `main` and removed, so `main` is the only branch.
+
 - `main` is the live site. A push to it deploys to Cloud Run once CI passes (see `docs/deploy.md`). Nothing is committed to `main` directly.
 - `dev` is the branch before `main`. Work lands there first: small commits, or pull requests from short-lived branches named `matt/<topic>` and `austin/<topic>`.
 - `main` changes only by a pull request from `dev`, merged once its checks pass. That merge is what goes live.

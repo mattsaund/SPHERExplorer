@@ -40,6 +40,7 @@ Newest first.
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-15 | `dev` is merged into `main` and removed, so `main` is the only branch | Matt | Asked for with the last changes, before the lock at 11:30 pm. During the build, work landed on `dev` first |
 | 2026-11-15 | The repository is locked from 11:30 pm Eastern on Nov 15. A GitHub ruleset named "Frozen for judging" stops every push, merge, and branch change from then on | Matt | Matt asked for the lock with the last push. Nobody is exempt, so the code stays as submitted through judging. The scheduled index refresh publishes a release file, which the lock does not touch. Turning the ruleset off under Settings, Rules lifts the lock |
 | 2026-11-15 | The deploy freeze moves to 11:30 pm Eastern on Nov 15, the same time as the repo freeze | Austin | One time for both. A change to the site can be merged until 11:30 pm. Replaces the 11:00 pm freeze below. A deploy that starts just before 11:30 pm finishes after the repo freezes, so a fault in it could not be fixed |
 | 2026-11-15 | The demo video is public on YouTube | Matt | Uploaded on Nov 15 at 2:27 pm Eastern, with the title and the description from `docs/submission/video.md`: https://www.youtube.com/watch?v=EtcNxZPPJSA. YouTube's player shows 29 seconds |

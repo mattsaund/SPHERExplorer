@@ -2,7 +2,7 @@
 
 The text of each field of the Space Apps project page, kept here so it can be checked against the app. Claude drafted the first version from the repository docs. Matt and Austin then edited the summary and the details in the form, and the text below is what the public page shows. The project page is the copy judges see: https://www.spaceappschallenge.org/2026/find-a-team/turing-complete/?tab=project
 
-Status, Nov 15, 6:50 pm Eastern: the project is submitted and public. The page's record gives 3:24 pm for the submission and 6:41 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 6:50 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
+Status, Nov 15, 7:42 pm Eastern: the project is submitted and public. The page's record gives 7:16 pm for the submission and 7:16 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 7:42 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
 
 ## Project name
 
@@ -30,11 +30,13 @@ The demo video on YouTube, uploaded by Matt on Nov 15 at 2:27 pm Eastern. Checke
 
 https://www.spherexplorer.earth
 
-The live site, not the repository. `https://spherexplorer.earth` serves the same site. Judges can use the tool directly, and its About tab links the source code, the methods, and the SI statement. The repository link is the last line of the project details.
+The live site, not the repository. `https://spherexplorer.earth` serves the same site. Judges can use the tool directly, and its About tab links the source code, the methods, and the SI statement. The repository link is the first and the last line of the project details.
 
 ## Project details
 
 No length limit is shown. About 640 words. This is the text on the page, as Matt and Austin edited it in the form.
+
+[https://github.com/mattsaund/SPHERExplorer](https://github.com/mattsaund/SPHERExplorer)
 
 ### What it does
 
@@ -80,11 +82,11 @@ We considered many factors, but in rough order of importance, we considered: sci
 
 SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
-Source code, methods, and all references in our GitHub: [https://github.com/mattsaund/SPHERExplorer](https://github.com/mattsaund/SPHERExplorer)
+Source code, methods, and all references in our [GitHub](https://github.com/mattsaund/SPHERExplorer).
 
 ## NASA data, and Space Agency Partner and other data
 
-The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (6:50 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
+The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (7:42 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
 
 ## The SI question
 
@@ -137,7 +139,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `media/code/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
-| The summary on the page is 205 words and 1,251 characters | Summary | Counted on Nov 15 at 6:50 pm from the public page. The form asks for 200 words at most |
+| The summary on the page is 205 words and 1,251 characters | Summary | Counted on Nov 15 at 7:42 pm from the public page. The form asks for 200 words at most |
 | The SI answer says every source file and every pull request is labeled, and that four commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and four commits on `main` carry no trailer (`ec252a2`, `80d2140`, `e79c16e`, and `9bffc8c`). `docs/si-usage.md` names all four. The commits were counted again at 2:46 pm |
 | The demo is 30 seconds or less and opens with no login | Demo | YouTube's player shows 29 seconds. Opened with no login on Nov 15 at 2:28 pm |
-| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 6:50 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |
+| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 7:42 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |

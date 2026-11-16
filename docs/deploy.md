@@ -82,7 +82,7 @@ A push to `main` deploys itself once CI passes (see "Continuous deployment" belo
 - GitHub signs in to Google Cloud with Workload Identity Federation. No key is stored anywhere. Google accepts tokens only from this repository's `main` branch.
 - Each deploy runs Cloud Build for a few minutes and stores one more image in Artifact Registry.
 - To pause deploys, disable the Deploy workflow in the repository's Actions tab. Deploying by hand still works.
-- Deploys freeze at 11:00 pm Eastern on Nov 15, an hour before the 11:59 pm submission deadline (`FREEZE_AT` in `deploy.yml`). The hour leaves time to check the last deploy. A commit pushed before the freeze still deploys when its CI passes. Nothing pushed after it deploys, so the site stays as submitted through judging. Don't deploy by hand after the freeze either.
+- Deploys freeze at 11:30 pm Eastern on Nov 15, with the repo, half an hour before the 11:59 pm submission deadline (`FREEZE_AT` in `deploy.yml`). A commit pushed before the freeze still deploys when its CI passes. Nothing pushed after it deploys, so the site stays as submitted through judging. Don't deploy by hand after the freeze either.
 
 ### One-time setup
 
@@ -244,6 +244,8 @@ Domain mapping is free and works in `us-east4`. Google calls it a preview and do
 ## Until judging ends on Jan 26, 2027
 
 Deploys freeze on Nov 15, so these are the things that can still go wrong by themselves.
+
+- **The repo is locked.** From 11:30 pm Eastern on Nov 15, a ruleset named "Frozen for judging" (Settings, Rules, Rulesets) stops every push, merge, and branch change, for everyone. Matt asked for it. Nothing below needs a commit. The index refresh still runs, because it publishes a release file and changes no branch.
 
 - **The index refresh can switch itself off.** GitHub pauses scheduled workflows in a public repository after 60 days with no activity in it. With nothing pushed after Nov 15, that falls about Jan 14. The Enable button on the workflow's page under Actions keeps new exposures coming in. Use the button and not a commit: Matt's reading of the rules, on Nov 15, is that the repo does not change after the form closes at 11:59 pm that day, while the site's data may keep updating. He set the repo's own freeze at 11:30 pm to be safe.
 - **The refresh has run once on GitHub.** Matt had it started by hand on Nov 15 at 12:17 pm. It passed in 26 s, found no new exposures, and republished the same 273,367 rows, which a search of the new file confirmed. The first scheduled run is Tue Nov 17. It can be started by hand again from the Actions tab (Refresh exposure index, then Run workflow).

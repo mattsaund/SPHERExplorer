@@ -102,7 +102,7 @@ The idea and the features are the team's, recorded in `docs/concept.md` and `doc
 2. CI passes. The team reviews the change and merges it.
 3. `main` changes only through a pull request from `dev`. Once CI passes on `main`, the site deploys automatically (`docs/deploy.md`, "Continuous deployment").
 
-For the submission, deploys freeze at 11:00 pm Eastern on Nov 15, 2026, and the repo at 11:30 pm, so the site and the code stay as submitted through judging. Removing the freeze in `.github/workflows/deploy.yml` turns automatic deploys back on.
+For the submission, deploys and the repo freeze at 11:30 pm Eastern on Nov 15, 2026, so the site and the code stay as submitted through judging. Removing the freeze in `.github/workflows/deploy.yml` turns automatic deploys back on.
 
 ## Reporting a problem
 

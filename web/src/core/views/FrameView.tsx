@@ -183,9 +183,11 @@ export function FrameView({ className }: { className?: string }) {
       try {
         paint(index, true);
         // A narrow picture has no room for the title and the credit side by side, so they get
-        // a line each. The rule looks at the width alone, so every frame of a film is one size.
-        const lines = boxW < 700 ? 2 : 1;
-        const strip = lines === 2 ? 50 : 30;
+        // a line each, and a very narrow one gives the name its own line too. The rule looks
+        // only at the width and at whether there is a name, so every frame of a film is one size.
+        const name = state.target?.name ?? "";
+        const lines = boxW < 700 ? (boxW < 420 && name ? 3 : 2) : 1;
+        const strip = lines === 3 ? 71 : lines === 2 ? 50 : 30;
         out.width = width;
         out.height = height + Math.round(strip * ratio);
         const pen = out.getContext("2d")!;
@@ -195,22 +197,41 @@ export function FrameView({ className }: { className?: string }) {
         pen.drawImage(canvas, 0, 0);
         pen.drawImage(overlay, 0, 0);
         pen.fillStyle = "#ffffff";
-        pen.font = `${Math.round(13 * ratio)}px ${getComputedStyle(wrap).fontFamily || "sans-serif"}`;
+        const family = getComputedStyle(wrap).fontFamily || "sans-serif";
+        const size = Math.round(13 * ratio);
+        pen.font = `${size}px ${family}`;
         pen.textBaseline = "middle";
-        const name = state.target?.name ?? "";
-        const title = `${name ? name + ". " : ""}${item.label}`;
+        const edge = 10 * ratio;
+        // One line of the caption. Text wider than its room is set smaller, so nothing runs off the side.
+        const write = (text: string, x: number, y: number, room: number) => {
+          pen.font = `${size}px ${family}`;
+          const wide = pen.measureText(text).width;
+          if (wide > room && wide > 0) pen.font = `${Math.max(1, Math.floor((size * room) / wide))}px ${family}`;
+          pen.fillText(text, x, y);
+        };
         // The credit says where the data comes from and what drew it. It must not read as a
         // NASA mark on the tool itself, so the data is labeled as data. The longest form that
         // fits is used: beside the title on one line, or alone on its own line.
-        const room = lines === 2 ? out.width - 20 * ratio : out.width - 30 * ratio - pen.measureText(title).width;
-        const credit = SAVE_CREDITS.find((text) => pen.measureText(text).width <= room) ?? SAVE_CREDITS[SAVE_CREDITS.length - 1];
-        if (lines === 2) {
-          pen.fillText(title, 10 * ratio, height + 15 * ratio);
-          pen.fillText(credit, 10 * ratio, height + 36 * ratio);
+        const pick = (room: number) => SAVE_CREDITS.find((text) => pen.measureText(text).width <= room) ?? SAVE_CREDITS[SAVE_CREDITS.length - 1];
+        const whole = out.width - 2 * edge;
+        if (lines === 3) {
+          const credit = pick(whole);
+          write(`${name}.`, edge, height + 15 * ratio, whole);
+          write(item.label, edge, height + 36 * ratio, whole);
+          write(credit, edge, height + 57 * ratio, whole);
+        } else if (lines === 2) {
+          const credit = pick(whole);
+          write(`${name ? name + ". " : ""}${item.label}`, edge, height + 15 * ratio, whole);
+          write(credit, edge, height + 36 * ratio, whole);
         } else {
-          pen.fillText(title, 10 * ratio, height + (strip * ratio) / 2);
+          const title = `${name ? name + ". " : ""}${item.label}`;
+          const shortest = pen.measureText(SAVE_CREDITS[SAVE_CREDITS.length - 1]).width;
+          const titleRoom = out.width - 3 * edge - shortest;
+          const credit = pick(out.width - 3 * edge - Math.min(pen.measureText(title).width, titleRoom));
+          write(title, edge, height + (strip * ratio) / 2, titleRoom);
+          pen.font = `${size}px ${family}`;
           pen.textAlign = "right";
-          pen.fillText(credit, out.width - 10 * ratio, height + (strip * ratio) / 2);
+          pen.fillText(credit, out.width - edge, height + (strip * ratio) / 2);
         }
       } finally {
         stage = null;

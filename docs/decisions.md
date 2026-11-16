@@ -31,7 +31,7 @@ The choices that shaped the project, summarized from the full log below. Each na
 - Google Cloud hosts the site and the free domain gives it an address, both from the Space Apps Global Offers (Austin).
 - The site runs as one container on Cloud Run in `us-east4`, at https://spherexplorer.earth (Austin).
 - The server uses the second generation runtime with 4 processors, 4 GB, and at most 2 instances, the fastest size measured (Matt).
-- A push to `main` deploys only after CI passes on that commit (Austin). Deploys freeze at 11:00 pm Eastern on Nov 15, so the judged site stays as submitted (Austin).
+- A push to `main` deploys only after CI passes on that commit (Austin). Deploys freeze at 11:30 pm Eastern on Nov 15, with the repo, so the judged site stays as submitted (Austin).
 - Work lands on a separate branch before it reaches `main` (Matt).
 
 ## Full log
@@ -40,6 +40,8 @@ Newest first.
 
 | Date | Decision | Decided by | Notes |
 |---|---|---|---|
+| 2026-11-15 | The repository is locked from 11:30 pm Eastern on Nov 15. A GitHub ruleset named "Frozen for judging" stops every push, merge, and branch change from then on | Matt | Matt asked for the lock with the last push. Nobody is exempt, so the code stays as submitted through judging. The scheduled index refresh publishes a release file, which the lock does not touch. Turning the ruleset off under Settings, Rules lifts the lock |
+| 2026-11-15 | The deploy freeze moves to 11:30 pm Eastern on Nov 15, the same time as the repo freeze | Austin | One time for both. A change to the site can be merged until 11:30 pm. Replaces the 11:00 pm freeze below. A deploy that starts just before 11:30 pm finishes after the repo freezes, so a fault in it could not be fixed |
 | 2026-11-15 | The demo video is public on YouTube | Matt | Uploaded on Nov 15 at 2:27 pm Eastern, with the title and the description from `docs/submission/video.md`: https://www.youtube.com/watch?v=EtcNxZPPJSA. YouTube's player shows 29 seconds |
 | 2026-11-15 | The repo is closed to outside contributions while the project is being judged, and `CONTRIBUTING.md` says so. Its rules are stated as the team's own | Matt | An entry is the team's own work, and the repo stays as submitted until the winners are announced on Jan 26, 2027. The setup, the checks, and the rules stay in the file, written as what the team does, not as demands on a reader. Issues stay open |
 | 2026-11-15 | The instruction file for the SI sessions, `CLAUDE.md`, and the `.claude/` folder are taken out of the repo | Matt | They were there so that two SI sessions could work in one repo during the build. The rules they held are in `CONTRIBUTING.md`. The SI labels, the SI log, and the git history stay as they are |

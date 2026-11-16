@@ -2,7 +2,7 @@
 
 The text of each field of the Space Apps project page, kept here so it can be checked against the app. Claude drafted the first version from the repository docs. Matt and Austin then edited the summary and the details in the form, and the text below is what the public page shows. The project page is the copy judges see: https://www.spaceappschallenge.org/2026/find-a-team/turing-complete/?tab=project
 
-Status, Nov 15, 10:16 pm Eastern: the project is submitted and public. The page's record gives 10:15 pm for the submission and 10:15 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 10:16 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
+Status, Nov 15, 10:34 pm Eastern: the project is submitted and public. The page's record gives 10:34 pm for the submission and 10:34 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 10:34 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
 
 ## Project name
 
@@ -86,12 +86,13 @@ Source code, methods, and all references in our [GitHub](https://github.com/matt
 
 ## NASA data, and Space Agency Partner and other data
 
-The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (10:16 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
+The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (10:34 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
 
 ## The SI question
 
-The form's SI question is a list of kinds of SI use to tick. Seven are ticked (two screenshots of the form from Matt at 10:23 pm on Nov 15, and the public page's record):
+The form's SI question is a list of kinds of SI use to tick. Eight are ticked (the public page's record, read at 10:34 pm on Nov 15, and two screenshots of the form from Matt that evening):
 
+- Ideation or Brainstorming
 - Research or Information Gathering
 - Data Analysis and Interpretation
 - Coding, Debugging, or Troubleshooting
@@ -100,7 +101,9 @@ The form's SI question is a list of kinds of SI use to tick. Seven are ticked (t
 - Presentation, Video, or Audio
 - Other Project-Related SI Use
 
-Three are not ticked: Ideation or Brainstorming, Building SI/ML Into the Project, and None / Did not use SI or SI tools.
+Not ticked: Building SI/ML Into the Project and None / Did not use SI or SI tools.
+
+Matt ticked Ideation or Brainstorming late on Nov 15. Claude listed options or proposed methods for a few features, which `docs/decisions.md` and `docs/si-usage.md` record, and the form now agrees with them. The idea and the feature list are the team's (`docs/concept.md`).
 
 The statement below is the team's fuller account, written by Claude on Nov 15 from `docs/si-usage.md` for Matt and Austin. The screenshots show no text field for it, so it is kept here and is not a copy of the form:
 
@@ -139,7 +142,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `media/code/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
-| The summary on the page is 193 words and 1,177 characters | Summary | Counted on Nov 15 at 10:16 pm from the public page. The form suggests 50 to 200 words, and its box takes 1,500 characters |
+| The summary on the page is 193 words and 1,177 characters | Summary | Counted on Nov 15 at 10:34 pm from the public page. The form suggests 50 to 200 words, and its box takes 1,500 characters |
 | The SI answer says every source file and every pull request is labeled, and that four commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and four commits on `main` carry no trailer (`ec252a2`, `80d2140`, `e79c16e`, and `9bffc8c`). `docs/si-usage.md` names all four. The commits were counted again at 2:46 pm |
 | The demo is 30 seconds or less and opens with no login | Demo | YouTube's player shows 29 seconds. Opened with no login on Nov 15 at 2:28 pm |
-| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 10:16 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |
+| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 10:34 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |

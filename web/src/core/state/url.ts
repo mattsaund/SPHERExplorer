@@ -33,7 +33,7 @@
 //
 // Anything left at its default is left out, so a plain view still makes a short link.
 // docs/embedding.md is the public reference for these.
-import { parseCoordinates, separation } from "../sky/astro";
+import { parseCoordinates, raParam, separation } from "../sky/astro";
 import { BLINK_PARTNERS } from "../images/blink";
 import { COLOR_PRESETS } from "../images/colorBands";
 import { COLOR_MAPS } from "../images/colormaps";
@@ -270,7 +270,7 @@ export function buildLink(state: AppState, options: LinkOptions = {}): string {
     // A resolved name carries motion, so prefer it. Plain positions are stored as numbers.
     if (target.name && target.source) params.set("target", target.name);
     else {
-      params.set("ra", target.ra.toFixed(5));
+      params.set("ra", raParam(target.ra));
       params.set("dec", target.dec.toFixed(5));
     }
     if (state.fieldSize !== 300) params.set("fov", String(state.fieldSize));

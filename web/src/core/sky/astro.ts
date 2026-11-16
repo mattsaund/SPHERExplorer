@@ -38,7 +38,17 @@ function sexagesimal(value: number, places: number): [string, string, string] {
 /** Right ascension in degrees to "08h55m02.34s". */
 export function formatRa(deg: number): string {
   const [h, m, s] = sexagesimal((((deg % 360) + 360) % 360) / 15, 2);
-  return `${h}h${m}m${s}s`;
+  // A hair under 24h rounds up to 24h00m00.00s, which is written 00h.
+  return `${h === "24" ? "00" : h}h${m}m${s}s`;
+}
+
+/**
+ * Right ascension in degrees as text for a request or a link, kept inside 0 to 360.
+ * A value a hair under 360 would round up to "360.00000", which the server refuses, so it becomes 0.
+ */
+export function raParam(deg: number, places = 5): string {
+  const text = (((deg % 360) + 360) % 360).toFixed(places);
+  return Number(text) >= 360 ? (0).toFixed(places) : text;
 }
 
 /** Declination in degrees to "-07d14m31.9s". */

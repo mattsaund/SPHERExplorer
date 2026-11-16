@@ -1,7 +1,7 @@
 // Tests for coordinate parsing, formatting, motion, and visit grouping.
 // Written with Claude Code (Anthropic) assistance.
 import { describe, expect, it } from "vitest";
-import { assignSeasons, distanceMethod, formatAngle, formatAu, formatDec, formatDistance, formatRa, mjdToDate, mjdToYear, offsetToSky, parseCoordinates, positionAt, separation, skyOffset, skyPath } from "./astro";
+import { assignSeasons, distanceMethod, formatAngle, formatAu, formatDec, formatDistance, formatRa, mjdToDate, mjdToYear, offsetToSky, parseCoordinates, positionAt, raParam, separation, skyOffset, skyPath } from "./astro";
 
 describe("parseCoordinates", () => {
   it("reads decimal degrees", () => {
@@ -66,13 +66,31 @@ describe("parseCoordinates", () => {
 });
 
 describe("formatting", () => {
+  it("writes a right ascension a hair under 24h as 00h, never 24h", () => {
+    expect(formatRa(359.9999999)).toBe("00h00m00.00s");
+    expect(formatRa(359.99)).toBe("23h59m57.60s");
+    expect(formatRa(0)).toBe("00h00m00.00s");
+  });
+
+  it("keeps a right ascension for a request inside 0 to 360", () => {
+    expect(raParam(133.795134)).toBe("133.79513");
+    expect(raParam(0)).toBe("0.00000");
+    // A hair under 360 must not round up to 360, which the server refuses.
+    expect(raParam(359.9999999)).toBe("0.00000");
+    expect(raParam(359.99999)).toBe("359.99999");
+    expect(raParam(360)).toBe("0.00000");
+    expect(raParam(-0.25)).toBe("359.75000");
+    expect(raParam(359.99999996, 7)).toBe("0.0000000");
+    expect(raParam(12.5, 7)).toBe("12.5000000");
+  });
+
   it("formats sexagesimal", () => {
     expect(formatRa(133.759765)).toBe("08h55m02.34s");
     expect(formatDec(-7.242182)).toBe("-07d14m31.9s");
     expect(formatDec(4.768222)).toBe("+04d46m05.6s");
   });
-  it("carries rounding into the next unit", () => {
-    expect(formatRa(359.99999999)).toBe("24h00m00.00s");
+  it("carries rounding into the next unit, and 24h wraps to 00h", () => {
+    expect(formatRa(359.99999999)).toBe("00h00m00.00s");
     expect(formatDec(-0.0000001)).toBe("-00d00m00.0s");
   });
 });

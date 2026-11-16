@@ -1,6 +1,7 @@
 // Talks to the SPHERExplorer API: metadata, search, and the binary frame stream.
 // Written with Claude Code (Anthropic) assistance.
 import type { Suggestion } from "../search/suggest";
+import { raParam } from "../sky/astro";
 import type { KnownBody, Meta, MissionData, PartnerData, Photometry, SkyObject, SpacecraftInfo, Target } from "../types";
 
 /** Base path of the API. Same origin by default. Set VITE_API_BASE to point elsewhere. */
@@ -89,24 +90,24 @@ export function searchMoving(command: string, signal?: AbortSignal): Promise<Sea
 
 /** Known objects within `radius` degrees of a position, best known first. */
 export async function getObjects(ra: number, dec: number, radius: number, limit: number, signal?: AbortSignal): Promise<SkyObject[]> {
-  const body = await getJson<{ objects: SkyObject[] }>(`/objects?ra=${ra.toFixed(5)}&dec=${dec.toFixed(5)}&radius=${radius.toFixed(4)}&limit=${limit}`, signal);
+  const body = await getJson<{ objects: SkyObject[] }>(`/objects?ra=${raParam(ra)}&dec=${dec.toFixed(5)}&radius=${radius.toFixed(4)}&limit=${limit}`, signal);
   return body.objects;
 }
 
 /** Known asteroids, comets, and planets within `radius` arcseconds of a position at a moment. Slow: several seconds. */
 export async function getKnown(ra: number, dec: number, mjd: number, radius: number, signal?: AbortSignal): Promise<KnownBody[]> {
-  const body = await getJson<{ bodies: KnownBody[] }>(`/known?ra=${ra.toFixed(6)}&dec=${dec.toFixed(6)}&mjd=${mjd.toFixed(6)}&radius=${Math.round(radius)}`, signal);
+  const body = await getJson<{ bodies: KnownBody[] }>(`/known?ra=${raParam(ra, 6)}&dec=${dec.toFixed(6)}&mjd=${mjd.toFixed(6)}&radius=${Math.round(radius)}`, signal);
   return body.bodies;
 }
 
 /** Gaia, 2MASS, and WISE sources within `radius` arcseconds of a position. */
 export function getMissions(ra: number, dec: number, radius: number, signal?: AbortSignal): Promise<MissionData> {
-  return getJson<MissionData>(`/missions?ra=${ra.toFixed(5)}&dec=${dec.toFixed(5)}&radius=${Math.round(radius)}`, signal);
+  return getJson<MissionData>(`/missions?ra=${raParam(ra)}&dec=${dec.toFixed(5)}&radius=${Math.round(radius)}`, signal);
 }
 
 /** Visible-light images of a position from Canada's NEOSSat. */
 export function getNeossat(ra: number, dec: number, signal?: AbortSignal): Promise<PartnerData> {
-  return getJson<PartnerData>(`/neossat?ra=${ra.toFixed(5)}&dec=${dec.toFixed(5)}`, signal);
+  return getJson<PartnerData>(`/neossat?ra=${raParam(ra)}&dec=${dec.toFixed(5)}`, signal);
 }
 
 /** Orbital elements of SPHEREx and the state of the public archive. */
@@ -144,7 +145,7 @@ export interface SearchResult {
 
 /** Every SPHEREx image that covers a sky position. */
 export function searchFrames(ra: number, dec: number, signal?: AbortSignal): Promise<SearchResult> {
-  return getJson<SearchResult>(`/search?ra=${ra.toFixed(7)}&dec=${dec.toFixed(7)}`, signal);
+  return getJson<SearchResult>(`/search?ra=${raParam(ra, 7)}&dec=${dec.toFixed(7)}`, signal);
 }
 
 /** Header of one frame on the wire. Mirrors server/spherex_api/images/cutout.py. */

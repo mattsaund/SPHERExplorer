@@ -7,7 +7,9 @@ Sources: the challenge page, the 2026 Project Submission Guide, the 2026 Judging
 ## Challenge
 
 - Page: https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/
-- The objectives and optional considerations are listed in `CLAUDE.md`.
+- Objectives: a public-facing web tool that displays SPHEREx images of the sky. Users enter RA and Dec, and the tool shows a series of images of that patch like a little video, so moving objects are easy to spot.
+- Test targets: Barnard's Star, Epsilon Indi B, WISE 0855 (RA 08h55m10.831s, Dec -7d14m42.53s), RW Aurigae, and R Draconis.
+- Optional considerations: easy to update with new data releases. A creative display of the 102 bands, for example summing each of the six detector arrays for signal-to-noise, with extra kudos for spectra on the fly. Adding or subtracting images taken at different times. A user-chosen field of view. Overlays from other telescopes such as Gaia and WISE. Coordinates in the URL, so the tool can be embedded elsewhere. Metadata such as contamination flags. Public tools such as Astropy and Aladin (CDS).
 - Resources tab:
 
 | Resource | Source | Note from the tab |

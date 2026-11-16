@@ -97,7 +97,7 @@ Add the license and version when a library goes into the build.
 | matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/images/colormaps.ts`) |
 | Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
-| IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied as `CLAUDE.md` Rule 5 asks) |
+| IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied for the design) |
 | satellite.js 7.2 | MIT | Shashwat Kandadai and contributors. SGP4 orbit model by Vallado et al. 2006 | Yes (live spacecraft position) |
 | gifenc 1.0.3 | MIT | Matt DesLauriers | Yes (animation export) |
 | NEOSSat tutorial (CSA) | MIT, Crown copyright 2023 | | Reference only |

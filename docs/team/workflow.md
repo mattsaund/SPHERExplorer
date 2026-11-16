@@ -2,10 +2,11 @@
 
 ## Setting up Claude Code
 
+During the build, the repo carried an instruction file for the two SI sessions, `CLAUDE.md`, and a `.claude/` folder with a hook that blocked the em dash and the middle dot. Matt had both taken out of the repo on Nov 15, at the end of the build. They stay in the git history. The rules they held are in `CONTRIBUTING.md`, and `scripts/check_text.py` still checks the writing rules.
+
 1. Clone the repo: `git clone https://github.com/mattsaund/SPHERExplorer.git`
-2. Open Claude Code in the repo folder and accept the workspace trust prompt. `CLAUDE.md` loads automatically.
-3. The writing-rule hook runs `python3`. Install Python 3 if it's missing. If the hook can't run, Claude Code shows an error but doesn't block edits.
-4. Put personal settings in `.claude/settings.local.json` and personal notes in `CLAUDE.local.md`. Both are gitignored.
+2. Open Claude Code in the repo folder and accept the workspace trust prompt.
+3. Instructions and settings for a session stay on each machine: `CLAUDE.md`, `CLAUDE.local.md`, and `.claude/` are gitignored.
 
 ## Git
 

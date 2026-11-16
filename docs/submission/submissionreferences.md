@@ -1,6 +1,6 @@
 # Submission references
 
-The rows of the two link lists on the Space Apps project page, each as a Link Text and a Link Url. Both lists below are what the public page shows, read on Nov 15 at 11:03 pm Eastern.
+The rows of the two link lists on the Space Apps project page, each as a Link Text and a Link Url. Both lists below are what the public page shows, read on Nov 15 at 11:15 pm Eastern.
 
 The form has no References field. Its second list asks for "any code, text, and images (even if they are open source or freely available)", so the code libraries and the tools are there with the data.
 
@@ -8,7 +8,7 @@ Each row was checked against the code and the dependency files on Nov 15, 2026, 
 
 ## NASA Data
 
-14 rows. All of them are on the public project page, in this order (read on Nov 15 at 11:03 pm).
+14 rows. All of them are on the public project page, in this order (read on Nov 15 at 11:15 pm).
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -31,7 +31,7 @@ One more row would be true, if wanted. The cards for the Sun, the Moon, and the 
 
 ## Space Agency Partner & Other Data
 
-25 rows. All of them are on the public project page, in this order (read on Nov 15 at 11:03 pm). The data and the services come first, then the code and the tools.
+25 rows. All of them are on the public project page, in this order (read on Nov 15 at 11:15 pm). The data and the services come first, then the code and the tools.
 
 | Link Text | Link Url | Used for |
 |---|---|---|

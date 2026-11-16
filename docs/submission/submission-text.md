@@ -2,7 +2,7 @@
 
 The text of each field of the Space Apps project page, kept here so it can be checked against the app. Claude drafted the first version from the repository docs. Matt and Austin then edited the summary and the details in the form, and the text below is what the public page shows. The project page is the copy judges see: https://www.spaceappschallenge.org/2026/find-a-team/turing-complete/?tab=project
 
-Status, Nov 15, 11:03 pm Eastern: the project is submitted and public. The page's record gives 11:01 pm for the submission and 11:01 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 11:03 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
+Status, Nov 15, 11:15 pm Eastern: the project is submitted and public. The page's record gives 11:14 pm for the submission and 11:14 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 11:15 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
 
 ## Project name
 
@@ -32,7 +32,7 @@ The live site, not the repository. `https://spherexplorer.earth` serves the same
 
 ## Project details
 
-No length limit is shown. About 710 words. This is the text on the page, as Matt and Austin edited it in the form.
+No length limit is shown. About 700 words. This is the text on the page, as Matt and Austin edited it in the form.
 
 ### GitHub:
 
@@ -43,7 +43,7 @@ No length limit is shown. About 710 words. This is the text on the page, as Matt
 SPHERExplorer is a free web tool for interacting with data from NASA's SPHEREx all-sky infrared survey. It allows you to enter a name or coordinates, and then it plays every public SPHEREx image of that position in time order, so moving objects step across the frame. Each image is taken in a different one of 102 infrared bands, so the same images also give a spectrum.
 
 - Search by name, by coordinates, or by planet, asteroid, or comet.
-- Browse the whole sky as SPHEREx sees it, in any band or in color, and click anywhere to load that places images.
+- Browse the whole sky as SPHEREx sees it, in any band or in color, and click anywhere to load that place's images.
 - Play every exposure, each visit, each wavelength, or the deepest sum, over a field 1 to 50 arcminutes wide. Sum any of the six detectors, subtract one visit from another, or view three bands as color.
 - Measure Changes checks every source in the field and reports what moved, brightened, or faded.
 - Read the spectrum of any point, with water, methane, and other features marked.
@@ -80,12 +80,12 @@ SPHEREx data is public but it's hard to use without a technical background. SPHE
 ### Tools and technology
 
 - Python (FastAPI, NumPy, Astropy) and TypeScript (React, WebGL2), with Aladin Lite for the sky map.
-- A container on Google Cloud Run serves the site. GitHub Actions used for deploying after all tests pass. Both the domain and the cloud credit come from the Space Apps Global Offers.
+- A container on Google Cloud Run serves the site, and GitHub Actions deploys it after all tests pass. Both the domain and the cloud credit come from the Space Apps Global Offers.
 - Built using Claude Code (Anthropic), a Super Intelligence (SI) tool. The team set and owned the idea, features, and direction. Claude's code and docs are labeled in commits, file headers, and [docs/si-usage.md](https://github.com/mattsaund/SPHERExplorer/blob/main/docs/si-usage.md).
 
 ### Factors we considered
 
-We considered many factors, but in rough order of importance, we considered: scientific validity (positions are carried forward to each image's date, matching wavelengths, and checking all results against published catalogs), ease of use (a child or a non-technical older adult can use it), and speed and cost optimization (small transfers, keeping hosting and usage costs low).
+In rough order of importance, we considered scientific validity (positions carried forward to each image's date, matching wavelengths, and results checked against published catalogs), ease of use (a child or a non-technical older adult can use it), and speed and cost (small transfers, which keep hosting costs low).
 
 SPHERExplorer is an independent team project. It is not an official NASA product and is not endorsed by NASA.
 
@@ -93,7 +93,7 @@ Source code, methods, and all references in our [GitHub](https://github.com/matt
 
 ## NASA data, and Space Agency Partner and other data
 
-The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (11:03 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
+The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (11:15 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
 
 ## The SI question
 
@@ -151,7 +151,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `media/code/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
-| The summary on the page is 193 words and 1,177 characters | Summary | Counted on Nov 15 at 11:03 pm from the public page. The form suggests 50 to 200 words, and its box takes 1,500 characters |
+| The summary on the page is 193 words and 1,177 characters | Summary | Counted on Nov 15 at 11:15 pm from the public page. The form suggests 50 to 200 words, and its box takes 1,500 characters |
 | The SI answer says every source file and every pull request is labeled, and that four commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and four commits on `main` carry no trailer (`ec252a2`, `80d2140`, `e79c16e`, and `9bffc8c`). `docs/si-usage.md` names all four. The commits were counted again at 2:46 pm |
 | The demo is 30 seconds or less and opens with no login | Demo | YouTube's player shows 29 seconds. Opened with no login on Nov 15 at 2:28 pm |
-| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 11:03 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |
+| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 11:15 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |

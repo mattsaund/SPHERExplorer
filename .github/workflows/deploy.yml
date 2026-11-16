@@ -27,17 +27,17 @@ jobs:
     outputs:
       deploy: ${{ steps.compare.outputs.deploy }}
     steps:
-      # Deploys freeze at 11:00 pm Eastern on Nov 15, an hour before the 11:59 pm submission deadline,
-      # to leave time to check the last deploy. A commit pushed before the freeze still deploys.
+      # Deploys freeze at 11:30 pm Eastern on Nov 15, with the repo, half an hour before the 11:59 pm
+      # submission deadline. A commit pushed before the freeze still deploys.
       # CI runs can finish out of order, and an old run can be re-run. Neither may roll the site back.
       - id: compare
         env:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           PUSHED_AT: ${{ github.event.workflow_run.created_at }}
-          FREEZE_AT: "2026-11-16T04:00:00Z"
+          FREEZE_AT: "2026-11-16T04:30:00Z"
         run: |
           if [[ ! "$PUSHED_AT" < "$FREEZE_AT" ]]; then
-            echo "::notice::Not deployed. Deploys froze at 11:00 pm Eastern on Nov 15, before the submission deadline."
+            echo "::notice::Not deployed. Deploys froze at 11:30 pm Eastern on Nov 15, before the submission deadline."
             exit 0
           fi
           newest="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"

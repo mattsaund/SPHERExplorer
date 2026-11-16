@@ -18,6 +18,8 @@ export function ChangesPanel({ onShow }: { onShow?: () => void }) {
   const ready = useStore((s) => s.framesState === "ready" && s.loaded > 0);
   const marked = useStore((s) => s.display.showChanges);
   const targetName = useStore((s) => s.target?.name);
+  // A cold object shows only in detectors 5 and 6. With the others switched on too, their noise hides it.
+  const shortOn = useStore((s) => s.filters.detectors.slice(0, 4).some(Boolean));
   const found = report?.changes.length ?? 0;
   // How steady the field is, which sets how large a change must be. Said in plain words.
   const yardstick = (count: number, value: string) => (count > 0 ? `${value}, from ${count} steady sources` : `${value}, a cautious standard value because this field has too few steady sources`);
@@ -46,6 +48,12 @@ export function ChangesPanel({ onShow }: { onShow?: () => void }) {
             {report.sources === 1 ? "source" : "sources"}, comparing {list(report.visits)}.
             {report.skipped.length > 0 && ` Left out for now, with too few images or wavelengths: ${list(report.skipped)}.`}
           </p>
+          {found === 0 && shortOn && (
+            <p className="muted">
+              Cold objects such as brown dwarfs show only at the longest wavelengths. To look for one, switch on only detectors 5 and 6 in Settings and
+              search again.
+            </p>
+          )}
           <ul className="changes">
             {report.changes.map((change, index) => (
               <li key={index}>

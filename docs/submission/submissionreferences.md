@@ -1,14 +1,14 @@
 # Submission references
 
-The rows for the two link lists on the Space Apps project page, in the form's own format: a Link Text and a Link Url for each row. Click Add New Link once per row.
+The rows of the two link lists on the Space Apps project page, each as a Link Text and a Link Url. Both lists below are what the public page shows, read on Nov 15 at 6:50 pm Eastern.
 
-The form has no References field. Its second list asks for "any code, text, and images (even if they are open source or freely available)", so the code libraries and the tools go there with the data.
+The form has no References field. Its second list asks for "any code, text, and images (even if they are open source or freely available)", so the code libraries and the tools are there with the data.
 
-Each row was checked against the code and the dependency files on Nov 15, 2026, and each link was opened that day. Claude Code (Anthropic), an SI tool, made the check and wrote this file. Matt and Austin decide what goes in the form. The complete list, with every paper, formula, license, and acknowledgment, is `docs/references.md`.
+Each row was checked against the code and the dependency files on Nov 15, 2026, and each link was opened that day. Claude Code (Anthropic), an SI tool, made the check and wrote this file. Matt and Austin decided what went in the form, and grouped the code and the tools into fewer rows. The complete list, with every paper, formula, license, and acknowledgment, is `docs/references.md`.
 
 ## NASA Data
 
-14 rows. All of them are on the public project page, in this order (read on Nov 15 at 6:32 pm).
+14 rows. All of them are on the public project page, in this order (read on Nov 15 at 6:50 pm).
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -31,9 +31,7 @@ One more row would be true, if wanted. The cards for the Sun, the Moon, and the 
 
 ## Space Agency Partner & Other Data
 
-### Data and services
-
-13 rows. All of them are on the public project page, in this order (read on Nov 15 at 6:32 pm).
+25 rows. All of them are on the public project page, in this order (read on Nov 15 at 6:50 pm). The data and the services come first, then the code and the tools.
 
 | Link Text | Link Url | Used for |
 |---|---|---|
@@ -44,22 +42,34 @@ One more row would be true, if wanted. The cards for the Sun, the Moon, and the 
 | Aladin Lite, CDS Strasbourg | https://aladin.cds.unistra.fr/AladinLite/ | The sky map |
 | SkyBoT, IMCCE Paris Observatory | https://ssp.imcce.fr/webservices/skybot/ | The known asteroids, comets, and planets in an image |
 | CelesTrak | https://celestrak.org/ | Orbits for the live map of telescopes |
-| Herschel, European Space Agency | https://www.cosmos.esa.int/web/herschel | A sky map layer, from tiles served by IRSA |
-| Planck, European Space Agency | https://www.cosmos.esa.int/web/planck | A sky map layer, from tiles served by IRSA |
+| Herschel and Planck, European Space Agency | https://www.cosmos.esa.int/ | Two sky map layers, Herschel and Planck, from tiles served by IRSA |
 | DSS2 and SDSS sky tiles (served by IRSA) | https://irsa.ipac.caltech.edu/data/hips/list | Map layers, and Blink against the Digitized Sky Survey |
 | NIST Atomic Spectra Database | https://www.nist.gov/pml/atomic-spectra-database | Wavelengths of the atomic lines marked on spectra |
 | Natural Earth | https://www.naturalearthdata.com/ | Land outlines on the map of telescopes |
 | WiseView | https://github.com/backyardworlds/wiseview | Studied as prior art for blinking images |
+| Astropy | https://www.astropy.org/ | Reading FITS files and sky coordinates on the server |
+| NumPy | https://numpy.org/ | Image arrays and the math on the server |
+| FastAPI | https://fastapi.tiangolo.com/ | The server's web API |
+| Server libraries: Uvicorn, Pydantic, HTTPX, Pillow, pytest | https://github.com/mattsaund/SPHERExplorer/blob/main/server/pyproject.toml | Runs the server, checks each request, calls the archives, draws the color sky tiles, and tests the server. The link is the server's list of libraries |
+| React | https://react.dev/ | The web interface |
+| Web libraries and tools: Zustand, satellite.js, gifenc, world-atlas, topojson-client, TypeScript, Vite, Vitest | https://github.com/mattsaund/SPHERExplorer/blob/main/web/package.json | The web app's state, the telescopes' live positions, saved animations, land outlines, the language, the build, and the tests. The link is the web app's list of libraries |
+| Claude Code (Anthropic), SI tool | https://claude.com/product/claude-code | Wrote and tested code and docs under the team's direction |
+| SPHERExplorer reference list: papers, formulas, licenses, acknowledgements | https://github.com/mattsaund/SPHERExplorer/blob/main/docs/references.md | The complete list |
+| Matplotlib colormaps | https://matplotlib.org/ | The color tables: viridis, magma, inferno, plasma, cividis |
+| Google Cloud Run | https://cloud.google.com/run | Hosting |
+| GitHub Actions | https://github.com/features/actions | Checks, deploys, and the index refresh |
+| Docker and uv: the prod container | https://github.com/mattsaund/SPHERExplorer/blob/main/Dockerfile | The production container and the Python packaging. The link is the container's recipe |
+| Demo video tools: Puppeteer, FFmpeg, Inter | https://github.com/mattsaund/SPHERExplorer/tree/main/media/code | Captures of the tool, the encoding, and the type of the demo video. The link is the code that makes the video |
 
 One row came out of the form on Nov 15 at 6:28 pm: "NEOSSat tutorial, Canadian Space Agency". It was read, and no code or data came from it.
 
-WiseView and the IRSA SPHEREx Data Explorer were studied, not used as code or data. They stay because the challenge names WiseView as a model and the coverage overlays follow the Data Explorer. Ending their link text with "(studied as a model)" would make that plain.
+WiseView and the IRSA SPHEREx Data Explorer were studied, not used as code or data. They stay because the challenge names WiseView as a model and the coverage overlays follow the Data Explorer.
 
-### Code and tools
+### The code and tools, one by one
 
-26 rows to add. None of them is on the public project page (read on Nov 15 at 6:32 pm). If time is short, the first 14 rows and the last one matter most: they are the code inside the tool, the SI tool, and the complete list.
+The page groups several libraries into one row. This is each of them with its own link, as it was checked against the code.
 
-| Link Text | Link Url | Used for |
+| Name | Link | Used for |
 |---|---|---|
 | Astropy | https://www.astropy.org/ | Reading FITS files and sky coordinates on the server |
 | NumPy | https://numpy.org/ | Image arrays and the math on the server |

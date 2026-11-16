@@ -83,14 +83,9 @@ desktop.ini
 !.vscode/extensions.json
 *.sublime-workspace
 
-# Claude Code. Ignore everything under any .claude/ by default.
-# Track only shared project config. A new local file can't leak by accident.
-**/.claude/*
-!**/.claude/settings.json
-!**/.claude/hooks/
-!**/.claude/agents/
-!**/.claude/commands/
-!**/.claude/skills/
+# Claude Code. The instructions and settings of an SI session stay on each machine, not in the repo.
+**/.claude/
+CLAUDE.md
 CLAUDE.local.md
 
 # Local API cache of calibration tables and file layouts

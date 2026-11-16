@@ -1,0 +1,10 @@
+/* The About tab: a lead line, two rows of sections side by side where the page is wide enough,
+   and the acknowledgments. Written with Claude Code (Anthropic) assistance. */
+.tool.about { height: auto; gap: var(--space-4); }
+.about-lead { max-width: 980px; }
+.about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: var(--space-4) var(--space-6); align-items: start; }
+.about-grid section, .about-notes { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.about-notes p { max-width: 980px; font-size: 0.9rem; overflow-wrap: anywhere; }
+/* One credit to a line: the linked names, then what they are used for. */
+.credits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.credits li { overflow-wrap: anywhere; }

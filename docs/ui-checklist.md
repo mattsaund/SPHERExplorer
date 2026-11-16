@@ -68,7 +68,7 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Map | Pan and zoom the whole sky, click labels and empty sky | `SkyMap` |
 | Layers | Choose a survey, including SPHEREx in full color | `SKY_LAYERS`, `actions.setMap` |
 | SPHEREx channel | Slide through the 102 channels | `channel` |
-| Map shape | Choose among the seven projections | `PROJECTIONS` |
+| Map shape | Choose among the seven projections, and read the standard name of the one chosen | `PROJECTIONS` |
 | Labels and grid | Switch object labels and the coordinate grid | `labels`, `grid` |
 | Go to | Jump to the whole sky or to a place | `actions.flyTo` |
 | Object card | Click an object's label to load its images at once, with the view box around it, and see its facts, distance, and details link. A planet, asteroid, or comet loads at once too. The map stays put and the square starts on its marker. The Sun and the Moon only show their card | `selected`, `isStudied` |
@@ -98,6 +98,6 @@ The working example of every row is in `web/src/ui/`: `App.tsx` holds the page a
 | Save all FITS | Save every loaded image as FITS files in one zip, with progress | `actions.saveAllFits`, `packing` |
 | Save tables | Save the brightness over time, and what the change finder found, as CSV tables | `actions.saveLightCurve`, `actions.saveChanges` |
 | Share | Copy a link that reopens the whole view: the screen, the open tool, the image on screen with its zoom and brightness, the spectrum settings, and where the map looks. The address bar follows the view too | `actions.shareLink`, `actions.setLayout`, `layout` |
-| About and credits | Read who made it, where the data comes from, that it is not a NASA product, and that SI was used | `DATA_CREDIT`, `index` |
+| About and credits | Read who made it, where the code is, where the data comes from, which libraries and tools it uses, that it is not a NASA product, and that SI was used | `DATA_CREDIT`, `index` |
 | Embed code | Copy HTML that shows the view inside another web page | `actions.embedCode` |
 | Embedded view | Get a compact viewer when the address holds `embed=1` | `embed`, `Embed` |

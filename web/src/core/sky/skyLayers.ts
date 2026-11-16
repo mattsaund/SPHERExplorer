@@ -95,15 +95,19 @@ export const SKY_LAYERS: SkyLayer[] = [
   },
 ];
 
-/** Map projections Aladin Lite offers, with plain names. */
+/**
+ * The seven map projections Aladin Lite offers. Each is a standard projection of the FITS world
+ * coordinate system (Calabretta and Greisen 2002), and the id is its FITS code. The menu shows the
+ * plain name. The standard name and the description are shown under the menu.
+ */
 export const PROJECTIONS = [
-  { id: "SIN", name: "Globe", about: "The sky as a sphere you can spin all the way around." },
-  { id: "AIT", name: "Whole sky (oval)", about: "The entire sky at once in an oval. Shapes stay close to true." },
-  { id: "MOL", name: "Whole sky (equal area)", about: "The entire sky at once. Every patch keeps its true share of area." },
-  { id: "MER", name: "Flat map", about: "A flat rectangular map, like a classroom world map." },
-  { id: "ZEA", name: "All-sky disc", about: "The whole sky in one circle around where you look." },
-  { id: "STG", name: "Wide angle", about: "A wide view that keeps shapes true, like a fisheye lens." },
-  { id: "TAN", name: "True shapes", about: "What a camera sees. Straight lines on the sky stay straight." },
+  { id: "SIN", name: "Globe", standard: "Orthographic", about: "The sky as a globe you can spin." },
+  { id: "AIT", name: "Whole sky (oval)", standard: "Hammer-Aitoff", about: "The whole sky in an oval, with true areas." },
+  { id: "MOL", name: "Oval (Mollweide)", standard: "Mollweide", about: "The whole sky in an oval, with true areas and level lines of latitude." },
+  { id: "MER", name: "Flat map", standard: "Mercator", about: "A flat map with true shapes. Areas grow toward the poles." },
+  { id: "ZEA", name: "All-sky disc", standard: "Zenithal equal-area", about: "The whole sky in a disc, with true areas." },
+  { id: "STG", name: "Wide angle", standard: "Stereographic", about: "A wide view with true shapes, like a fisheye lens." },
+  { id: "TAN", name: "Camera view", standard: "Gnomonic", about: "What a camera sees. Straight lines stay straight." },
 ] as const;
 
 export type ProjectionId = (typeof PROJECTIONS)[number]["id"];

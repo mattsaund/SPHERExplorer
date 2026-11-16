@@ -182,6 +182,8 @@ function MapSurvey() {
   const channel = useStore((s) => s.map.channel);
   const meta = useStore((s) => s.meta);
   const layer = SKY_LAYERS.find((entry) => entry.id === layerId) ?? SKY_LAYERS[0];
+  // The shape's standard name and what it does, shown under the menu.
+  const shape = PROJECTIONS.find((entry) => entry.id === projection);
   return (
     <fieldset>
       <legend>Survey and shape</legend>
@@ -203,6 +205,7 @@ function MapSurvey() {
           {PROJECTIONS.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
         </select>
       </label>
+      {shape && <p className="muted">{shape.standard} projection. {shape.about}</p>}
     </fieldset>
   );
 }

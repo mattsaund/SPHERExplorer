@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Repo-wide text check for the team writing rules in CLAUDE.md.
+# Repo-wide text check for the team's writing rules in CONTRIBUTING.md.
 # Fails on an em dash, a middle dot, or any name for SI other than "SI".
 # Written with Claude Code (Anthropic) assistance.
 
@@ -42,7 +42,7 @@ def main():
                 print(f"{name}:{number}: use the term SI")
                 problems += 1
     if problems:
-        print(f"{problems} problem(s). See Rule 2 and Rule 4 in CLAUDE.md.")
+        print(f"{problems} problem(s). See \"Writing\" and \"SI tools\" under \"Our rules\" in CONTRIBUTING.md.")
         return 1
     print("Text check passed.")
     return 0

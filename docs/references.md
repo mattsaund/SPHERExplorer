@@ -56,6 +56,7 @@ NEOSSat (Open Government Licence - Canada, official text uses an en dash before 
 - Bock et al. 2026, ApJ 999, 139 (arXiv 2511.02985). SPHEREx mission.
 - Akeson et al. 2026, ApJS 285, 67. SPHEREx data pipeline.
 - Korngut et al. 2026 (arXiv 2603.29835). SPHEREx instrument and calibration.
+- Calabretta and Greisen 2002, A&A 395, 1077 (DOI 10.1051/0004-6361:20021327). Representations of celestial coordinates in FITS. The standard names and codes of the sky map's seven projections.
 - SPHEREx Explanatory Supplement: https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp.pdf
 - SPHEREx Archive User Guide: https://caltech-ipac.github.io/spherex-archive-documentation/
 - Meisner et al. 2026 (arXiv 2608.00046). Undersampling limits SPHEREx coaddition and differencing.
@@ -96,7 +97,7 @@ Add the license and version when a library goes into the build.
 | matplotlib colormaps (viridis, magma, inferno, plasma, cividis) | CC0 | van der Walt and Smith 2015. Nunez et al. 2018 (cividis) | Yes (key colors in `web/src/core/images/colormaps.ts`) |
 | Aladin Lite 3.9.2-beta (CDS) | LGPL-3.0-or-later | Boch and Fernique 2014. Baumann et al. 2022. The Aladin logo and link stay in the view | Yes (sky map, loaded on demand) |
 | WiseView | Public domain | Caselden et al. 2018, ASCL 1806.004 | Reference only |
-| IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied as `CLAUDE.md` Rule 5 asks) |
+| IRSA SPHEREx Data Explorer | Public | https://irsa.ipac.caltech.edu/applications/spherex/ | Reference only (the existing tool, studied for the design) |
 | satellite.js 7.2 | MIT | Shashwat Kandadai and contributors. SGP4 orbit model by Vallado et al. 2006 | Yes (live spacecraft position) |
 | gifenc 1.0.3 | MIT | Matt DesLauriers | Yes (animation export) |
 | NEOSSat tutorial (CSA) | MIT, Crown copyright 2023 | | Reference only |

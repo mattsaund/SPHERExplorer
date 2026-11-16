@@ -2,15 +2,15 @@
 
 From the 2026 Project Submission Guide and the 2026 Judging and Awards Guide. Both were read again from the live Space Apps pages on Nov 15 at 2:45 pm Eastern. They are dated Nov 13, 2026.
 
-A ticked box was checked by Claude on Nov 15, and the line says how and when. An open box is something only Matt or Austin can do or see. Claude cannot open the project form. It reads the public project page, last at 10:34 pm: https://www.spaceappschallenge.org/2026/find-a-team/turing-complete/?tab=project
+A ticked box was checked by Claude on Nov 15, and the line says how and when. An open box is something only Matt or Austin can do or see. Claude cannot open the project form. It reads the public project page, last at 10:56 pm: https://www.spaceappschallenge.org/2026/find-a-team/turing-complete/?tab=project
 
 ## Where things stand
 
-Sunday, Nov 15, 10:34 pm Eastern.
+Sunday, Nov 15, 10:56 pm Eastern.
 
-- The project is submitted and public. It was first submitted at 3:24 pm, before our Local Event's cutoff, and last submitted at 10:34 pm with the edits of the evening.
+- The project is submitted and public. It was first submitted at 3:24 pm, before our Local Event's cutoff, and last submitted at 10:54 pm with the edits of the evening.
 - The team gave its live presentation and placed first at the Local Event (Matt, Nov 15). Local awards are separate from Global Judging. The Local Event's judges choose the Global Nominees, and they are announced on Dec 3.
-- The form stays open until 11:59 pm. Matt and Austin have edited the summary, the details, and the link lists in it. The page's last save and its last submission are both at 10:34 pm.
+- The form stays open until 11:59 pm. Matt and Austin have edited the summary, the details, and the link lists in it. The page's last save and its last submission are both at 10:54 pm.
 
 ## Times
 
@@ -22,6 +22,7 @@ Sunday, Nov 15, Eastern time.
 | 7:16 pm | Done. Submitted again with the evening's edits (the public page's record) |
 | 10:15 pm | Done. Submitted again with a shorter summary (the public page's record) |
 | 10:34 pm | Done. Submitted again with the SI question updated (the public page's record) |
+| 10:54 pm | Done. Submitted again with two pictures and three more lines in the details (the public page's record) |
 | 3:30 pm | Done. Live presentation. Notes in `docs/submission/livepresentation.md` |
 | 4:20 pm | Passed. Our Local Event's cutoff |
 | 11:30 pm | Deploys and the repo freeze. A change to the site must be merged before this. No commit, merge, or push after this |
@@ -31,11 +32,10 @@ Sunday, Nov 15, Eastern time.
 
 Every step here is an open box further down. All of it is for Matt or Austin, in the form.
 
-1. After any further edit, click Save Progress and then Submit for Judging again, and look for the banner. The page's last save and last submission are both at 10:34 pm, so nothing is waiting now.
+1. After any further edit, click Save Progress and then Submit for Judging again, and look for the banner. The page's last save and last submission are both at 10:54 pm, so nothing is waiting now.
 2. Open the public project page in a private window. Read every field and click every link.
-3. Upload pictures if you want them on the page. Four small ones are ready in `media/pictures/`.
-4. Afterwards: open the site on a phone on mobile data, and download the certificates.
-5. Don't save the form after 11:59 pm.
+3. Afterwards: open the site on a phone on mobile data, and download the certificates.
+4. Don't save the form after 11:59 pm.
 
 Claude's part: read the public page once more after your last edit and bring `docs/submission/submission-text.md` in line with it, then check the repo and the live site before the freeze at 11:30 pm.
 
@@ -52,18 +52,18 @@ From "Eligibility for Global Judging" in the Judging and Awards Guide.
 
 ## Project page fields
 
-`docs/submission/submission-text.md` has the text of each field as it is on the public page, and the claims to recheck. A box here is ticked from the public page, read at 10:34 pm.
+`docs/submission/submission-text.md` has the text of each field as it is on the public page, and the claims to recheck. A box here is ticked from the public page, read at 10:56 pm.
 
 - [x] Project Name. SPHERExplorer.
 - [x] High-Level Project Summary. On the page, as Matt and Austin edited it in the form. It is 193 words and 1,177 characters (10:16 pm). The form suggests 50 to 200 words, and its box takes 1,500 characters.
 - [x] Link to Project Demo. https://www.youtube.com/watch?v=EtcNxZPPJSA. YouTube answered for it with no login at 6:35 pm, and its player shows 29 seconds.
 - [x] Link to Final Project. https://www.spherexplorer.earth. It serves the site and its API, the same as the address without `www` (6:35 pm). The repo link is the first line and the last line of the details.
-- [x] Detailed Project Description. On the page, as Matt and Austin edited it in the form, about 640 words. Its results were rechecked on the live site at 6:32 pm and every number matched. One sentence has no verb: "GitHub Actions used for deploying after all tests pass."
+- [x] Detailed Project Description. On the page, as Matt and Austin edited it in the form, about 690 words, with two pictures of the tool. Its results were rechecked on the live site at 6:32 pm and every number matched. One sentence has no verb: "GitHub Actions used for deploying after all tests pass."
 - [x] Use of Super Intelligence (SI). The form's question is a list to tick, and eight kinds of SI use are ticked (the public page's record, 10:34 pm). Matt ticked Ideation or Brainstorming that evening, because Claude listed options or proposed methods for a few features and the SI log says so. Building SI/ML Into the Project and None / Did not use SI or SI tools are not ticked. The team's fuller statement is in `submission-text.md`.
 - [x] NASA Data. 14 links, the same rows in the same order as `docs/submission/submissionreferences.md`. Each address answered at 6:45 pm.
 - [x] Space Agency Partner Data. 12 rows of data and services at the top of "Space Agency Partner & Other Data". Herschel and Planck share one row now, and the NEOSSat tutorial row came out at 6:28 pm. Each address answered at 6:45 pm.
 - [x] Code, tools, and references. The form has no References field. Its second list asks for "any code, text, and images" used, and since 6:41 pm it has 13 rows for them: the libraries inside the tool, the SI tool, the hosting and build tools, the video tools, and a link to the complete list in `docs/references.md`. Each address answered at 6:45 pm. `submissionreferences.md` has the same rows, and each library one by one.
-- [ ] Pictures, if wanted. It takes JPG, PNG, and GIF up to 10 MB. Four in `media/pictures/` are 0.5 to 0.6 MB each. The three large animations there are 26, 32, and 46 MB, over that limit. Videos and documents must be links.
+- [x] Pictures. Two are in the details since 10:54 pm: `app-barnards-star.png` and `epsilon-indi-b-spectrum.png`, from `media/pictures/`.
 
 ## Demo
 
@@ -91,7 +91,7 @@ From "Submitting Your Project" in the Project Submission Guide.
 - [ ] Switch the edit Lock on while editing, and save often. The guide warns that another member can remove the lock and overwrite unsaved changes.
 - [x] Every required field is filled, in English. The form does not submit with one empty, and it submitted.
 - [x] Both boxes ticked and Submit for Judging clicked. The public page's record says submitted, at 3:24 pm. The second box reads: "I confirm that the submitted project represents my team's original work and that all external resources including code, text and images (even if they are open source or freely available) used in the project are listed in the References field of the project submission form. In creating our solution, my team has not used any copyrighted materials (i.e., music, images, text, etc.) that we don't have permission to use."
-- [x] Submitted again after the evening's edits. The guide: "You may edit and resubmit your project as many times as you'd like until the end of the hackathon. Only your last saved submission will be reviewed by the judges." The page's record shows the last save and the last submission at the same moment, 10:34 pm. After any further edit, submit again.
+- [x] Submitted again after the evening's edits. The guide: "You may edit and resubmit your project as many times as you'd like until the end of the hackathon. Only your last saved submission will be reviewed by the judges." The page's record shows the last save and the last submission at the same moment, 10:54 pm. After any further edit, submit again.
 - [ ] Open the public project page in a private window. Read every field and click every link.
 - [ ] No save after 11:59 pm. A save after the deadline costs eligibility.
 

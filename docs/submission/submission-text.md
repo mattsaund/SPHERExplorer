@@ -2,7 +2,7 @@
 
 The text of each field of the Space Apps project page, kept here so it can be checked against the app. Claude drafted the first version from the repository docs. Matt and Austin then edited the summary and the details in the form, and the text below is what the public page shows. The project page is the copy judges see: https://www.spaceappschallenge.org/2026/find-a-team/turing-complete/?tab=project
 
-Status, Nov 15, 10:34 pm Eastern: the project is submitted and public. The page's record gives 10:34 pm for the submission and 10:34 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 10:34 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
+Status, Nov 15, 10:56 pm Eastern: the project is submitted and public. The page's record gives 10:54 pm for the submission and 10:54 pm for the last save. The name, the summary, both links, the details, and both link lists below were read from the public page at 10:56 pm. The SI answer does not show on the public page, so only Matt and Austin can check it, in the form.
 
 ## Project name
 
@@ -32,7 +32,7 @@ The live site, not the repository. `https://spherexplorer.earth` serves the same
 
 ## Project details
 
-No length limit is shown. About 650 words. This is the text on the page, as Matt and Austin edited it in the form.
+No length limit is shown. About 710 words. This is the text on the page, as Matt and Austin edited it in the form.
 
 ### GitHub:
 
@@ -43,11 +43,18 @@ No length limit is shown. About 650 words. This is the text on the page, as Matt
 SPHERExplorer is a free web tool for interacting with data from NASA's SPHEREx all-sky infrared survey. It allows you to enter a name or coordinates, and then it plays every public SPHEREx image of that position in time order, so moving objects step across the frame. Each image is taken in a different one of 102 infrared bands, so the same images also give a spectrum.
 
 - Search by name, by coordinates, or by planet, asteroid, or comet.
-- Play every exposure, each visit, each wavelength, or the deepest sum, over a field 1 to 50 arcminutes wide.
+- Browse the whole sky as SPHEREx sees it, in any band or in color, and click anywhere to load that places images.
+- Play every exposure, each visit, each wavelength, or the deepest sum, over a field 1 to 50 arcminutes wide. Sum any of the six detectors, subtract one visit from another, or view three bands as color.
 - Measure Changes checks every source in the field and reports what moved, brightened, or faded.
 - Read the spectrum of any point, with water, methane, and other features marked.
 - Compare with Gaia, 2MASS, WISE, and NEOSSat from the Canadian Space Agency, and blink against surveys decades older.
-- Save FITS files, data tables, and animations. Every view has a link that can be shared or embedded.
+- Save FITS files with flags and variance, data tables, and animations. Every view has a link that can be shared or embedded.
+
+### Picture:
+
+(Picture on the page: app-barnards-star.width-1024.png)
+
+(Picture on the page: epsilon-indi-b-spectrum.width-1024.png)
 
 ### How it works
 
@@ -86,7 +93,7 @@ Source code, methods, and all references in our [GitHub](https://github.com/matt
 
 ## NASA data, and Space Agency Partner and other data
 
-The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (10:34 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
+The page has 14 links under NASA Data and 25 under Space Agency Partner & Other Data (10:56 pm). They are the data sources, the services, the code libraries, and the tools. `docs/submission/submissionreferences.md` has every row as a Link Text and a Link Url, with what each is used for. The form has no References field.
 
 ## The SI question
 
@@ -134,7 +141,9 @@ Every factual line above, and where to check it. Recheck after the last change t
 | Blink against surveys decades older: WISE, 2MASS, and the Digitized Sky Survey | Details | `docs/methods.md` section 13 |
 | Water, methane, and other features are marked on the spectrum | Summary, details | `docs/methods.md` section 10 |
 | The tool names Measure Changes and Blink | Details | The app's Studies tab and image study |
-| FITS files, data tables, and animations can be saved, and every view has a link that can be shared or embedded | Summary, details | `docs/methods.md` sections 14 and 17, `docs/embedding.md` |
+| FITS files with flags and variance, data tables, and animations can be saved, and every view has a link that can be shared or embedded | Summary, details | `docs/methods.md` sections 14 and 17, `docs/embedding.md` |
+| Any of the six detectors can be summed, one visit subtracted from another, and three bands shown as color. The sky map shows SPHEREx in any band or in color, and a click on it loads that place's images | Details | `docs/methods.md` sections 6, 11, and 16, and the app's Settings menu and sky map |
+| The details show two pictures of the tool | Details | They are `media/pictures/app-barnards-star.png` and `media/pictures/epsilon-indi-b-spectrum.png`, taken from the live site on Nov 15 |
 | Results were checked against published catalogs | Details | `docs/methods.md` section 9 has each test target beside its catalog value. Sections 5 and 15 compare solar system positions with JPL Horizons |
 | The main stack: Python with FastAPI, NumPy, and Astropy, TypeScript with React and WebGL2, and Aladin Lite | Details | `docs/architecture.md`, `docs/references.md` |
 | Deploys run only after every test passes | Details | `.github/workflows/deploy.yml` |
@@ -142,7 +151,7 @@ Every factual line above, and where to check it. Recheck after the last change t
 | The SI answer says Claude built the demo video from recordings of the live tool, with a watermark on every frame | SI question | True for the video rendered from `media/code/`, which is the demo (`docs/submission/video.md`). If the backup slides are submitted, use the two replacement sentences under the answer |
 | The SI answer says Claude listed options or proposed methods for some features | SI question | `docs/decisions.md` (Blink) and `docs/si-usage.md` (the halo measure) |
 | The details say the tool is independent of NASA | Details | The app's About tab says the same |
-| The summary on the page is 193 words and 1,177 characters | Summary | Counted on Nov 15 at 10:34 pm from the public page. The form suggests 50 to 200 words, and its box takes 1,500 characters |
+| The summary on the page is 193 words and 1,177 characters | Summary | Counted on Nov 15 at 10:56 pm from the public page. The form suggests 50 to 200 words, and its box takes 1,500 characters |
 | The SI answer says every source file and every pull request is labeled, and that four commits are not | SI question | Checked by script on Nov 15: no source file lacks the header, every pull request carries the line, and four commits on `main` carry no trailer (`ec252a2`, `80d2140`, `e79c16e`, and `9bffc8c`). `docs/si-usage.md` names all four. The commits were counted again at 2:46 pm |
 | The demo is 30 seconds or less and opens with no login | Demo | YouTube's player shows 29 seconds. Opened with no login on Nov 15 at 2:28 pm |
-| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 10:34 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |
+| The two link lists name the data sources, the services, the code libraries, and the tools in use | NASA data, partner and other data | Read from the public page on Nov 15 at 10:56 pm: 14 links and 25 links, each one in `docs/submission/submissionreferences.md`, where each was checked against the code. All 43 links on the page answered at 6:45 pm. Papers and formulas are in `docs/references.md`, which one row links |

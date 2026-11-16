@@ -98,6 +98,8 @@ The idea and the features are the team's, recorded in `docs/concept.md` and `doc
 
 ## How a change lands
 
+This is how changes landed during the build. On Nov 15, 2026, at the end of the build, `dev` was merged into `main` and removed, so `main` is the only branch.
+
 1. Work starts on a branch from `dev`, and its pull request goes to `dev`.
 2. CI passes. The team reviews the change and merges it.
 3. `main` changes only through a pull request from `dev`. Once CI passes on `main`, the site deploys automatically (`docs/deploy.md`, "Continuous deployment").

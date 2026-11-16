@@ -22,8 +22,7 @@ Sunday, Nov 15, Eastern time.
 | 7:16 pm | Done. Submitted again with the evening's edits (the public page's record) |
 | 3:30 pm | Done. Live presentation. Notes in `docs/submission/livepresentation.md` |
 | 4:20 pm | Passed. Our Local Event's cutoff |
-| 11:00 pm | Deploys freeze. A change to the site must be merged before this |
-| 11:30 pm | The repo freezes. No commit, merge, or push after this |
+| 11:30 pm | Deploys and the repo freeze. A change to the site must be merged before this. No commit, merge, or push after this |
 | 11:59 pm | The global form closes. The guide: "Any projects saved or submitted past this deadline will not be eligible for judging." |
 
 ## What is left, in order

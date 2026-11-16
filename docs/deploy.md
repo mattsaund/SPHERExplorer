@@ -82,7 +82,7 @@ A push to `main` deploys itself once CI passes (see "Continuous deployment" belo
 - GitHub signs in to Google Cloud with Workload Identity Federation. No key is stored anywhere. Google accepts tokens only from this repository's `main` branch.
 - Each deploy runs Cloud Build for a few minutes and stores one more image in Artifact Registry.
 - To pause deploys, disable the Deploy workflow in the repository's Actions tab. Deploying by hand still works.
-- Deploys freeze at 11:00 pm Eastern on Nov 15, an hour before the 11:59 pm submission deadline (`FREEZE_AT` in `deploy.yml`). The hour leaves time to check the last deploy. A commit pushed before the freeze still deploys when its CI passes. Nothing pushed after it deploys, so the site stays as submitted through judging. Don't deploy by hand after the freeze either.
+- Deploys freeze at 11:30 pm Eastern on Nov 15, with the repo, half an hour before the 11:59 pm submission deadline (`FREEZE_AT` in `deploy.yml`). A commit pushed before the freeze still deploys when its CI passes. Nothing pushed after it deploys, so the site stays as submitted through judging. Don't deploy by hand after the freeze either.
 
 ### One-time setup
 
